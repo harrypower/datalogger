@@ -19,17 +19,17 @@ variable junk$
 
 junk$ $init
 data_store$ $init
-s" /home/pi/git/datalogging/collection/logged_events.data" data_store$ $!
+s" /home/pi/git/datalogger/collection/logged_events.data" data_store$ $!
 webview_name$ $init
-s" /home/pi/git/datalogging/htdocs/logged.data" webview_name$ $!
+s" /home/pi/git/datalogger/htdocs/logged.data" webview_name$ $!
 
 : getlocaldata ( -- nflag ) \ if false is returned then no logged data is present.  True means log data present and was transfered for use localy
     TRY
 	s" test -e " junk$ $! data_store$ $@ junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search
 	if drop drop 
-	    s" sudo cp /home/pi/git/datalogging/collection/logged_events.data /home/pi/git/datalogging/htdocs/logged.data" system $? throw
-	    s" sudo cp /home/pi/git/datalogging/htdocs/logged.data /home/pi/git/datalogging/htdocs/logged.csv" system $? throw
-	    s" sudo cp /home/pi/git/datalogging/htdocs/logged.data /home/pi/git/datalogging/htdocs/logged.txt" system $? throw
+	    s" sudo cp /home/pi/git/datalogger/collection/logged_events.data /home/pi/git/datalogger/htdocs/logged.data" system $? throw
+	    s" sudo cp /home/pi/git/datalogger/htdocs/logged.data /home/pi/git/datalogger/htdocs/logged.csv" system $? throw
+	    s" sudo cp /home/pi/git/datalogger/htdocs/logged.data /home/pi/git/datalogger/htdocs/logged.txt" system $? throw
 	    false
 	else
 	    drop drop true

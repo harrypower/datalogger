@@ -16,38 +16,20 @@
 \ You should have received a copy of the GNU General Public License
 \ along with this program. If not, see http://www.gnu.org/licenses/.
 
-\ This relies on inetd or xinetd:
+\ This relies on inetd: 
 
-\ To run the server on port 4444, do the following:
+\ Add the following line to /etc/inetd.conf:
 
-\ Add the following line to /etc/services:
-\ gforth          4444/tcp
+\ http stream tcp nowait.1000 root /home/pi/git/datalogger/httpd.fs
 
-\ If you use inetd, add the following line to /etc/inetd.conf:
-
-\ gforth stream tcp nowait.10000   wwwrun   /usr/users/bernd/bin/httpd
-\
-\ note this is how i have this line set currently with this repository
-\ gforth stream tcp nowait.100 root /home/pi/git/gforth_webserver/httpd.fs
 \ I have tested only the inetd service and it works 
  
-\ If you use xinetd, create the folliwing service in /etc/xinetd.d:
-\ service gforth
-\ {
-\         socket_type     = stream
-\         protocol        = tcp
-\         wait            = no
-\         user            = wwwrun
-\         server          = /home/bernd/bin/httpd
-\ }
-
-\ If you want port 80, replace the service "gforth" with "http"
 
 warnings off
 
 require string.fs
 
-Variable DocumentRoot  s" /home/pi/git/gforth_webserver/htdocs/" DocumentRoot $!
+Variable DocumentRoot  s" /home/pi/git/datalogger/htdocs/" DocumentRoot $!
 Variable UserDir       s" public_html/"     UserDir      $!
 
 Variable url

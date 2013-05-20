@@ -25,7 +25,7 @@ variable dth11_info$
 
 dth11_info$ $init
 junk$ $init
-s" /home/pi/git/datalogging/collection/dth11.data" dth11_info$ $!
+s" /home/pi/git/datalogger/collection/dth11.data" dth11_info$ $!
 
 : dth11_var_reset 
     0 to dth11_size

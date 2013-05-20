@@ -24,7 +24,7 @@ junk$ $init
 last_data_saved$ $init
 datavalid$ $init
 filelocation$ $init
-s" /home/pi/git/datalogging/collection/logged_events.data" filelocation$ $!
+s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
 
 \ note all flags in this code are false or zero meaning all ok and true or other non zero number meaning some failure or error!
 : filetest ( caddr u -- nflag )

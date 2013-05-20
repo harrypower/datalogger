@@ -10,7 +10,7 @@ variable junk$
 junk$ $init
 datetime$ $init
 error_file$ $init
-s" /home/pi/git/datalogging/collection/error.data" error_file$ $!
+s" /home/pi/git/datalogger/collection/error.data" error_file$ $!
 
 
 : #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
