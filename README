@@ -1,16 +1,6 @@
-httpd.fs 
-string.fs
-proxy.fs
-sockets.fs
+This is a project that started out as a clone from my gforth_webserver repository.  Please see and or clone the gforth_webserver repository as this one will not contain any help for general consumption.
 
-These files are from the gforth 0.7.0 distributed files. They work together to make a basic webserver. 
-These files can be found at /usr/share/gforth/0.7.0 if you have installed gforth via $ apt-get install gforth
-The httpd.fs was writen by Bernd Paysan so the credit goes to him for all the work here!
-The other files i am unsure of who the authors are but Bernd may be also responsible for them.
-I have not tested the proxy stuff yet or set it up to be used yet.  
 This code needs the inetd service running and this can be installed with $ apt-get install inetutils-inetd
-
-I have made this repository for the purpose of enabling other Raspberry Pi users to learn and use forth as another programming lanugauge.  This repository is used on a raspberry pi with debian wheezy distro running!
 
 To use this server you need to install Gforth, inetd and then configure this service and adjust the path for the web files. The steps are below( do this on the pi or via sshing into the pi)
 -Install stuff
@@ -28,30 +18,29 @@ To use this server you need to install Gforth, inetd and then configure this ser
 	There should be no message if all is working.  Note if you need to recompile the library just follow the README file for how to remove the old and recompile the new library.  Then use ./clean command to remove the gforth library and then do the above include rpi_GPIO_lib.fs from gforth command line to reconnect the c library to gforth.  
 -Install dependant Chart.js library submodule ( this is only needed if you want to see the chart test or work with it in any way!)
 	Do the following to install it from the gforth_webserver directory:
-		$ sudo git submodule init
-		$ sudo git submodule update
 		$ cd /htdocs/chart
 		$ sudo git checkout master
 	Nothing else is needed to be done for this submodule.  
 	Note there are example html files in this submodule directory for example usage of the chart.js library.
--Adjust the path for your web content as follows:
-    $ sudo nano httpd.fs
-	Find the following line in the code:
-	Variable DocumentRoot  s" /home/pi/git/gforth_webserver/htdocs/" DocumentRoot $!
-	Change the /home/pi/git/gforth_webserver/htdocs/ to match where the index.html and other web docs are.
-	Save the file with control x, y enter.
 -Configure inetd service and start the webserver as follows:
     $ sudo nano /etc/inetd.conf
 	Move the curser to the end of the document and enter the following text:
-	gforth stream tcp nowait.100 root /home/pi/git/gforth_webserver/httpd.fs
-	( Note if you want this to work on port 80 then replace gforth with http in above line. )
-	Save the file with control x y enter
-	$ sudo nano /etc/services 
-	Move to the bottom of the document and add the following line:
-	gforth	4444/tcp
+	http stream tcp nowait.100 root /home/pi/git/datalogging/httpd.fs
 	Save the file with control x y enter
 	Now at this moment you can restart your pi as follows:
 	$ sudo shutdown "now" -r
-When the pi starts up it will serve your index.html and other web stuff on port 4444 or 80 if you did the http change in the note above!
-	
-	
+When the pi starts up it will serve index.html !
+-The data collection is done with logging.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
+        $ sudo nano /etc/rc.local 
+        This above command will open the file for editing that is used to run a script at the end of boot processes. Place the following into file before exit at bottom of the file:
+        ####
+	nohup /home/pi/git/datalogging/collection/logger.fs > /home/pi/git/datalogging/collection/logginglastmsg.data &
+	####
+        Note this will run the logger.fs gforth program as root after boot up is done.  Note this script starts with #! but it will start gforth for the compiling of the rest of logger.fs. 
+        Data collection will be in a file called logged_events.data and the first event will be logged once the pi starts up unless the file already has other events in it then that file will just be added to!
+        There is a monitoring program called isdatalogging?.fs that can restart the logger.fs program if for some reason it stops.  Note both this isdatalogging?.fs and logger.fs issue errors into an error log.
+	To have this monitoring program run do the following in the /etc/rc.local file:
+	####
+	nohup /home/pi/git/datalogging/collection/isdatalogging?.fs > /home/pi/git/datalogging/collection/isdatalogging_lastmsg.data &
+	####
+	This should be just after the logger.fs entry in /etc/rc.local.

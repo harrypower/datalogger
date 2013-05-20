@@ -1,0 +1,13 @@
+<html>
+<head>
+<title>Temperature and Humidity data download</title>
+<script type="text/javascript">
+window.onload=function(){
+window.open('logged.data', 'Download', 'height=100,width=200' )
+}
+</script>
+</head>
+<body>
+<a href="sense.shtml">Back to Temperautre reading</a>
+</body>
+</html>

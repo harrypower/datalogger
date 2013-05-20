@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Table of Temperature and Humidity data</title>
+</head>
+<body>
+<$
+include ../gpio/rpi_GPIO_lib.fs
+include ../string.fs
+false constant pass
+true constant fail
+variable webview_fd_name$
+variable junk$
+0 value fileid
+1 value entry# 
+webview_fd_name$ $init
+junk$ $init
+s" /home/pi/git/datalogging/htdocs/logged.data" webview_fd_name$ $!
+
+: open_data ( -- flag ) 
+   TRY 
+      webview_fd_name$ $@ r/o open-file throw to fileid 
+      fileid file-size throw d0= if fail throw then \ no data if file is size zero
+      fileid file-position throw d0> if 0 s>d dabs fileid reposition-file throw then \ ensure read position starts at beginning
+      pass
+   RESTORE 
+   ENDTRY
+;
+
+: @next_data ( -- c-addr u1 flag ) 
+  TRY \ still need to figure the read conditions in next line out better.
+     fileid file-position throw 10 { D: fpos nsize } pad nsize fileid read-file throw to nsize pad nsize s" ," search 
+     if nsize swap - dup 1 + s>d dabs fpos d+ fileid reposition-file throw swap drop pad swap pass else fail then
+  RESTORE  
+  ENDTRY 
+;
+
+: starttable ( -- )
+  s" <table> <tr><th>Entry#</th><th>Year</th><th>Month</th><th>Day</th><th>Hour</th><th>Min</th><th>Sec</th>" type
+  s" <th>Temperature</th><th>Humidity</th></tr>" type ;
+
+: endtable ( -- ) s" </table>" type ;   
+: <tr> ( -- ) s" <tr>" type ;
+: </tr> ( -- ) s" </tr>" type ;
+: <th> ( -- ) s" <th>" type ;
+: </th> ( -- ) s" </th>" type ;
+: <td> ( -- ) s" <td>" type ;
+: </td> ( -- ) s" </td>" type ;
+: tablefield ( -- flag ) <td> @next_data throw type </td> ;
+: tablerow ( -- ) <tr> <td> entry# u. entry# 1 + to entry# </td> tablefield tablefield tablefield 
+    tablefield tablefield  tablefield    
+    tablefield tablefield </tr> ;
+: maketable ( -- )
+  TRY
+     open_data throw
+     starttable
+     begin 
+        tablerow fileid file-size throw fileid file-position throw d- d>s 10 <=  
+     until   \ this exit condition is the worest i have ever programmed i think!   
+  RESTORE  fileid close-file drop endtable 
+  ENDTRY
+;
+maketable
+$>
+    
+</body>
+</html>
+    
+    

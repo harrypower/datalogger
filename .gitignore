@@ -1,0 +1,12 @@
+# Binary files
+*.a
+*.0
+*.so*
+*.exe
+
+# data files
+*.data
+*.txt
+*.csv
+
+gh-pages
