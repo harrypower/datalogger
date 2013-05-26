@@ -12,7 +12,7 @@ variable junk$
 junk$ $init
 datetime$ $init
 error_file$ $init
-s" /home/pi/git/datalogging/collection/error.data" error_file$ $!
+s" /home/pi/git/datalogger/collection/error.data" error_file$ $!
 
 : filetest ( caddr u -- nflag )
     s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search swap drop swap drop

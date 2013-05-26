@@ -22,7 +22,7 @@ junk$ $init
 last_data_saved$ $init
 datavalid$ $init
 filelocation$ $init
-s" /home/pi/git/datalogging/collection/logged_events.data" filelocation$ $!
+s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
 
 : filetest ( caddr u -- nflag )
     s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search swap drop swap drop
@@ -41,7 +41,7 @@ s" /home/pi/git/datalogging/collection/logged_events.data" filelocation$ $!
 
 : read_dth11 ( -- nhumd ntemp nflag ) \ true returned for nflag means data is not valid false means humd and temp data is valid
     try
-	0 0 0 s" sudo /home/pi/git/datalogging/collection/dth11.fs" shget throw { nflag ntemp nhumd caddr u }
+	0 0 0 s" sudo /home/pi/git/datalogger/collection/dth11.fs" shget throw { nflag ntemp nhumd caddr u }
 	caddr u s>number? throw d>s to nflag caddr u s"  " search
 	if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
 	    if swap 1 + swap s>number? throw d>s to nhumd else true throw then

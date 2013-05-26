@@ -16,7 +16,7 @@ variable junk$
 1 value entry# 
 webview_fd_name$ $init
 junk$ $init
-s" /home/pi/git/datalogging/htdocs/logged.data" webview_fd_name$ $!
+s" /home/pi/git/datalogger/htdocs/logged.data" webview_fd_name$ $!
 
 : open_data ( -- flag ) 
    TRY 
