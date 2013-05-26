@@ -1,3 +1,4 @@
+#! /usr/bin/gforth
 
 \ error 1001 -- no start indicator for dth11 bit message
 \ error 1002 -- code did not see the change from 0 to 1 at bit start message so all data might be faulty
@@ -10,22 +11,33 @@
 \ error 1009 -- this means the data table recieved from dth11 did not contain all the data for correct processing into bytes so it must be corrupted
 \ error 1010 -- check sum from dth11 did not match the iterpreded bytes from dth11 so data must be corrupted 
 \ error 1011 -- dth11 is currently busy.  some other process is reading this sensor right now!
-\ error 1012 -- could not set dth11 to busy status
-\ error 1013 -- could not release dth11 from busy status or file could not be created for the first time to indicate dth11 status
+\ error 1012 -- dth11 did not read after 20 attempts
+
+warnings off
 
 include ../gpio/rpi_GPIO_lib.fs
 include ../string.fs
+include script.fs
 
 variable junk$
-variable dth11_info$
+variable dth11_self$
+
 0 value dth11_data_location
 0 value dth11_size
 0 value dth11_packetstart
 0 value dth11_readlocation
 
-dth11_info$ $init
+dth11_self$ $init
 junk$ $init
-s" /home/pi/git/datalogger/collection/dth11.data" dth11_info$ $!
+
+s" dth11.fs" dth11_self$ $!
+
+: dth11_busy? ( -- nflag ) \ true means that another dth11 process is busy with sensor
+    s" pgrep -c " junk$ $! dth11_self$ $@ junk$ $+! junk$ $@ shget
+    if 2drop false
+    else s>number?  if 2drop false else d>s 1 = if false else true then  then
+    then
+;
 
 : dth11_var_reset 
     0 to dth11_size
@@ -34,26 +46,6 @@ s" /home/pi/git/datalogger/collection/dth11.data" dth11_info$ $!
 
 : dth11_data_storage_setup dth11_data_location 0= if 300 cell * allocate throw to dth11_data_location then  ;
 
-: dth11_busy_set ( -- nflag ) \ false returned is all ok any error will return 1012 for busy status not set
-    TRY dth11_info$ $@ w/o open-file if drop dth11_info$ $@ w/o create-file throw then { nfileid }
-	s" yes" nfileid write-line throw nfileid flush-file throw
-	nfileid close-file throw
-	false
-    RESTORE  if 1012 else false then 
-    ENDTRY
-;
-
-: dth11_busy_release ( -- nflag ) \ false returned is all ok any error will return 1013 indicating busy was not released yet for some reason
-    TRY dth11_info$ $@ w/o open-file throw { nfileid } s" no" nfileid write-line throw nfileid flush-file throw nfileid close-file throw false
-    RESTORE if 1013 else false then 
-    ENDTRY
-;
-
-: dth11_busy? ( -- nflag ) \ true means that dth11 is busy currently
-    TRY dth11_info$ $@ r/o open-file if drop false else drop dth11_info$ $@ slurp-file s" yes" search swap drop swap drop then 
-    RESTORE  
-    ENDTRY
-;
 : wait ( nduration -- ) \ this duration is 70 us minimum duration up to what ever you want  
     utime rot 70 - s>d d+ begin 2dup utime d<= until 2drop ;
 
@@ -115,21 +107,41 @@ s" /home/pi/git/datalogger/collection/dth11.data" dth11_info$ $!
 : dth11_parse ( -- ntemp nhumd nerror ) \ false returned means that the reading was good ... anything else is bad data
     TRY dth11_var_reset  
 	dth11_data_storage_setup
-	dth11_busy? false =
-	if
-	    TRY
-		dth11_busy_set throw 
+	\ dth11_busy? false =
+	\ if
+	\     TRY
 		dth11_getdata dth11_correct_start? throw
 		dth11_packetstart to dth11_readlocation
 		dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte 
 		dth11_valid_data if 1010 throw then
-		\ dth11_busy_release throw
 		false
-	    RESTORE dth11_busy_release 0 <> if s" sudo rm " junk$ $! dth11_info$ $@ junk$ $+! junk$ $@ system then  
-	    ENDTRY
-	else
-	    1011
-	then
+	 \    RESTORE 
+	 \   ENDTRY
+	\ else
+	\     1011
+	\ then
     RESTORE dup if 0 swap 0 swap then 
     ENDTRY
 ;
+
+: get_temp_humd ( -- )
+    dth11_busy? false =
+    if
+	20 { ntimes } 1 2
+	begin
+	    drop drop
+	    ntimes 0 >
+	    if
+		ntimes 1 - to ntimes
+		dth11_parse dup 0 = if true else false 1800 ms then
+	    else 0 0 1012 true
+	    then
+	until
+    else
+	0 0 1011 
+    then
+    
+    . . . 
+;
+
+get_temp_humd bye

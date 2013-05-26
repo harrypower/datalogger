@@ -15,7 +15,7 @@ true value fail
     TRY s" pgrep logger.fs" shget 0= if swap drop 0= if  false else true then else drop drop false then
 	if  pass else fail then
     RESTORE if times_restarted 1 + to times_restarted s" Starting up logger.fs" type cr
-	    s" sudo nohup /home/pi/git/datalogger/collection/logger.fs > /home/pi/git/datalogger/collection/logging_restart_msg.data &" system then
+	    s" sudo nohup /home/pi/git/datalogging/collection/logger.fs > /home/pi/git/datalogging/collection/logging_restart_msg.data &" system then
     ENDTRY ;
 
 : loggingcheckloop ( -- )

@@ -6,7 +6,6 @@
 </HEAD>
 <$ 
 include ../string.fs
-include ../collection/dth11.fs
 include ../collection/script.fs
 
 warnings off
@@ -16,20 +15,23 @@ false value local_data_valid
 variable webview_name$
 variable data_store$
 variable junk$
+0 value ntemp
+0 value nhumd
+0 value nflag_temp_valid
 
 junk$ $init
 data_store$ $init
-s" /home/pi/git/datalogger/collection/logged_events.data" data_store$ $!
+s" /home/pi/git/datalogging/collection/logged_events.data" data_store$ $!
 webview_name$ $init
-s" /home/pi/git/datalogger/htdocs/logged.data" webview_name$ $!
+s" /home/pi/git/datalogging/htdocs/logged.data" webview_name$ $!
 
 : getlocaldata ( -- nflag ) \ if false is returned then no logged data is present.  True means log data present and was transfered for use localy
     TRY
 	s" test -e " junk$ $! data_store$ $@ junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search
 	if drop drop 
-	    s" sudo cp /home/pi/git/datalogger/collection/logged_events.data /home/pi/git/datalogger/htdocs/logged.data" system $? throw
-	    s" sudo cp /home/pi/git/datalogger/htdocs/logged.data /home/pi/git/datalogger/htdocs/logged.csv" system $? throw
-	    s" sudo cp /home/pi/git/datalogger/htdocs/logged.data /home/pi/git/datalogger/htdocs/logged.txt" system $? throw
+	    s" sudo cp /home/pi/git/datalogging/collection/logged_events.data /home/pi/git/datalogging/htdocs/logged.data" system $? throw
+	    s" sudo cp /home/pi/git/datalogging/htdocs/logged.data /home/pi/git/datalogging/htdocs/logged.csv" system $? throw
+	    s" sudo cp /home/pi/git/datalogging/htdocs/logged.data /home/pi/git/datalogging/htdocs/logged.txt" system $? throw
 	    false
 	else
 	    drop drop true
@@ -38,7 +40,18 @@ s" /home/pi/git/datalogger/htdocs/logged.data" webview_name$ $!
     ENDTRY
     ;
 
-: gettemp ( -- ntemp nhumd ) begin dth11_parse if drop drop false else true then 2000 ms  until ;
+: gettemp ( -- nhumd ntemp nflag ) \ true returned for nflag means data is not valid false means humd and temp data is valid
+    try
+	0 0 0 s" sudo /home/pi/git/datalogging/collection/dth11.fs" shget throw { nflag ntemp nhumd caddr u }
+	caddr u s>number? throw d>s to nflag caddr u s"  " search
+	if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
+	    if swap 1 + swap s>number? throw d>s to nhumd else true throw then
+	else true throw
+	then
+	false
+    restore if 0 0 true else nhumd ntemp nflag then
+    endtry ;
+ 	
 : enumerate_data ( -- udatapoints ) 
     TRY webview_name$ $@ r/o open-file throw to fileid fileid file-size throw fileid close-file throw false
     RESTORE if 0 s>d dabs then 
@@ -53,7 +66,8 @@ $>
 
 <BODY>
 
-<h1><p> <$  gettemp  s" The current temperature is " type u. s" <br>The current relative humidity is " type u. $> </p></h1> 
+<h1><p> <$ gettemp to nflag_temp_valid to ntemp to nhumd s" The current temperature is " type nflag_temp_valid 0= [if] ntemp . [else] s" not available now!" type [then]
+s" <br>The current relative humidity is "  type nflag_temp_valid 0= [if] nhumd . [else] s" not avaiable now!" type [then] $> </p></h1> 
 <$ getlocaldata to local_data_valid local_data_valid [if] s\"  <form action=\"logged_data_table.shtml\" method=\"post\"><input type=\"submit\" value=\"View Table of logged temperature and humidity data!\"></form>" type [then] $>
 <$ local_data_valid [if] s\" <a href=\"logged.txt\">View Logged temperature and humidity data as text file!</a> <br>" type [then] $>
 <$ local_data_valid [if] s\" <a href=\"logged.csv\">Download Logged temperature and humidity data as csv file!</a><br>" type [then] $>

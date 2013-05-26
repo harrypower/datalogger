@@ -6,12 +6,10 @@
 include ../gpio/rpi_GPIO_lib.fs
 include ../string.fs
 include errorlogging.fs
-include dth11.fs
 include script.fs
 
 0 value fileid
 false constant pass
-20 constant dth11_trys
 100 constant dth11_fail
 
 
@@ -24,9 +22,8 @@ junk$ $init
 last_data_saved$ $init
 datavalid$ $init
 filelocation$ $init
-s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
+s" /home/pi/git/datalogging/collection/logged_events.data" filelocation$ $!
 
-\ note all flags in this code are false or zero meaning all ok and true or other non zero number meaning some failure or error!
 : filetest ( caddr u -- nflag )
     s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search swap drop swap drop
     if -1
@@ -42,23 +39,21 @@ s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
     RESTORE  \ remember the stack is returned to entry point then error # added when an error happens 
     ENDTRY ;
 
-: read_dth11 ( -- ntemp nhumd nflag )  \ true returned means temp and humd data is valid
-    TRY
-	0 { failtimes } 
-	begin
-	    dth11_parse
-	    if drop drop 2000 ms failtimes 1 + dup to failtimes dth11_trys >
-		if true throw then
-		false
-	    else true
-	    then
-	until
-	pass
-     RESTORE if 0 0 false else true then
-     ENDTRY ;
+: read_dth11 ( -- nhumd ntemp nflag ) \ true returned for nflag means data is not valid false means humd and temp data is valid
+    try
+	0 0 0 s" sudo /home/pi/git/datalogging/collection/dth11.fs" shget throw { nflag ntemp nhumd caddr u }
+	caddr u s>number? throw d>s to nflag caddr u s"  " search
+	if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
+	    if swap 1 + swap s>number? throw d>s to nhumd else true throw then
+	else true throw
+	then
+	false
+    restore if 0 0 true else nhumd ntemp nflag then
+    endtry ;
+
 
 : dataformat ( -- )
-    read_dth11 if #to$ junk$ $! #to$ junk$ $+! junk$ $@ datavalid$ $! else last_data_saved$ $@ datavalid$ $! dth11_fail error_log then  ; 
+    read_dth11 false = if #to$ junk$ $! #to$ junk$ $+! junk$ $@ datavalid$ $! else last_data_saved$ $@ datavalid$ $! dth11_fail error_log then  ; 
 
 : open_data_store ( --  wior ) \ opens the data file for r/w use
      TRY 

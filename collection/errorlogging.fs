@@ -1,3 +1,5 @@
+[ifundef] error_log
+    
 include ../string.fs
 include script.fs
 
@@ -10,8 +12,14 @@ variable junk$
 junk$ $init
 datetime$ $init
 error_file$ $init
-s" /home/pi/git/datalogger/collection/error.data" error_file$ $!
+s" /home/pi/git/datalogging/collection/error.data" error_file$ $!
 
+: filetest ( caddr u -- nflag )
+    s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search swap drop swap drop
+    if -1
+    else 0
+    then
+;
 
 : #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
     s>d
@@ -25,13 +33,14 @@ s" /home/pi/git/datalogger/collection/error.data" error_file$ $!
 
 : error_log ( nerror -- )  \ error_file$ contains file name of where nerror will be stored
     TRY
-	s" test -e " junk$ $! error_file$ $@ junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes"  search swap drop swap drop 
+	error_file$ $@ filetest
 	if error_file$ $@ w/o open-file throw 
 	else error_file$ $@ w/o create-file throw 
 	then { nfileid }
-	\ error_file$ $@ w/o open-file if drop error_file$ $@ w/o create-file throw then { nfileid }
 	nfileid file-size throw nfileid reposition-file throw
 	#to$ nfileid write-file throw datetime datetime$ $@ nfileid write-line throw
 	nfileid flush-file throw nfileid close-file throw pass pass
-    RESTORE drop drop \ dup if swap drop throw else drop drop then
+    RESTORE drop drop
     ENDTRY ;
+
+[then]
