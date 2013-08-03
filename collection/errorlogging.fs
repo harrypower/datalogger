@@ -3,7 +3,6 @@
 include ../string.fs
 include script.fs
 
-false constant pass
 
 variable datetime$        \ will contain the current date and time string when datetime is called 
 variable error_file$	  \ contains the path to the error.data file
@@ -39,7 +38,7 @@ s" /home/pi/git/datalogger/collection/error.data" error_file$ $!
 	then { nfileid }
 	nfileid file-size throw nfileid reposition-file throw
 	#to$ nfileid write-file throw datetime datetime$ $@ nfileid write-line throw
-	nfileid flush-file throw nfileid close-file throw pass pass
+	nfileid flush-file throw nfileid close-file throw false false 
     RESTORE drop drop
     ENDTRY ;
 

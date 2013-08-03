@@ -1,7 +1,7 @@
 #! /usr/bin/gforth
 \ The above line makes this file execute gforth that then compiles and execute the forth code below!  ( note needs to run as root )
 
-\ error 100 -- The dth11 sensor has failed to be read after dth11_trys or 20 times
+\ error 400 -- The dth11 sensor has failed to be read after dth11_trys or 20 times
 
 include ../gpio/rpi_GPIO_lib.fs
 include ../string.fs
@@ -10,7 +10,7 @@ include script.fs
 
 0 value fileid
 false constant pass
-100 constant dth11_fail
+400 constant dth11_fail
 
 
 variable filelocation$    \ contains path and file name to logged data
@@ -24,12 +24,6 @@ datavalid$ $init
 filelocation$ $init
 s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
 
-: filetest ( caddr u -- nflag )
-    s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search swap drop swap drop
-    if -1
-    else 0
-    then
-;
 
 : heartbeat ( -- ) piosetup drop  25 pipinsetpulldisable drop 25 pipinoutput drop
     25 pipinhigh drop 5 ms 25 pipinlow drop piocleanup drop ;

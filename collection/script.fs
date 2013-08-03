@@ -38,6 +38,6 @@
 interpret/compile: s`
 
 : shget ( addr u -- addr1 u1 nflag ) \ if nflag returns 0 then addr1 u1 is the real result from sh command
-  TRY sh-get 0 
+  TRY sh-get $? 
   RESTORE  
   ENDTRY ;
