@@ -39,6 +39,7 @@ variable dth11_self$
 0 value dth11_size
 0 value dth11_packetstart
 0 value dth11_readlocation
+11 value dth_11_22_?
 
 dth11_self$ $init
 junk$ $init
@@ -107,16 +108,26 @@ s" dth11.fs" dth11_self$ $!
     swap 64 * +
     swap 128 * + ;
 
-: dth11_valid_data { nrh nrhd nt ntd nck -- nrh nt nflag }
+: dth11_valid_data { nrh nrhd nt ntd nck -- nrh nt nflag } \ true returned means data checksum failed test 
     nrh nt nrh nrhd + nt + ntd + nck <> ;
+
+: dth22_valid_data { nrh nrhd nt ntd nck -- nrh nt nflag } \ true returned means data checksum failed test
+    nrh nrhd + nt + ntd + nck <> if 0 0 true else nrh 256 * nrhd + nt 256 * ntd + false then ;
 
 : dth11_parse ( -- ntemp nhumd nerror ) \ false returned means that the reading was good ... anything else is bad data
     TRY dth11_var_reset  
 	dth11_data_storage_setup
 	dth11_getdata dth11_correct_start? throw
 	dth11_packetstart to dth11_readlocation
-	dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte 
-	dth11_valid_data if checksum_fail throw then
+	dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte
+	dth_11_22_? 11 =
+	if 
+	    dth11_valid_data if checksum_fail throw then
+	then
+	dth_11_22_? 22 =
+	if
+	    dth22_valid_data if checksum_fail throw then
+	then
 	false
     RESTORE dup if 0 swap 0 swap then 
     ENDTRY ;
@@ -139,4 +150,8 @@ s" dth11.fs" dth11_self$ $!
     then
     . . . ; 
 
+: config-dth-type
+    next-arg s" -22" search if 22 to dth_11_22_? 2drop else s" -11" search if 11 to dth_11_22_? 2drop else then then ;
+
+config-dth-type
 get_temp_humd bye
