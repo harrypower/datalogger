@@ -49,15 +49,15 @@ s" dth11.fs" dth11_self$ $!
     s" pgrep -c " junk$ $! dth11_self$ $@ junk$ $+! junk$ $@ shget
     if 2drop false
     else s>number?  if 2drop false else d>s 1 = if false else true then  then
-    then
-;
+    then ;
 
-: dth11_var_reset 
+: dth11_var_reset ( -- ) 
     0 to dth11_size
     0 to dth11_packetstart
     0 to dth11_readlocation ;
 
-: dth11_data_storage_setup dth11_data_location 0= if 300 cell * allocate throw to dth11_data_location then  ;
+: dth11_data_storage_setup ( -- )
+    dth11_data_location 0= if 300 cell * allocate throw to dth11_data_location then  ;
 
 : wait ( nduration -- ) \ this duration is 70 us minimum duration up to what ever you want  
     utime rot 70 - s>d d+ begin 2dup utime d<= until 2drop ;
@@ -71,14 +71,11 @@ s" dth11.fs" dth11_self$ $!
 : dth11_change ( -- nsvalue ncvalue ntime )
     utime dth11_read rot rot 0 begin drop 2dup utime d- dabs 300 0 d> dth11_read dup 5 pick <> rot or until rot rot utime d- dabs d>s ;
 
-
-\ : test dth11_start_signal begin dth11_change dup 300 >= until cr depth 3 / 0 ?do . . . cr loop dth11_shutdown ;
-
 : dth11_getdata ( --  )  \ this code stores the dth11 raw timing data into memory starting at dth11_data with size of stored amount being dth11_size
     dth11_start_signal depth { dstack } begin dth11_change dup 300 >= until drop drop drop depth dstack - to dth11_size dth11_shutdown  
     dth11_size 0 ?do dth11_data_location i cell * + ! loop ;
 
-: dth11_data_retrieve ( nindex -- nvalue ) \ not nindex value must be between 0 and dth11_size and no checking is done here for that condition
+: dth11_data_retrieve ( nindex -- nvalue ) \ note nindex value must be between 0 and dth11_size and no checking is done here for that condition
     cell * dth11_data_location + @ ;
 
 : dth11_correct_start? ( -- nflag ) \ false returned means header is valid so continue 
@@ -89,10 +86,7 @@ s" dth11.fs" dth11_self$ $!
     dth11_size 5 - dth11_data_retrieve 0 <> if more_header_fail throw then \ need to see 0 for transition
     dth11_size 6 - dth11_data_retrieve 50 < if invalid_header_fail throw then \ header from dth11 is ok if this is more then 60
     dth11_size 7 - to dth11_packetstart \ store the start of the dth11 info packet
-    false \ the header is ok if code gets to here
-;
-
-: seeit dth11_size dup 10 - ?do i dup . dth11_data_retrieve . cr loop ;
+    false ; \ the header is ok if code gets to here 
 
 : dth11_getbit ( -- nvalue )
     dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  0 <> if start_bit_fail throw then  
@@ -100,8 +94,7 @@ s" dth11.fs" dth11_self$ $!
     dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  40 < if start_bit_fail throw then
     dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  1 <> if dth11_bit_fail throw then
     dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  0 <> if dth11_bit_fail throw then 
-    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  40 < if 0 else 1 then 
-;
+    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  40 < if 0 else 1 then ;
 
 : dth11_getbyte ( -- nvalue )
     dth11_readlocation 48 < if data_table_fail throw then 
@@ -112,8 +105,8 @@ s" dth11.fs" dth11_self$ $!
     swap 16 * +
     swap 32 * +
     swap 64 * +
-    swap 128 * + 
-;
+    swap 128 * + ;
+
 : dth11_valid_data { nrh nrhd nt ntd nck -- nrh nt nflag }
     nrh nt nrh nrhd + nt + ntd + nck <> ;
 
@@ -126,8 +119,7 @@ s" dth11.fs" dth11_self$ $!
 	dth11_valid_data if checksum_fail throw then
 	false
     RESTORE dup if 0 swap 0 swap then 
-    ENDTRY
-;
+    ENDTRY ;
 
 : get_temp_humd ( -- ntemp nhumd nerror )
     dth11_busy? false =
@@ -145,8 +137,6 @@ s" dth11.fs" dth11_self$ $!
     else
 	0 0 dth11_busy_fail 
     then
-    
-    . . . 
-;
+    . . . ; 
 
 get_temp_humd bye
