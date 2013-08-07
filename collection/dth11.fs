@@ -19,6 +19,19 @@ include ../gpio/rpi_GPIO_lib.fs
 include ../string.fs
 include script.fs
 
+1001 constant no_start_fail
+1002 constant no_change_fail
+1003 constant <60us_fail
+1004 constant header_part_fail
+1005 constant more_header_fail
+1006 constant invalid_header_fail
+1007 constant start_bit_fail
+1008 constant dth11_bit_fail
+1009 constant data_table_fail
+1010 constant checksum_fail
+1011 constant dth11_busy_fail
+1012 constant 20_trys_fail
+
 variable junk$
 variable dth11_self$
 
@@ -69,12 +82,12 @@ s" dth11.fs" dth11_self$ $!
     cell * dth11_data_location + @ ;
 
 : dth11_correct_start? ( -- nflag ) \ false returned means header is valid so continue 
-    dth11_size 1 - dth11_data_retrieve 0 <> if 1001 throw then \ do not have start low level message from dth11
-    dth11_size 2 - dth11_data_retrieve 1 <> if 1002 throw then \ should have seen change to 1 from dth11 here
-    dth11_size 3 - dth11_data_retrieve 50 < if 1003 throw then \ should have a transition time greater then 60 for this 0 to 1 event
-    dth11_size 4 - dth11_data_retrieve 1 <> if 1004 throw then \ need a 1 at this time for header to be valid
-    dth11_size 5 - dth11_data_retrieve 0 <> if 1005 throw then \ need to see 0 for transition
-    dth11_size 6 - dth11_data_retrieve 50 < if 1006 throw then \ header from dth11 is ok if this is more then 60
+    dth11_size 1 - dth11_data_retrieve 0 <> if no_start_fail throw then \ do not have start low level message from dth11
+    dth11_size 2 - dth11_data_retrieve 1 <> if no_change_fail throw then \ should have seen change to 1 from dth11 here
+    dth11_size 3 - dth11_data_retrieve 50 < if <60us_fail throw then \ should have a transition time greater then 60 for this 0 to 1 event
+    dth11_size 4 - dth11_data_retrieve 1 <> if header_part_fail throw then \ need a 1 at this time for header to be valid
+    dth11_size 5 - dth11_data_retrieve 0 <> if more_header_fail throw then \ need to see 0 for transition
+    dth11_size 6 - dth11_data_retrieve 50 < if invalid_header_fail throw then \ header from dth11 is ok if this is more then 60
     dth11_size 7 - to dth11_packetstart \ store the start of the dth11 info packet
     false \ the header is ok if code gets to here
 ;
@@ -82,16 +95,16 @@ s" dth11.fs" dth11_self$ $!
 : seeit dth11_size dup 10 - ?do i dup . dth11_data_retrieve . cr loop ;
 
 : dth11_getbit ( -- nvalue )
-    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  0 <> if 1007 throw then  
-    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  1 <> if 1007 throw then
-    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  40 < if 1007 throw then
-    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  1 <> if 1008 throw then
-    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  0 <> if 1008 throw then 
+    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  0 <> if start_bit_fail throw then  
+    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  1 <> if start_bit_fail throw then
+    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  40 < if start_bit_fail throw then
+    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  1 <> if dth11_bit_fail throw then
+    dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  0 <> if dth11_bit_fail throw then 
     dth11_readlocation dth11_data_retrieve dth11_readlocation 1 - to dth11_readlocation  40 < if 0 else 1 then 
 ;
 
 : dth11_getbyte ( -- nvalue )
-    dth11_readlocation 48 < if 1009 throw then 
+    dth11_readlocation 48 < if data_table_fail throw then 
     8 0 ?do dth11_getbit loop
     swap 2 * +
     swap 4 * +
@@ -107,24 +120,16 @@ s" dth11.fs" dth11_self$ $!
 : dth11_parse ( -- ntemp nhumd nerror ) \ false returned means that the reading was good ... anything else is bad data
     TRY dth11_var_reset  
 	dth11_data_storage_setup
-	\ dth11_busy? false =
-	\ if
-	\     TRY
-		dth11_getdata dth11_correct_start? throw
-		dth11_packetstart to dth11_readlocation
-		dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte 
-		dth11_valid_data if 1010 throw then
-		false
-	 \    RESTORE 
-	 \   ENDTRY
-	\ else
-	\     1011
-	\ then
+	dth11_getdata dth11_correct_start? throw
+	dth11_packetstart to dth11_readlocation
+	dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte dth11_getbyte 
+	dth11_valid_data if checksum_fail throw then
+	false
     RESTORE dup if 0 swap 0 swap then 
     ENDTRY
 ;
 
-: get_temp_humd ( -- )
+: get_temp_humd ( -- ntemp nhumd nerror )
     dth11_busy? false =
     if
 	20 { ntimes } 1 2
@@ -134,11 +139,11 @@ s" dth11.fs" dth11_self$ $!
 	    if
 		ntimes 1 - to ntimes
 		dth11_parse dup 0 = if true else false 1800 ms then
-	    else 0 0 1012 true
+	    else 0 0 20_trys_fail true
 	    then
 	until
     else
-	0 0 1011 
+	0 0 dth11_busy_fail 
     then
     
     . . . 
