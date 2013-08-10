@@ -1,7 +1,7 @@
 #! /usr/bin/gforth
 \ The above line makes this file execute gforth that then compiles and execute the forth code below!  ( note needs to run as root )
 
-\ error 400 -- The dth11 sensor has failed to be read after dth11_trys or 20 times
+\ error 400 -- The dth11 sensor has failed to be read after or 10 times based on dth_11_22.fs method 
 
 include ../gpio/rpi_GPIO_lib.fs
 include ../string.fs
@@ -34,8 +34,8 @@ s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
     ENDTRY ;
 
 : read_dth11 ( -- nhumd ntemp nflag ) \ true returned for nflag means data is not valid false means humd and temp data is valid
-    try
-	0 0 0 s" sudo /home/pi/git/datalogger/collection/dth11.fs" shget throw { nflag ntemp nhumd caddr u }
+    try  \ note this code currently only talks to a DTH11 sensor on pin 24 
+	0 0 0 s" sudo /home/pi/git/datalogger/collection/dth_11_22.fs -11_24" shget throw { nflag ntemp nhumd caddr u }
 	caddr u s>number? throw d>s to nflag caddr u s"  " search
 	if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
 	    if swap 1 + swap s>number? throw d>s to nhumd else true throw then

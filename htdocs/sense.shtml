@@ -42,7 +42,7 @@ s" /home/pi/git/datalogger/htdocs/logged.data" webview_name$ $!
 
 : gettemp ( -- nhumd ntemp nflag ) \ true returned for nflag means data is not valid false means humd and temp data is valid
     try
-	0 0 0 s" sudo /home/pi/git/datalogger/collection/dth11.fs" shget throw { nflag ntemp nhumd caddr u }
+	0 0 0 s" sudo /home/pi/git/datalogger/collection/dth_11_22.fs -22_25" shget throw { nflag ntemp nhumd caddr u }
 	caddr u s>number? throw d>s to nflag caddr u s"  " search
 	if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
 	    if swap 1 + swap s>number? throw d>s to nhumd else true throw then
