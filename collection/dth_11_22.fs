@@ -4,7 +4,8 @@
 \ error 1001 -- failed to find bit # 40 in data sample so data is bad
 \ error 1002 -- checksum did not add up so data is bad
 \ error 1003 -- this dth code is currently running so it is busy!
-\ error 1004 -- after 20 reading attemps dth sensor failed to be read
+\ error 1004 -- after 10 reading attemps dth sensor failed to be read
+\ error 1005 -- incorrect header detected data is bad
 
 warnings off
 
@@ -16,7 +17,8 @@ include script.fs
 1001 constant bit_40_not_found_fail
 1002 constant checksum_fail
 1003 constant dth_busy_fail
-1004 constant 20_trys_fail
+1004 constant 10_trys_fail
+1005 constant no_header_fail
 
 1500 constant max_data_quantity
 100 constant max_transitions
@@ -47,7 +49,13 @@ s" dth_11_22.fs" dth_self$ $!
     0 to dth_transitions_size
     0 to start_bit_value
     0 to bit_40_location
-    0 to dth_data_bits_index ;
+    0 to dth_data_bits_index
+    dth_data_location 0<>
+    if
+	dth_data_transitions max_transitions cell * 0 fill
+	dth_data_timings max_timings cell * 0 fill
+	dth_data_bits 40 0 fill
+    then ;
 
 : dth_data_storage_setup ( -- ) \ gets the memory for storage of dth reading procedure
     dth_data_location 0=
@@ -157,18 +165,23 @@ s" dth_11_22.fs" dth_self$ $!
 	nt 128 >= if nt 127 and 256 * ntd + -1 * else nt 256 * ntd + then 
     then ;
 
+: check_header ( -- )
+    0 transitions@ 100 > if no_header_fail throw then
+    1 transitions@ 100 > if no_header_fail throw then
+    2 transitions@ 100 > if no_header_fail throw then ;
+
 : testit ( -- ) \ testing word to show data from dth device
     dth_get_data max_data_quantity seedata
-    transitions max_transitions seetransitions
+    transitions  max_transitions seetransitions
     timings max_timings seetimings
     find_start_bit
     dth_bits
     seebits
     cr get_dth_data . . ;
 
-: dth_parse ( -- ntemp nhumd )
+: dth_parse ( -- ntemp nhumd nflag )
     try
-	dth_get_data transitions timings find_start_bit dth_bits get_dth_data false
+	dth_get_data transitions check_header timings find_start_bit dth_bits get_dth_data false
     restore dup if 0 swap 0 swap then
     endtry ;
 
@@ -181,14 +194,14 @@ s" dth_11_22.fs" dth_self$ $!
 : get_temp_humd ( -- )
     dth_busy? false =
     if
-	20 { ntimes } 1 2
+	10 { ntimes } 1 2 3
 	begin
-	    drop drop
+	    drop drop drop 
 	    ntimes 0 >
 	    if
 		ntimes 1 - to ntimes
-		dth_parse dup 0 = if true else false 2000 ms then
-	    else 0 0 20_trys_fail true
+		dth_parse dup 0 = if true else  false 2000 ms then
+	    else 0 0 10_trys_fail true
 	    then
 	until
     else
@@ -196,7 +209,7 @@ s" dth_11_22.fs" dth_self$ $!
     then
     . . . ;
 
-: pin_check ( npin -- nflag )
+: pin_check ( npin -- nflag ) \ false returned means pin not allowed true returned means pin is allowed for dth sensor
     case
 	4 of true endof
 	7 of true endof
@@ -214,9 +227,8 @@ s" dth_11_22.fs" dth_self$ $!
 	false swap
     endcase ;
 
-: get_pin ( caddr u -- nflag )
-
-;
+: get_pin ( caddr u -- nflag ) \ nflag is false for pin not allowed or present in command line switch
+    -trailing 4 /string s>number? if d>s dup pin_check if to gpio_dth_pin true else drop false then else 2drop false then ;
    
 : config-dth-type
     next-arg dup 0=
@@ -233,11 +245,11 @@ s" dth_11_22.fs" dth_self$ $!
     then
     s" -22_" search
     if
-	22 to dth-11-22? 2drop get_temp_humd bye
+	22 to dth-11-22? get_pin if get_temp_humd bye else ." GPIO pin not allowed with DTH22 sensor!" cr bye then 
     then
     s" -11_" search
     if
-	11 to dth-11-22? 2drop get_temp_humd bye
+	11 to dth-11-22? get_pin if get_temp_humd bye else ." GPIO pin not allowed with DTH11 sensor!" cr bye then
     then
     ." Switch not supported!" cr
     ." -22_xx  use for dth22 sensor raspberry pi gpio pin xx" cr
@@ -245,4 +257,4 @@ s" dth_11_22.fs" dth_self$ $!
     ." Replace xx with the raspberry pi gpio pin number. Not all pins can be used with the sensors.  The pins need to be pulled up with a 5 k resistor to 3.3 volts of gpio header only!" cr
     2drop bye ;
 
-\ config-dth-type
+  config-dth-type
