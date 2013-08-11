@@ -1,9 +1,37 @@
 #! /usr/bin/gforth
 
+\ This Gforth code is a Raspberry Pi DTH 11/22 sensor reader
+\    Copyright (C) 2013  Philip K. Smith
+
+\    This program is free software: you can redistribute it and/or modify
+\    it under the terms of the GNU General Public License as published by
+\    the Free Software Foundation, either version 3 of the License, or
+\    (at your option) any later version.
+
+\    This program is distributed in the hope that it will be useful,
+\    but WITHOUT ANY WARRANTY; without even the implied warranty of
+\    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+\    GNU General Public License for more details.
+
+\    You should have received a copy of the GNU General Public License
+\    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+\ This gforth code is used as follows:
+\ sudo ./dth_11_22.fs -11_24 to read the dth11 sensor on pin 24 with a 5 k resistor pullup to 3.3 volts.
+\ The code needs gforth installed on your rasberry pi and version 0.7.0 up should work properly.
+\ Use ./dth_11_22.fs -help to see other options for sensor use and pin use.
+\ The code will simply put out with stdout to give you values of error, temperature, humidity.
+\ The values are as follows:
+\ Error should be 0 meaning the temperatue and humidity values are good.
+\ Temperature value needs to be divided by 10 to get the celsius value with correct decimal place.
+\ Humidity value needs to be divided by 10 to get the % relavite humidity value with correct decimal place.
+\ This code will shutdown if another version of dt1_11_22.fs is running.
+\ This is needed because the sensor or pi could possibly be damaged if the same pin is accessed by by two running codes.
+
 \ error 1000 -- to many transitions have happened to be a proper message from dth device
 \ error 1001 -- failed to find bit # 40 in data sample so data is bad
 \ error 1002 -- checksum did not add up so data is bad
-\ error 1003 -- this dth code is currently running so it is busy!
+\ error 1003 -- another copy of this dth code is currently busy with some sensors so it is busy!
 \ error 1004 -- after 10 reading attemps dth sensor failed to be read
 \ error 1005 -- incorrect header detected data is bad
 
@@ -11,7 +39,6 @@ warnings off
 
 include ../gpio/rpi_GPIO_lib.fs
 include ../string.fs
-include script.fs
 
 1000 constant many_transitions_fail
 1001 constant bit_40_not_found_fail
@@ -159,7 +186,7 @@ s" dth_11_22.fs" dth_self$ $!
     nrh nrhd + nt + ntd + 255 and nack <> if checksum_fail throw then
     dth-11-22? 11 =
     if
-	nrh nt
+	nrh 10 *  nt 10 * 
     else
 	nrh 256 * nrhd +
 	nt 128 >= if nt 127 and 256 * ntd + -1 * else nt 256 * ntd + then 
@@ -185,12 +212,15 @@ s" dth_11_22.fs" dth_self$ $!
     restore dup if 0 swap 0 swap then
     endtry ;
 
-: dth_busy? ( -- nflag ) \ true means that another dth11 process is busy with sensor
-    s" pgrep -c " junk$ $! dth_self$ $@ junk$ $+! junk$ $@ shget
-    if 2drop false
-    else s>number?  if 2drop false else d>s 1 = if false else true then  then
-    then ;
-
+: dth_busy? ( -- nflag ) \ false means dth_11_22.fs is running only once this is the only process
+                         \ true means dth_11_22.fs is running more then once 
+    try                  \ or there is some system error not allowing detection of processes running!
+	s" pgrep -c " junk$ $! dth_self$ $@ junk$ $+! junk$ $@ r/o open-pipe throw { mypipe }
+	pad 80 mypipe read-file throw pad swap s>number?
+        if 2drop true else d>s 1 <= if false else true then then
+    restore 
+    endtry ; 
+    
 : get_temp_humd ( -- )
     dth_busy? false =
     if
