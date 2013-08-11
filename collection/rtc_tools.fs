@@ -1,3 +1,25 @@
+
+\ This Gforth code is a Raspberry Pi DTH 11/22 sensor reader
+\    Copyright (C) 2013  Philip K. Smith
+
+\    This program is free software: you can redistribute it and/or modify
+\    it under the terms of the GNU General Public License as published by
+\    the Free Software Foundation, either version 3 of the License, or
+\    (at your option) any later version.
+
+\    This program is distributed in the hope that it will be useful,
+\    but WITHOUT ANY WARRANTY; without even the implied warranty of
+\    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+\    GNU General Public License for more details.
+
+\    You should have received a copy of the GNU General Public License
+\    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\
+\  I am not currently using this code in the data logger but i have used it in other project.
+\  There are just some extra words that help using a RTC ds1307 chip on i2c port 2 of REV 2 of raspberry pi hardware
+\  These words allow direct reading of the ds1307 chip along with words that are already in my GPIO library that does more low level stuff with ds1307 chip.
+
+
 \ error 21 real time clock writing failure of some kind.  error should be logged above this error in error.data
 \ error 22 real time clock reading failure of somd kind.  error should be logged above this error in error.data
 \ error 23 real time clock not running at this moment.

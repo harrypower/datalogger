@@ -1,3 +1,27 @@
+\ This Gforth code is used with datalogger, Rpi_Gforth_GPIO software   
+\    Copyright (C) 2013  Philip K. Smith
+
+\    This program is free software: you can redistribute it and/or modify
+\    it under the terms of the GNU General Public License as published by
+\    the Free Software Foundation, either version 3 of the License, or
+\    (at your option) any later version.
+
+\    This program is distributed in the hope that it will be useful,
+\    but WITHOUT ANY WARRANTY; without even the implied warranty of
+\    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+\    GNU General Public License for more details.
+
+\    You should have received a copy of the GNU General Public License
+\    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+\ This gforth code is used as follows:
+\ Include errorlogger.fs
+\ This code does not run on its own and is used in other gforth code for easy error logging
+\ The main word is called error_log and this word will simply store the date time information with an error number you pass it.
+\ The location that the error log file is found below in the source code and could be changed to use for other projects.
+\ Note there are several other words that can be used for other things of note filetest is the most useful as it allows testing if a file exists or not.
+
+ 
 [ifundef] error_log
     
 include ../string.fs
