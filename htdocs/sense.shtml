@@ -51,6 +51,19 @@ s" /home/pi/git/datalogger/htdocs/logged.data" webview_name$ $!
 	false
     restore if 0 0 true else nhumd ntemp nflag then
     endtry ;
+
+: gettemp2 ( -- nhumd ntemp nflag ) \ true is no good  false is ok data from dth22 sensor
+    try
+        0 0 0 s" sudo /home/pi/git/datalogger/gpio/dth_11_22.fs -22_25" shget throw { nflag ntemp nhumd caddr u }
+        caddr u s>number? throw d>s to nflag caddr u s"  " search
+        if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
+            if swap 1 + swap s>number? throw d>s to nhumd else true throw then
+        else true throw
+        then
+        false
+    restore if 0 0 true else nhumd ntemp nflag then
+    endtry ;
+
  	
 : enumerate_data ( -- udatapoints ) 
     TRY webview_name$ $@ r/o open-file throw to fileid fileid file-size throw fileid close-file throw false
@@ -66,8 +79,11 @@ $>
 
 <BODY>
 
-<h1><p> <$ gettemp to nflag_temp_valid to ntemp to nhumd s" The current temperature is " type nflag_temp_valid 0= [if] ntemp . [else] s" not available now!" type [then]
-s" <br>The current relative humidity is "  type nflag_temp_valid 0= [if] nhumd . [else] s" not avaiable now!" type [then] $> </p></h1> 
+<h1><p> <$ gettemp to nflag_temp_valid to ntemp to nhumd s" The current temperature is (dth11) " type nflag_temp_valid 0= [if] ntemp . [else] s" not available now!" type [then]
+s" <br>The current relative humidity is (dth11) "  type nflag_temp_valid 0= [if] nhumd . [else] s" not avaiable now!" type [then] $> </p></h1> 
+<h1><p> <$ gettemp2 to nflag_temp_valid to ntemp to nhumd s" The current temperature is (dth22) " type nflag_temp_valid 0= [if] ntemp . [else] s" not available now!" type [then]
+s" <br>The current relative humidity is (dth22) "  type nflag_temp_valid 0= [if] nhumd . [else] s" not avaiable now!" type [then] $> </p></h1>
+
 <$ getlocaldata to local_data_valid local_data_valid [if] s\"  <form action=\"logged_data_table.shtml\" method=\"post\"><input type=\"submit\" value=\"View Table of logged temperature and humidity data!\"></form>" type [then] $>
 <$ local_data_valid [if] s\" <a href=\"logged.txt\">View Logged temperature and humidity data as text file!</a> <br>" type [then] $>
 <$ local_data_valid [if] s\" <a href=\"logged.csv\">Download Logged temperature and humidity data as csv file!</a><br>" type [then] $>
