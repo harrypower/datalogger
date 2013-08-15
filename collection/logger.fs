@@ -34,7 +34,8 @@ false constant pass
 400 constant dth11_fail
 
 
-variable filelocation$    \ contains path and file name to logged data
+variable code_path$       \ contains the current path of this running code.
+variable events_path$     \ contains path and file name to logged data
 variable datavalid$       \ will contain the final valid data to log but used for processing the stings also
 variable last_data_saved$ \ will contain the lasted logged data string but not the time date string 
 variable junk$
@@ -42,12 +43,18 @@ variable junk$
 junk$ $init
 last_data_saved$ $init
 datavalid$ $init
-filelocation$ $init
-s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
+code_path$ $init
+s" /home/pi/git/datalogger/collection/" code_path$ $! \ ** this needs to be set to the current absolute path where this logger.fs code is located **
+events_path$ $init
+s" logged_events.data" events_path$ $!
 
+code_path$ $@ junk$ $! events_path$ $@ junk$ $+! junk$ $@ events_path$ $!
 
-: heartbeat ( -- ) piosetup drop  25 pipinsetpulldisable drop 25 pipinoutput drop
-    25 pipinhigh drop 5 ms 25 pipinlow drop piocleanup drop ;
+: running_path@ ( -- caddr nu nflag ) \ nflag is false if caddr and nu contain the current running path of this code
+    try
+	s" pwd" r/o open-pipe throw pad swap 80 swap read-file throw pad swap false 
+    restore dup if 0 swap 0 swap then 
+    endtry ;
 
 : readgpio ( ngpio# -- ngpiovalue nflag )
     TRY piosetup throw dup pipinsetpullup throw dup pipininput throw pad pipinread throw pad @ 1 and pass piocleanup throw
@@ -72,9 +79,9 @@ s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
 
 : open_data_store ( --  wior ) \ opens the data file for r/w use
      TRY 
-	filelocation$ $@ filetest
-	if filelocation$ $@ r/w open-file throw
-	else  filelocation$ $@ r/w create-file throw
+	events_path$ $@ filetest
+	if events_path$ $@ r/w open-file throw
+	else  events_path$ $@ r/w create-file throw
 	then to fileid pass
     RESTORE 
     ENDTRY
@@ -110,6 +117,7 @@ s" /home/pi/git/datalogger/collection/logged_events.data" filelocation$ $!
     until 
 ;
 
-main_loop
 
-bye
+ main_loop
+
+ bye
