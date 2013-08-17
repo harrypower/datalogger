@@ -23,6 +23,7 @@
 
 
 \ error 400 -- The dth11 sensor has failed to be read after or 10 times based on dth_11_22.fs method 
+\ error 401 -- The absolute path for this repository could not be resolved
 
 include ../gpio/rpi_GPIO_lib.fs
 include ../string.fs
@@ -32,9 +33,9 @@ include script.fs
 0 value fileid
 false constant pass
 400 constant dth11_fail
+401 constant absolute_path_resolve_fail
 
-
-variable code_path$       \ contains the current path of this running code.
+variable code_path$       \ contains the full path of this repository.
 variable events_path$     \ contains path and file name to logged data
 variable datavalid$       \ will contain the final valid data to log but used for processing the stings also
 variable last_data_saved$ \ will contain the lasted logged data string but not the time date string 
@@ -44,15 +45,19 @@ junk$ $init
 last_data_saved$ $init
 datavalid$ $init
 code_path$ $init
-s" /home/pi/git/datalogger/collection/" code_path$ $! \ ** this needs to be set to the current absolute path where this logger.fs code is located **
 events_path$ $init
-s" logged_events.data" events_path$ $!
+s" collection/logged_events.data" events_path$ $! \ this is the sub path and file name for the logged events but this will changed to absolute path once resolved
 
-code_path$ $@ junk$ $! events_path$ $@ junk$ $+! junk$ $@ events_path$ $!
 
-: running_path@ ( -- caddr nu nflag ) \ nflag is false if caddr and nu contain the current running path of this code
+: locate_repo_path@ ( -- caddr nu nflag ) \ nflag is false if caddr and nu contain the full path of this repo 
     try
-	s" pwd" r/o open-pipe throw pad swap 80 swap read-file throw pad swap false 
+	200 allocate throw 200 allocate throw 0 0 { error_path logger_path nerr nlog }
+	s\" sudo find / -type f -name \"logger.fs\"" r/o open-pipe throw logger_path swap 200 swap read-file throw to nlog
+	s\" sudo find / -type f -name \"errorlogging.fs\"" r/o open-pipe throw error_path swap 200 swap read-file throw to nerr
+	error_path nerr s" collection/errorlogging.fs" search if swap drop nerr swap - to nerr else true throw then
+	logger_path nlog s" collection/logger.fs" search if swap drop nlog swap - to nlog else true throw then
+	logger_path nlog error_path nerr compare if true throw else logger_path nlog then  
+	false 
     restore dup if 0 swap 0 swap then 
     endtry ;
 
@@ -63,7 +68,7 @@ code_path$ $@ junk$ $! events_path$ $@ junk$ $+! junk$ $@ events_path$ $!
 
 : read_dth11 ( -- nhumd ntemp nflag ) \ true returned for nflag means data is not valid false means humd and temp data is valid
     try  \ note this code currently only talks to a DTH11 sensor on pin 24 
-	0 0 0 s" sudo /home/pi/git/datalogger/gpio/dth_11_22.fs -11_24" shget throw { nflag ntemp nhumd caddr u }
+	0 0 0 s" sudo " junk$ $! code_path$ $@ junk$ $+! s" gpio/dth_11_22.fs -11_24" junk$ $+! junk$ $@ shget throw { nflag ntemp nhumd caddr u }
 	caddr u s>number? throw d>s to nflag caddr u s"  " search
 	if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
 	    if swap 1 + swap s>number? throw d>s to nhumd else true throw then
@@ -84,8 +89,7 @@ code_path$ $@ junk$ $! events_path$ $@ junk$ $+! junk$ $@ events_path$ $!
 	else  events_path$ $@ r/w create-file throw
 	then to fileid pass
     RESTORE 
-    ENDTRY
-;
+    ENDTRY ;
 
 : close_data_store ( -- wior ) \ flushing and close data file
     TRY fileid flush-file throw fileid close-file throw pass 
@@ -105,19 +109,18 @@ code_path$ $@ junk$ $! events_path$ $@ junk$ $+! junk$ $@ events_path$ $!
 	begin
 	    dataformat datavalid$ $@ last_data_saved$ $@ compare  0<> if open_data_store throw log_data throw close_data_store throw then
 	    \ cr datetime$ $@ type depth .    \ this line is just for testing with ssh open running code remove later
-	    \ heartbeat
 	    30000 ms  
 	again
-    RESTORE dup error_log close_data_store drop  
+    RESTORE dup error_log close_data_store dup if error_log else drop then   
     ENDTRY ;
 
 : main_loop
     begin
 	main_process -28 = if true else false then  \ bail if user canceled program 
-    until 
-;
+    until ;
+
+locate_repo_path@
+[if] cr ." Could not resolve absolute path so logger.fs is shutting down!" 2drop absolute_path_resolve_fail error_log bye
+[else] code_path$ $! code_path$ $@ junk$ $! events_path$ $@ junk$ $+! junk$ $@ events_path$ $! main_loop bye [then]
 
 
- main_loop
-
- bye
