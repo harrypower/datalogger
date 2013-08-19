@@ -8,5 +8,6 @@
 *.data
 *.txt
 *.csv
+datalogger_home_path
 
 gh-pages

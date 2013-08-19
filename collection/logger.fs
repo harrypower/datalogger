@@ -46,18 +46,17 @@ last_data_saved$ $init
 datavalid$ $init
 code_path$ $init
 events_path$ $init
-s" collection/logged_events.data" events_path$ $! \ this is the sub path and file name for the logged events but this will changed to absolute path once resolved
-
+s" /collection/logged_events.data" events_path$ $! \ this is the sub path and file name for the logged events but this will changed to absolute path once resolved
 
 : locate_repo_path@ ( -- caddr nu nflag ) \ nflag is false if caddr and nu contain the full path of this repo 
     try
-	200 allocate throw 200 allocate throw 0 0 { error_path logger_path nerr nlog }
-	s\" sudo find / -type f -name \"logger.fs\"" r/o open-pipe throw logger_path swap 200 swap read-file throw to nlog
-	s\" sudo find / -type f -name \"errorlogging.fs\"" r/o open-pipe throw error_path swap 200 swap read-file throw to nerr
-	error_path nerr s" collection/errorlogging.fs" search if swap drop nerr swap - to nerr else true throw then
-	logger_path nlog s" collection/logger.fs" search if swap drop nlog swap - to nlog else true throw then
-	logger_path nlog error_path nerr compare if true throw else logger_path nlog then  
-	false 
+	s" ../datalogger_home_path" filetest
+	if
+	    s" ../datalogger_home_path" slurp-file 1 -
+	    false
+	else
+	    true
+	then
     restore dup if 0 swap 0 swap then 
     endtry ;
 
@@ -68,7 +67,7 @@ s" collection/logged_events.data" events_path$ $! \ this is the sub path and fil
 
 : read_dth11 ( -- nhumd ntemp nflag ) \ true returned for nflag means data is not valid false means humd and temp data is valid
     try  \ note this code currently only talks to a DTH11 sensor on pin 24 
-	0 0 0 s" sudo " junk$ $! code_path$ $@ junk$ $+! s" gpio/dth_11_22.fs -11_24" junk$ $+! junk$ $@ shget throw { nflag ntemp nhumd caddr u }
+	0 0 0 s" sudo " junk$ $! code_path$ $@ junk$ $+! s" /gpio/dth_11_22.fs -11_24" junk$ $+! junk$ $@ shget throw { nflag ntemp nhumd caddr u }
 	caddr u s>number? throw d>s to nflag caddr u s"  " search
 	if to u 1 + to caddr caddr u s>number? throw d>s to ntemp caddr u s"  " search
 	    if swap 1 + swap s>number? throw d>s to nhumd else true throw then
