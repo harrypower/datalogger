@@ -37,12 +37,11 @@ datetime$ $init
 error_file$ $init
 s" /home/pi/git/datalogger/collection/error.data" error_file$ $!
 
-: filetest ( caddr u -- nflag )
-    s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search swap drop swap drop
-    if -1
-    else 0
-    then
-;
+: filetest ( caddr u -- nflag )  \ looks for the full path and file name in string and returns true if found
+    s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw 1 -  s" yes" compare  
+    if false
+    else true
+    then ;
 
 : #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
     s>d
