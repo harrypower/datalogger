@@ -1,10 +1,17 @@
 #! /usr/bin/gforth
 
-warnings off 
+\ warnings off 
 
 s" pwd > datalogger_home_path" system $? 
   
-[if] ." Datalogger configuring had some error! This code needs to be run with sudo like this: sudo ./configure" cr [else] ." Datalogger is now configured!" cr [then] bye
+[if] ." Datalogger configuring had some error! This code needs to be run with sudo like this: sudo ./configure" cr [else] ." Datalogger path is now configured!" cr [then]
+
+s" datalogger_home_path" r/w open-file throw
+dup file-size throw 1 s>d d-
+rot dup 2tuck drop resize-file throw
+close-file throw drop
+
+bye
 
  
  

@@ -35,13 +35,18 @@ variable junk$
 junk$ $init
 datetime$ $init
 error_file$ $init
-s" /home/pi/git/datalogger/collection/error.data" error_file$ $!
+s" /collection/error.data" error_file$ $!  \ this will be resolved correctly at run time 
 
 : filetest ( caddr u -- nflag )  \ looks for the full path and file name in string and returns true if found
     s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw 1 -  s" yes" compare  
     if false
     else true
     then ;
+s" ../datalogger_home_path" filetest
+[if] s" ../datalogger_home_path" slurp-file junk$ $! error_file$ $@ junk$ $+! junk$ $@ error_file$ $!
+[else] ." absolute path could not be resolved!  errorlogging.fs is now shutting down!" bye
+[then]
+
 
 : #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
     s>d

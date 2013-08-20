@@ -49,14 +49,9 @@ events_path$ $init
 s" /collection/logged_events.data" events_path$ $! \ this is the sub path and file name for the logged events but this will changed to absolute path once resolved
 
 : locate_repo_path@ ( -- caddr nu nflag ) \ nflag is false if caddr and nu contain the full path of this repo 
-    try
-	s" ../datalogger_home_path" filetest
-	if
-	    s" ../datalogger_home_path" slurp-file 1 -
-	    false
-	else
-	    true
-	then
+    try s" ../datalogger_home_path" filetest
+	if s" ../datalogger_home_path" slurp-file false
+	else true then
     restore dup if 0 swap 0 swap then 
     endtry ;
 
