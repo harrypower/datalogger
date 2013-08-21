@@ -20,7 +20,7 @@
 
 \ Add the following line to /etc/inetd.conf:
 
-\ http stream tcp nowait.1000 root /home/pi/git/datalogger/httpd.fs
+\ http stream tcp nowait.1000 root /your-path-for-datalogger/httpd.fs
 
 \ I have tested only the inetd service and it works 
  

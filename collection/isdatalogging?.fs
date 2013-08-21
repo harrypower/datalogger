@@ -24,7 +24,7 @@ s" /collection/logging_restart_msg.data" logger_msg_path$ $! \ this will be reso
 309 constant logger_not_running
 312 constant absolute_path_fail
 
-: isitlogging ( -- )
+: isitlogging ( -- )  \ this just looks for a process with logger.fs in the name.  Now this may not work perfectly!
     TRY s" pgrep logger.fs" shget 0= if swap drop 0= if  false else true then else drop drop false then
 	if  pass else fail then
     RESTORE if times_restarted 1 + to times_restarted s" Starting up logger.fs" type cr
