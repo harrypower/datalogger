@@ -42,8 +42,8 @@ s" /collection/error.data" error_file$ $!  \ this will be resolved correctly at 
     if false
     else true
     then ;
-s" ../datalogger_home_path" filetest
-[if] s" ../datalogger_home_path" slurp-file junk$ $! error_file$ $@ junk$ $+! junk$ $@ error_file$ $!
+s" /var/lib/datalogger-gforth/datalogger_home_path" filetest
+[if] s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file junk$ $! error_file$ $@ junk$ $+! junk$ $@ error_file$ $!
 [else] ." absolute path could not be resolved!  errorlogging.fs is now shutting down!" bye
 [then]
 

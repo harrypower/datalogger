@@ -16,7 +16,8 @@ variable junk$
 1 value entry# 
 webview_fd_name$ $init
 junk$ $init
-s" /home/pi/git/datalogger/htdocs/logged.data" webview_fd_name$ $!
+
+s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file junk$ $! s" /htdocs/logged.data" junk$ $+! junk$ $@ webview_fd_name$ $!
 
 : open_data ( -- flag ) 
    TRY 

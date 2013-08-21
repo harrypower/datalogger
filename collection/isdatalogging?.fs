@@ -42,8 +42,8 @@ s" /collection/logging_restart_msg.data" logger_msg_path$ $! \ this will be reso
     RESTORE error_log loggingcheckloop_error error_log s\" sudo shutdown \"now\" -r &" system
     ENDTRY ;
 
-s" ../datalogger_home_path" filetest
-[if] s" ../datalogger_home_path" slurp-file datalogger_project_path$ $!
+s" /var/lib/datalogger-gforth/datalogger_home_path" filetest
+[if] s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_project_path$ $!
     datalogger_project_path$ $@ junk$ $! logger_path$ $@ junk$ $+! junk$ $@ logger_path$ $!
     datalogger_project_path$ $@ junk$ $! logger_msg_path$ $@ junk$ $+! junk$ $@ logger_msg_path$ $!
     loggingcheckloop bye

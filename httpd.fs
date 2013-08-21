@@ -29,7 +29,7 @@ warnings off
 
 require string.fs
 
-Variable DocumentRoot  s" /home/pi/git/datalogger/htdocs/" DocumentRoot $!
+Variable DocumentRoot  s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file DocumentRoot $! s" /htdocs/" DocumentRoot $+!
 Variable UserDir       s" public_html/"     UserDir      $!
 
 Variable url
