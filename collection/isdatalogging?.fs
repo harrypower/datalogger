@@ -8,8 +8,6 @@ include ../string.fs
 include errorlogging.fs
 include script.fs
 
-false value pass
-true value fail
 0 value times_restarted
 
 variable logger_path$
@@ -25,11 +23,16 @@ s" /collection/logging_restart_msg.data" logger_msg_path$ $! \ this will be reso
 312 constant absolute_path_fail
 
 : isitlogging ( -- )  \ this just looks for a process with logger.fs in the name.  Now this may not work perfectly!
-    TRY s" pgrep logger.fs" shget 0= if swap drop 0= if  false else true then else drop drop false then
-	if  pass else fail then
+    TRY s" pgrep logger.fs" shget 0=
+	if swap drop 0=
+	    if  true \ logger.fs not running here
+	    else false \ logger.fs is running here
+	    then
+	else drop drop true \ logger.fs not running here
+	then
     RESTORE if times_restarted 1 + to times_restarted s" Starting up logger.fs" type cr
 	    logger_not_running error_log
-	    s" sudo nohup " junk$ $! logger_path$ $@ junk$ $+! s"  > " junk$ $+! logger_msg_path$ junk$ $+! s"  &" junk$ $+! junk$ $@ system then
+	    s" sudo nohup " junk$ $! logger_path$ $@ junk$ $+! s"  > " junk$ $+! logger_msg_path$ $@ junk$ $+! s"  &" junk$ $+! junk$ $@ system then
     ENDTRY ;
 
 : loggingcheckloop ( -- )
