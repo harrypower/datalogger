@@ -82,10 +82,10 @@ datalogger_path$ $@ webview_txt$ $! s" /htdocs/logged.txt" webview_txt$ $+!
 : get-CdS ( -- ncad nflag )
     try
         
-        s" sudo " junk$ $! datalogger_path$ $@ junk$ $+! s" /collection/cad-sensor.fs 7" junk$ $+! junk$ $@ shget throw
-        0 0 { caddr u nvalue nflag } caddr u s>number? throw d>s to nflag 
-        caddr u s"  " search if to u 1 + to caddr caddr u s>number? throw d>s to nvalue else true throw then  
-        false 
+	s" sudo " junk$ $! datalogger_path$ $@ junk$ $+! s" /gpio/cadmium-sensor.fs 7" junk$ $+! junk$ $@ shget throw
+	0 0 { caddr u nvalue nflag } caddr u s>number? throw d>s to nflag 
+	caddr u s"  " search if to u 1 + to caddr caddr u s>number? throw d>s to nvalue else true throw then  
+	false 
     restore if 0 true else nvalue nflag then 
     endtry ;
 
