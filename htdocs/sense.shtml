@@ -7,7 +7,7 @@
 <$ 
 include ../string.fs
 include ../collection/script.fs
-include ../collection/cad-sensor.fs
+\ include ../collection/cad-sensor.fs
 
 warnings off
 
@@ -79,7 +79,15 @@ datalogger_path$ $@ webview_txt$ $! s" /htdocs/logged.txt" webview_txt$ $+!
     ENDTRY
 ;
 
-
+: get-CdS ( -- ncad nflag )
+    try
+        
+        s" sudo " junk$ $! datalogger_path$ $@ junk$ $+! s" /collection/cad-sensor.fs 7" junk$ $+! junk$ $@ shget throw
+        0 0 { caddr u nvalue nflag } caddr u s>number? throw d>s to nflag 
+        caddr u s"  " search if to u 1 + to caddr caddr u s>number? throw d>s to nvalue else true throw then  
+        false 
+    restore if 0 true else nvalue nflag then 
+    endtry ;
 
 $>
 
@@ -89,7 +97,7 @@ $>
 s" <br>The current relative humidity is (dth11) "  type nflag_temp_valid 0= [if] nhumd . [else] s" not avaiable now!" type [then] $> </p></h1> 
 <h1><p> <$ gettemp2 to nflag_temp_valid to ntemp to nhumd s" The current temperature is (dth22) " type nflag_temp_valid 0= [if] ntemp . [else] s" not available now!" type [then]
 s" <br>The current relative humidity is (dth22) "  type nflag_temp_valid 0= [if] nhumd . [else] s" not avaiable now!" type [then] $> </p></h1>
-<h1><p>The light level on pin 7 is currently:  <$ 7 cds-raw-read [if] s" not avaiable now!" type [else] . [then] $> </p></h1> 
+<h1><p>The light level on pin 7 is currently:  <$ get-CdS [if] s" not avaiable now!" type [else] . [then] $> </p></h1> 
 
 <$ getlocaldata to local_data_valid local_data_valid [if] s\"  <form action=\"logged_data_table.shtml\" method=\"post\"><input type=\"submit\" value=\"View Table of logged temperature and humidity data!\"></form>" type [then] $>
 <$ local_data_valid [if] s\" <a href=\"logged.txt\">View Logged temperature and humidity data as text file!</a> <br>" type [then] $>
