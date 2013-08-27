@@ -26,7 +26,7 @@ include ../gpio/rpi_GPIO_lib.fs
 	ncadpin pipinsetpulldisable throw
 	ncadpin pipinoutput throw
 	ncadpin pipinlow throw
-	1 ms
+	2 ms
 	ncadpin pipininput throw
 	utime
 	1000000
@@ -45,7 +45,21 @@ include ../gpio/rpi_GPIO_lib.fs
     restore dup if 0 swap piocleanup drop then
     endtry ;
 
+: CdS-average { ncadpin -- ntime nflag }
+    ncadpin CdS-raw-read dup 0=
+    if 
+	10 0 ?do 
+	    ncadpin CdS-raw-read if 2drop true leave else swap drop + 0 then 
+	loop
+	if true else 12 / 0 then 
+    else 
+    then ;
 
+: CdS ( -- )
+    next-arg dup
+    if s>number? if d>s CdS-raw-read . . else ." Pin value not valid for CdS sensor location !" then
+    else ." Pin value needed as argument for this CdS code to read light level!"
+    then ;
   
-
+CdS bye 
 
