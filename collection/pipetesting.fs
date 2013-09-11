@@ -2,6 +2,7 @@
 
 include ../string.fs
 include cadmium-sensor-test.fs
+include script.fs
 
 variable junk$
 
@@ -97,10 +98,82 @@ variable junk$
 
 : time-test4
     utime
-    read-sensor-direct . cr
+    read-sensor-direct drop \ . cr
     utime 2swap d- ;
 
 : dotime-test4
     0 0 50 0 ?do time-test4 d+ loop 2dup d. 1 51 m*/ d. ;
+
+: read-sensor-c ( -- )
+    s" /home/pi/git/datalogger/collection/cadmium" read-sensor-file throw 2drop \ type cr
+;
+
+: time-test5
+    utime
+    read-sensor-c 
+    utime 2swap d- ;
+
+: dotime-test5
+    maketemp 
+    0 0 50 0 ?do time-test5 d+ loop 2dup d. 1 51 m*/ d.
+    close-temp ;
+
+: read-cad-pipe-direct ( -- )
+    s" sudo /home/pi/git/datalogger/collection/cadmium" shget throw 2drop \ type cr
+;
+
+: time-test6
+    utime
+    read-cad-pipe-direct
+    utime 2swap d- ;
+
+: dotime-test6
+    0 0 50 0 ?do time-test6 d+ loop 2dup d. 1 51 m*/ d. ;
+
+: read-cad-fifo-direct ( -- )
+    s" cadmium-cmd" w/o open-file throw s" read" rot dup >r write-file r> close-file throw throw
+    s" cadmium-value" r/o open-file throw >r pad 10 r> dup >r read-file throw r> close-file throw pad swap 2drop \ type cr
+;
+
+: time-test7 ( -- )
+    utime
+    read-cad-fifo-direct 
+    utime 2swap d- ;
+
+: dotime-test7
+    0 0 50 0 ?do time-test7 d+ loop 2dup d. 1 51 m*/ d. ;
+
+: read-cad-svr ( - )
+    s" sudo echo read > /var/lib/datalogger-gforth/cadmium_cmd" system $? throw
+    s" sudo cat /var/lib/datalogger-gforth/cadmium_value" shget throw 2drop \ type cr
+;
+
+: time-test8 ( -- )
+    utime
+    read-cad-svr
+    utime 2swap d- ;
+
+: dotime-test8
+    s" sudo /home/pi/git/datalogger/collection/cadmium-svr.fs &" system $? throw
+    2000 ms
+    0 0 50 0 ?do time-test8 d+ loop 2dup d. 1 51 m*/ d.
+    s" sudo echo end > /var/lib/datalogger-gforth/cadmium_cmd" system $? throw ;
+
+: read-cad-svr-direct ( -- )
+    s" /var/lib/datalogger-gforth/cadmium_cmd" w/o open-file throw   
+    s" read" rot dup >r write-file r> close-file throw throw
+    s" /var/lib/datalogger-gforth/cadmium_value" r/o open-file throw >r pad 10 r> dup >r read-file throw r> close-file throw drop \ pad swap type cr
+;    
+
+: time-test9 ( -- )
+    utime
+    read-cad-svr-direct
+    utime 2swap d- ;
+
+: dotime-test9
+    s" sudo /home/pi/git/datalogger/collection/cadmium-svr.fs &" system $? throw
+    3000 ms
+    0 0 50 0 ?do time-test9 d+ loop 2dup d. 1 51 m*/ d.
+    s" sudo echo end > /var/lib/datalogger-gforth/cadmium_cmd" system $? throw ;
 
 \ :noname defers 'cold dotime-test3 cr dotime-test4 cr threading-method . cr version-string type cr bye ; is 'cold
