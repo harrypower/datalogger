@@ -13,8 +13,8 @@ s" rt" add-lib
 \c const char * name = "mysema" ;
 
 \c sem_t * semafailed(){ return( SEM_FAILED ); }
-\c sem_t * semanameopen(char * names, int thevalue){ return((sem = sem_open(names, O_CREAT | O_EXCL , 0664, thevalue))) ; }
-\c sem_t * semanamedexistopen(char * names){ return((sem = sem_open(names, 0 ))) ; }
+\c sem_t * semanameopen(char * names, int thevalue){ return(sem = sem_open(names, O_CREAT | O_EXCL , 0664, thevalue)) ; }
+\c sem_t * semanamedexistopen(char * names){ return(sem = sem_open(names, 0 )) ; }
 \c int semanamedunlink(char * names){ return ( sem_unlink(names)) ; }
 \c int semadoopen(){ 
 \c   if ((sem = sem_open(name, O_CREAT | O_EXCL , 0664, startvalue )) == SEM_FAILED)
