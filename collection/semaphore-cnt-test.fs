@@ -11,10 +11,10 @@ s" rt" add-lib
 \c int readvalue = 0 ;
 \c unsigned int startvalue = 0 ;
 \c const char * name = "mysema" ;
-\c char * name2 ;
 
-\c int semanameopen(char * names, int thevalue){ return((int)(sem = sem_open(names, O_CREAT | O_EXCL , 0664, thevalue))) ; }
-\c int semanamedexistopen(char * names){ return((int)(sem = sem_open(names, 0 ))) ; }
+\c sem_t * semafailed(){ return( SEM_FAILED ); }
+\c sem_t * semanameopen(char * names, int thevalue){ return((sem = sem_open(names, O_CREAT | O_EXCL , 0664, thevalue))) ; }
+\c sem_t * semanamedexistopen(char * names){ return((sem = sem_open(names, 0 ))) ; }
 \c int semanamedunlink(char * names){ return ( sem_unlink(names)) ; }
 \c int semadoopen(){ 
 \c   if ((sem = sem_open(name, O_CREAT | O_EXCL , 0664, startvalue )) == SEM_FAILED)
@@ -40,8 +40,9 @@ s" rt" add-lib
 \c    return(0) ; 
 \c    } 
 
-c-function sema-nameopen semanameopen a n -- n 
-c-function sema-namedexistopen semanamedexistopen a -- n
+c-function sema-failed semafailed -- a 
+c-function sema-nameopen semanameopen a n -- a 
+c-function sema-namedexistopen semanamedexistopen a -- a
 c-function sema-namedunlink semanamedunlink a -- n
 c-function sema-doopen semadoopen -- n
 c-function sema-openexisting semaopenexisting -- n
