@@ -18,20 +18,23 @@
 \
 \    This code works with version 2 boards but could work with other boards
 
+warnings off
 
 include /home/pi/git/datalogger/gpio/rpi_GPIO_lib.fs
 include /home/pi/git/datalogger/string.fs
 
 777 constant time-exceeded-fail
+10000 constant fail-loop-limit
 
-variable cmd-fifo$
-variable value-fifo$
-variable fifo-path$ 
-variable junk$
+variable cmd-fifo$ cmd-fifo$ $init
+variable value-fifo$ value-fifo$ $init
+variable fifo-path$ fifo-path$ $init
+variable junk$ junk$ $init
 
 s" /var/lib/datalogger-gforth/" fifo-path$ $!
 s" cadmium_cmd" cmd-fifo$ $!
 s" cadmium_value" value-fifo$ $!
+
 
 : shget ( caddr u -- caddr1 u1 nflag )  \ nflag is false if caddr1 and u1 are valid messages from system 
     try	
@@ -39,8 +42,7 @@ s" cadmium_value" value-fifo$ $!
 	r> close-pipe throw to $?
 	false
     restore
-    endtry    
-;
+    endtry ;
 
 : filetest ( caddr u -- nflag ) \ nflag is false if the file is present
     try junk$ $init
@@ -57,26 +59,22 @@ s" cadmium_value" value-fifo$ $!
     junk$ $init
     fifo-path$ $@ junk$ $! value-fifo$ $@ junk$ $+! junk$ $@ ;
 
-: setup-cadmium ( -- )
+: make-fifo ( -- )
     fifo-path$ $@ filetest
     if junk$ $init s" sudo mkdir " junk$ $! fifo-path$ $@ junk$ $+! junk$ $@ system $? throw then
 
-    cmd-path$ filetest
-    if cmd-path$ junk$ $init s" sudo mkfifo -m 777 " junk$ $! junk$ $+! junk$ $@ system $? throw then
+\    cmd-path$ filetest
+\    if cmd-path$ junk$ $init s" sudo mkfifo -m 666 " junk$ $! junk$ $+! junk$ $@ system $? throw then
 
     value-path$ filetest
-    if value-path$ junk$ $init s" sudo mkfifo -m 777 " junk$ $! junk$ $+! junk$ $@ system $? throw then
-;
+    if value-path$ junk$ $init s" sudo mkfifo -m 666 " junk$ $! junk$ $+! junk$ $@ system $? throw then ;
 
-: close-cadmium-svr ( -- )
-    cmd-path$ filetest false =
-    if cmd-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then
+: close-fifo ( -- )
+\    cmd-path$ filetest false =
+\    if cmd-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then
 
     value-path$ filetest false =
-    if value-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then
-    
-;
-
+    if value-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then ;
 
 : CdS-raw-read { ncadpin -- ntime nflag } \ nflag is 0 if ntime is a real value
     try 
@@ -87,7 +85,7 @@ s" cadmium_value" value-fifo$ $!
 	4 ms
 	ncadpin pipininput throw
 	utime
-	1000
+	fail-loop-limit
 	begin
 	    1 - dup 
 	    if
@@ -101,24 +99,28 @@ s" cadmium_value" value-fifo$ $!
 	piocleanup throw
 	false
    restore dup if dup -9 = if 0 swap else 0 swap piocleanup drop then  then
-   endtry
-    ;
+   endtry ;
 
-: cad-value-write ( -- nflag ) \ nflag is false for sensor read and data put into fifo and file io all ok
+: #to$ ( n -- caddr u ) \ convert signed number to string
+    junk$ $init
+    s>d swap over dabs <<# #s rot sign #> junk$ $! junk$ $@ #>> ;
+
+: cad-value-write ( npin -- nflag ) \ nflag is false for sensor read and data put into fifo and file io all ok
     try
-	7 CdS-raw-read throw
+	CdS-raw-read throw
 	value-path$ w/o open-file throw
 	{ value-id }
-	s>d swap over dabs
-	<<# #s rot sign #> #>>
-	s" cv=" pad swap move
-	pad 3 + swap 3 + dup >r move pad r>
+	#to$
+	s" cv= " pad swap move
+	pad 4 + swap 4 + dup >r move pad r>
 	value-id write-file throw
 	value-id close-file throw 
 	false 
-    restore   
-    endtry
-;
+    restore 
+    endtry ;
+
+: getpin ( caddr u -- npin ) \ npin will be zero for no pin or a GPIO pin number that cadmium sensor is attached to
+   s>unumber? if d>s else 2drop 0 then ;
 
 : sensor-msg ( -- nflag ) \ nflag is false for message recieved and action was taken 
     try
@@ -127,23 +129,26 @@ s" cadmium_value" value-fifo$ $!
 	cmd-id slurp-fid to u to caddr
 	cmd-id close-file throw
 	caddr u s" read" search
-	if 2drop cad-value-write throw
+	if 6 - swap 5 + swap getpin cad-value-write throw
 	else 2drop then
 	caddr u s" end" search
 	if 2drop true throw then 
 	false 
     restore 
-    endtry
-;
-
-: process-cadmium-sensor
-    
-    try	
-	begin sensor-msg throw again
-    restore 
     endtry ;
 
-setup-cadmium process-cadmium-sensor close-cadmium-svr bye 
+: process-cadmium-sensor ( -- )
+    
+    try	
+	
+	make-fifo
+	begin sensor-msg throw again
+    restore
+    endtry
+    close-fifo
+    bye ;
+
+\ process-cadmium-sensor  bye 
 
 
 
