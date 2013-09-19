@@ -7,53 +7,49 @@ s" rt" add-lib
 \c #include <sys/stat.h>
 \c #include <fcntl.h>
 
-\c sem_t * sem ;
-\c int readvalue = 0 ;
-\c unsigned int startvalue = 0 ;
-\c const char * name = "mysema" ;
 
-\c sem_t * semafailed(){ return( SEM_FAILED ); }
-\c sem_t * semanameopen(char * names, int thevalue){ return(sem = sem_open(names, O_CREAT | O_EXCL , 0664, thevalue)) ; }
-\c sem_t * semanamedexistopen(char * names){ return(sem = sem_open(names, 0 )) ; }
-\c int semanamedunlink(char * names){ return ( sem_unlink(names)) ; }
-\c int semadoopen(){ 
-\c   if ((sem = sem_open(name, O_CREAT | O_EXCL , 0664, startvalue )) == SEM_FAILED)
-\c     { return(1); }
-\c     else 
-\c     { return(0); }
-\c   }
-\c int semaopenexisting(){
-\c   if ((sem = sem_open(name, 0)) == SEM_FAILED)
-\c     { return (1) ; }
-\c     else
-\c     { return (0) ; }
-\c   }
-\c int semadoclose(){ return ( sem_close( sem )) ; }
-\c int semadogetvalue(){ return ( sem_getvalue( sem, &readvalue )) ; }
-\c int semadounlink(){ return ( sem_unlink( name )) ; }
-\c int semawait(){ return ( sem_wait( sem )); }
-\c int semapost(){ return ( sem_post( sem )); }
-\c int semavalue(){ return ( readvalue ) ; }
-\c int sematrywait(){ return ( sem_trywait( sem )) ; }
-\c int semasetvalue( int value ){
-\c    startvalue = (unsigned int)value ;
-\c    return(0) ; 
-\c    } 
+\c int info(sem_t * fail){
+\c    fail = SEM_FAILED ;
+\c    return( O_CREAT | O_EXCL ) ; }
 
-c-function sema-failed semafailed -- a 
-c-function sema-nameopen semanameopen a n -- a 
-c-function sema-namedexistopen semanamedexistopen a -- a
-c-function sema-namedunlink semanamedunlink a -- n
-c-function sema-doopen semadoopen -- n
-c-function sema-openexisting semaopenexisting -- n
-c-function sema-doclose semadoclose -- n
-c-function sema-dogetvalue semadogetvalue -- n
-c-function sema-dounlink semadounlink -- n
-c-function sema-dec semawait -- n
-c-function sema-inc semapost -- n
-c-function sema-value semavalue -- n
-c-function sema-trydec sematrywait -- n
-c-function sema-setvalue semasetvalue n -- n
+c-function sema-info info a -- n
+c-function sem-open sem_open a n n n -- a
+c-function sem-openexisting sem_open a n -- a 
+c-function sem-close sem_close a -- n
+c-function sem-unlink sem_unlink a -- n
+c-function sem-getvalue sem_getvalue a a -- n
+c-function sem-dec sem_wait a -- n
+c-function sem-inc sem_post a -- n
+c-function sem-trydec sem_trywait a -- n
 
 end-c-library
+
+variable sem_t*
+variable sem_failed
+variable semaphore-value
+436 constant root-user-access  \ this is the same as in c 0664 or octal 664 ( root read/write, user read/write, world read )
+
+: *char ( caddr u -- caddr ) dup 2 + pad swap erase pad swap move pad  ;
+
+: named-sema-open { caddr u nvalue -- nflag } \ nflag is false for named sema created true for named sema failed to create might even already exist!
+    caddr u *char             \ (char * name) name string of semaphore ready to pass to c
+    sem_failed sema-info      \ (int oflag) O_CREAT | O_EXCL value from system ready to pass to c
+    root-user-access          \ (mode_t mode) this is like 0664 and ready to pass to c
+    nvalue semaphore-value !  \ stored the start value to transfer into semaphore 
+    nvalue                    \ now that value is ready to pass to c
+    sem-open                  \ open the new semaphore and see if it works or not
+    sem_t* !                  \ stored the sem_t * pointer to use later
+    sem_t* @ sem_failed @  =  \ compare with failure condition
+;                             \ Note sem_t* now contains the address to the semaphore to use to access this named semaphore
+
+: semaphore-value ( -- nvalue nflag )  \ nflag will false if the nvalue is valid
+    sem_t* @ semaphore-value sem-getvalue semaphore-value @ swap ;
+
+: existing-sema-open ( caddr u -- nflag )  \ nflag is false if existing named semaphore is opened for access
+    *char                           \ (char * name) name string of semaphore ready to pass to c
+    sem_failed sema-info drop       \ getting semaphore failed value 
+    0 sem-openexisting              \ 0 tells sem_open() function to open existing named semaphore
+    sem_t* !                        \ store sem_t* pointer to use later
+    sem_t* @ sem_failed @ =         \ compare with failure condition
+;                                   \ Note now sem_t* contains the address to the semaphore for accessing this named semaphore
 
