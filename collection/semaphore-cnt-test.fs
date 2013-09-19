@@ -19,6 +19,13 @@ s" rt" add-lib
 \c     else
 \c     { return(0); }
 \c   }
+\c int semanamedexistopen(char * names){
+\c   if ((sem = sem_open(names, 0 )) == SEM_FAILED)
+\c     { return(1); }
+\c     else
+\c     { return(0); }
+\c   }
+\c int semanamedunlink(char * names){ return ( sem_unlink(names)) ; }
 \c int semadoopen(){ 
 \c   if ((sem = sem_open(name, O_CREAT | O_EXCL , 0664, startvalue )) == SEM_FAILED)
 \c     { return(1); }
@@ -44,6 +51,8 @@ s" rt" add-lib
 \c    } 
 
 c-function sema-nameopen semanameopen a n -- n 
+c-function sema-namedexistopen semanamedexistopen a -- n
+c-function sema-namedunlink semanamedunlink a -- n
 c-function sema-doopen semadoopen -- n
 c-function sema-openexisting semaopenexisting -- n
 c-function sema-doclose semadoclose -- n
