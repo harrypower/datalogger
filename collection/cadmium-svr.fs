@@ -22,6 +22,7 @@ warnings off
 
 include /home/pi/git/datalogger/gpio/rpi_GPIO_lib.fs
 include /home/pi/git/datalogger/string.fs
+include /home/pi/git/datalogger/semaphore.fs
 
 777 constant time-exceeded-fail
 10000 constant fail-loop-limit
@@ -30,7 +31,12 @@ variable cmd-fifo$ cmd-fifo$ $init
 variable value-fifo$ value-fifo$ $init
 variable fifo-path$ fifo-path$ $init
 variable junk$ junk$ $init
+variable mysem_t*
+variable sema-name$ sema-name$ $init
+variable sema-system-path$ sema-system-path$ $init
 
+s" /dev/shm/sem." sema-system-path$ $!
+s" cadmium-available" sema-name$ $!
 s" /var/lib/datalogger-gforth/" fifo-path$ $!
 s" cadmium_cmd" cmd-fifo$ $!
 s" cadmium_value" value-fifo$ $!
@@ -59,22 +65,45 @@ s" cadmium_value" value-fifo$ $!
     junk$ $init
     fifo-path$ $@ junk$ $! value-fifo$ $@ junk$ $+! junk$ $@ ;
 
+: sema-path$ ( -- caddr u )
+    junk$ $init
+    sema-system-path$ junk$ $! sema-name$ junk$ $+! junk$ $@ ;
+
+: make-sema ( -- )
+    mysem_t* sema-info drop \ just to initalize mysem_t* to the failed state at start
+    sema-name$ $@ 0 open-named-sema throw 
+    mysem_t* ! ;
+
+: close-sema ( -- )
+    mysem_t* @ pad 
+;
+
 : make-fifo ( -- )
     fifo-path$ $@ filetest
     if junk$ $init s" sudo mkdir " junk$ $! fifo-path$ $@ junk$ $+! junk$ $@ system $? throw then
 
-\    cmd-path$ filetest
-\    if cmd-path$ junk$ $init s" sudo mkfifo -m 666 " junk$ $! junk$ $+! junk$ $@ system $? throw then
+    cmd-path$ filetest
+    if cmd-path$ junk$ $init s" sudo mkfifo -m 664 " junk$ $! junk$ $+! junk$ $@ system $? throw then
 
     value-path$ filetest
-    if value-path$ junk$ $init s" sudo mkfifo -m 666 " junk$ $! junk$ $+! junk$ $@ system $? throw then ;
+    if value-path$ junk$ $init s" sudo mkfifo -m 664 " junk$ $! junk$ $+! junk$ $@ system $? throw then ;
 
 : close-fifo ( -- )
-\    cmd-path$ filetest false =
-\    if cmd-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then
+    cmd-path$ filetest false =
+    if cmd-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then
 
     value-path$ filetest false =
     if value-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then ;
+
+: cadmium-srv-running? ( -- nflag ) \ nflag is false if there is no other cadmium srv software running
+    sema-path$ filetest
+    if false else true then
+    \ note make this if it finds this semaphore file do a test and send a message to server running
+    \ if this message returns good info then the cadmium server is running and report that
+    \ if this message does not get back in resonable time then assume cadmium srv is not working
+    \ so delete the two fifo's and the semaphore take over functions to get messages from client programs
+    \ or something like this to restart the server 
+;    
 
 : CdS-raw-read { ncadpin -- ntime nflag } \ nflag is 0 if ntime is a real value
     try 
@@ -138,13 +167,13 @@ s" cadmium_value" value-fifo$ $!
     endtry ;
 
 : process-cadmium-sensor ( -- )
-    
-    try	
-	
+    try
+	make-sema
 	make-fifo
 	begin sensor-msg throw again
     restore
     endtry
+    close-sema
     close-fifo
     bye ;
 

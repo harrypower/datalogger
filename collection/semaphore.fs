@@ -70,24 +70,30 @@ end-c-library
 \    sem_t* @ sem_failed @ =         \ compare with failure condition
 \ ;                                   \ Note now sem_t* contains the address to the semaphore for accessing this named semaphore
 
+\ This is used to get SEM_FAILED system pointer and the oflag values for use with semaphores.
+: semaphore-constants ( asem_t* -- noflag ) \ this will put SEM_FAILED pointer in asem_t* variable and will return the oflag system values of O_CREAT | O_EXCL
+    dup 0 swap ! sema-info ;                \ the asem_t* location is just zeroed before the c function call to ensure i get SEM_FAILED correct value.
+
 \ This is to open an existing named semaphore in caddr u.  You get a sem_t* to access semaphore until you close it so save this value to access it!
 : open-existing-sema ( caddr u -- asem_t* nflag ) \ nflag is false if existing named semaphore is opened. For access asem_t* is pointer to semaphore
     *char                               \ (char * name) name string of semaphore ready to pass to c
     0 sem-openexisting dup              \ 0 tells sem_open() function to open existing named semaphore
-    pad cell erase pad sema-info drop   \ compare with failure condition
+    pad semaphore-constants drop        \ compare with failure condition
     pad @ =  ;                          \ return (sem_t *) pointer to semaphore and flage  
 
 \ This is to access the named semaphore value but you need the sem_t* pointer received during open!
 : semaphore@ ( asem_t* -- nvalue nflag ) \ nflag is false if nvalue is valid.  nvalue is semaphore value.  Note pad is clobered. 
-    pad cell erase pad sem-getvalue pad @ swap ;
+    0 pad ! pad sem-getvalue pad @ swap ;
 
 \ This is to create a new named semaphore with a starting value.  You will get sem_t* pointer to access the semaphore until you close it so save this value! 
 : open-named-sema ( caddr u nvalue -- asem_t* nflag ) \ nflag is false if semaphore was opened without errors.  asem_t* is pointer to semaphore. 
-    pad cell erase pad sema-info pad @   \ ( caddr u nvalue noflag SEM_FAILED  ) get the oflag constant and SEM_FAILED for use next.  
+    pad semaphore-constants pad @        \ ( caddr u nvalue noflag SEM_FAILED  ) get the oflag constant and SEM_FAILED for use next.  
     { nvalue noflag SEM_FAILED }
     *char noflag 436 nvalue              \ ( char* noflag mode_t) prepare string to pass to c function arrange oflag, mode_t and value.
     sem-open dup                         \ open semaphore
     SEM_FAILED = ;                       \ compare sem_t* returned from sem_open() with SEM_FAILED done!
+                                         \ Note the 436 is decimal for 664 in octal.  This is file permissions but the semaphore seems to always
+                                         \ have permission only for root read and write.  Not sure how to fix this yet so access the seam via root at this time!
 
 : close-semaphore ( asem_t* -- nflag ) \ nflag is false if semaphore was closed
     sem-close ;
@@ -103,5 +109,4 @@ end-c-library
 
 : semaphore-try- ( asem_t* -- nflag ) \ nflag is false if semaphore was decremented by one. Note this does not block as semaphore- does but will return error if failed to decrement semaphore.
     sem-trydec ;
-
 
