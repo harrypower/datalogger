@@ -24,63 +24,68 @@ c-function sem-trydec sem_trywait a -- n
 
 end-c-library
 
-variable sem_t*
-variable sem_failed
-variable semaphore-value
-436 constant root-user-access  \ this is the same as in c 0664 or octal 664 ( root read/write, user read/write, world read )
+\ variable sem_t*
+\ variable sem_failed
+\ variable semaphore-value
+\ 436 constant root-user-access  \ this is the same as in c 0664 or octal 664 ( root read/write, user read/write, world read )
 
-: *char ( caddr u -- caddr ) dup 2 + pad swap erase pad swap move pad  ;
+: *char ( caddr u -- caddr ) \ note this clobers pad up to u elements 
+    dup 2 + pad swap erase pad swap move pad  ;
 
-: named-sema-open { caddr u nvalue -- nflag } \ nflag is false for named sema created true for named sema failed to create might even already exist!
-    caddr u *char             \ (char * name) name string of semaphore ready to pass to c
-    sem_failed sema-info      \ (int oflag) O_CREAT | O_EXCL value from system ready to pass to c
-    root-user-access          \ (mode_t mode) this is like 0664 and ready to pass to c
-    nvalue semaphore-value !  \ stored the start value to transfer into semaphore 
-    nvalue                    \ now that value is ready to pass to c
-    sem-open                  \ open the new semaphore and see if it works or not
-    sem_t* !                  \ stored the sem_t * pointer to use later
-    sem_t* @ sem_failed @  =  \ compare with failure condition
-;                             \ Note sem_t* now contains the address to the semaphore to use to access this named semaphore
+\ : named-sema-open { caddr u nvalue -- nflag } \ nflag is false for named sema created true for named sema failed to create might even already exist!
+\    caddr u *char             \ (char * name) name string of semaphore ready to pass to c
+\    sem_failed sema-info      \ (int oflag) O_CREAT | O_EXCL value from system ready to pass to c
+\    root-user-access          \ (mode_t mode) this is like 0664 and ready to pass to c
+\    nvalue semaphore-value !  \ stored the start value to transfer into semaphore 
+\    nvalue                    \ now that value is ready to pass to c
+\    sem-open                  \ open the new semaphore and see if it works or not
+\    sem_t* !                  \ stored the sem_t * pointer to use later
+\    sem_t* @ sem_failed @  =  \ compare with failure condition
+\ ;                             \ Note sem_t* now contains the address to the semaphore to use to access this named semaphore
 
-: semaphore-value ( -- nvalue nflag )  \ nflag will false if the nvalue is valid
-    sem_t* @ semaphore-value sem-getvalue semaphore-value @ swap ;
+\ : semaphore-value ( -- nvalue nflag )  \ nflag will false if the nvalue is valid
+\    sem_t* @ semaphore-value sem-getvalue semaphore-value @ swap ;
 
-: existing-sema-open ( caddr u -- nflag )  \ nflag is false if existing named semaphore is opened for access
-    *char                           \ (char * name) name string of semaphore ready to pass to c
-    sem_failed sema-info drop       \ getting semaphore failed value 
-    0 sem-openexisting              \ 0 tells sem_open() function to open existing named semaphore
-    sem_t* !                        \ store sem_t* pointer to use later
-    sem_t* @ sem_failed @ =         \ compare with failure condition
-;                                   \ Note now sem_t* contains the address to the semaphore for accessing this named semaphore
+\ : existing-sema-open ( caddr u -- nflag )  \ nflag is false if existing named semaphore is opened for access
+\    *char                           \ (char * name) name string of semaphore ready to pass to c
+\    sem_failed sema-info drop       \ getting semaphore failed value 
+\    0 sem-openexisting              \ 0 tells sem_open() function to open existing named semaphore
+\    sem_t* !                        \ store sem_t* pointer to use later
+\    sem_t* @ sem_failed @ =         \ compare with failure condition
+\ ;                                   \ Note now sem_t* contains the address to the semaphore for accessing this named semaphore
 
-: open-existing-sema ( caddr u -- asem_t* nflag ) \ nflag is false if existing named semaphore is opened for access asem_t* is pointer to semaphore
-    *char                   \ (char * name) name string of semaphore ready to pass to c
-    0 sem-openexisting dup  \ 0 tels sem_open() function to open existing named semaphore
-    pad sema-info drop      \ compare with failure condition
-    pad @ =  ;              \ return (sem_t *) pointer to semaphore and flage  
+\ This is to open an existing named semaphore in caddr u.  You get a sem_t* to access semaphore until you close it so save this value to access it!
+: open-existing-sema ( caddr u -- asem_t* nflag ) \ nflag is false if existing named semaphore is opened. For access asem_t* is pointer to semaphore
+    *char                               \ (char * name) name string of semaphore ready to pass to c
+    0 sem-openexisting dup              \ 0 tells sem_open() function to open existing named semaphore
+    pad cell erase pad sema-info drop   \ compare with failure condition
+    pad @ =  ;                          \ return (sem_t *) pointer to semaphore and flage  
 
-: semaphore@ ( asem_t* -- nvalue nflag )
-    pad sem-getvalue pad @ swap ;
+\ This is to access the named semaphore value but you need the sem_t* pointer received during open!
+: semaphore@ ( asem_t* -- nvalue nflag ) \ nflag is false if nvalue is valid.  nvalue is semaphore value.  Note pad is clobered. 
+    pad cell erase pad sem-getvalue pad @ swap ;
 
-: open-named-sema ( caddr u nvalue -- asem_t* nflag )
-    >r *char
-    pad sema-info
-    436
-    r>
-    sem-open dup
-    pad @ = ;
+\ This is to create a new named semaphore with a starting value.  You will get sem_t* pointer to access the semaphore until you close it so save this value! 
+: open-named-sema ( caddr u nvalue -- asem_t* nflag ) \ nflag is false if semaphore was opened without errors.  asem_t* is pointer to semaphore. 
+    pad cell erase pad sema-info pad @   \ ( caddr u nvalue noflag SEM_FAILED  ) get the oflag constant and SEM_FAILED for use next.  
+    { nvalue noflag SEM_FAILED }
+    *char noflag 436 nvalue              \ ( char* noflag mode_t) prepare string to pass to c function arrange oflag, mode_t and value.
+    sem-open dup                         \ open semaphore
+    SEM_FAILED = ;                       \ compare sem_t* returned from sem_open() with SEM_FAILED done!
 
-: close-semaphore ( asem_t* -- nflag )
+: close-semaphore ( asem_t* -- nflag ) \ nflag is false if semaphore was closed
     sem-close ;
 
-: remove-semaphore ( caddr u -- nflag )
+: remove-semaphore ( caddr u -- nflag ) \ nflag is false if semaphore was removed without errors
     *char sem-unlink ;
 
-: semaphore+ ( asem_t* -- nflag )
+: semaphore+ ( asem_t* -- nflag ) \ nflag is false if semaphore was incremented by one.
     sem-inc ;
 
-: semaphore- ( asem_t* -- nflag )
+: semaphore- ( asem_t* -- nflag ) \ nflag is false if semaphore was decremented by one.  Note this blocks if semaphore value is zero upon entry.
     sem-dec ;
 
-: semaphore-try- ( asem_t* -- nflag )
+: semaphore-try- ( asem_t* -- nflag ) \ nflag is false if semaphore was decremented by one. Note this does not block as semaphore- does but will return error if failed to decrement semaphore.
     sem-trydec ;
+
+
