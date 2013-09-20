@@ -53,3 +53,34 @@ variable semaphore-value
     sem_t* @ sem_failed @ =         \ compare with failure condition
 ;                                   \ Note now sem_t* contains the address to the semaphore for accessing this named semaphore
 
+: open-existing-sema ( caddr u -- asem_t* nflag ) \ nflag is false if existing named semaphore is opened for access asem_t* is pointer to semaphore
+    *char                   \ (char * name) name string of semaphore ready to pass to c
+    0 sem-openexisting dup  \ 0 tels sem_open() function to open existing named semaphore
+    pad sema-info drop      \ compare with failure condition
+    pad @ =  ;              \ return (sem_t *) pointer to semaphore and flage  
+
+: semaphore@ ( asem_t* -- nvalue nflag )
+    pad sem-getvalue pad @ swap ;
+
+: open-named-sema ( caddr u nvalue -- asem_t* nflag )
+    >r *char
+    pad sema-info
+    436
+    r>
+    sem-open dup
+    pad @ = ;
+
+: close-semaphore ( asem_t* -- nflag )
+    sem-close ;
+
+: remove-semaphore ( caddr u -- nflag )
+    *char sem-unlink ;
+
+: semaphore+ ( asem_t* -- nflag )
+    sem-inc ;
+
+: semaphore- ( asem_t* -- nflag )
+    sem-dec ;
+
+: semaphore-try- ( asem_t* -- nflag )
+    sem-trydec ;
