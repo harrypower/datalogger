@@ -22,7 +22,7 @@ warnings off
 
 include /home/pi/git/datalogger/gpio/rpi_GPIO_lib.fs
 include /home/pi/git/datalogger/string.fs
-include /home/pi/git/datalogger/semaphore.fs
+include /home/pi/git/datalogger/collection/semaphore.fs
 
 777 constant time-exceeded-fail
 10000 constant fail-loop-limit
@@ -70,13 +70,15 @@ s" cadmium_value" value-fifo$ $!
     sema-system-path$ junk$ $! sema-name$ junk$ $+! junk$ $@ ;
 
 : make-sema ( -- )
-    mysem_t* sema-info drop \ just to initalize mysem_t* to the failed state at start
+    mysem_t* semaphore-constants drop \ just to initalize mysem_t* to the failed state at start
     sema-name$ $@ 0 open-named-sema throw 
     mysem_t* ! ;
 
 : close-sema ( -- )
-    mysem_t* @ pad 
-;
+    mysem_t* @ pad semaphore-constants drop <>
+    if  mysem_t* @ close-semaphore throw
+	sema-name$ $@ remove-semaphore throw
+    then ;
 
 : make-fifo ( -- )
     fifo-path$ $@ filetest
@@ -158,7 +160,8 @@ s" cadmium_value" value-fifo$ $!
 	cmd-id slurp-fid to u to caddr
 	cmd-id close-file throw
 	caddr u s" read" search
-	if 6 - swap 5 + swap getpin cad-value-write throw
+	if 2drop 7 cad-value-write throw
+	\ if 6 - swap 5 + swap getpin cad-value-write throw
 	else 2drop then
 	caddr u s" end" search
 	if 2drop true throw then 
@@ -166,18 +169,31 @@ s" cadmium_value" value-fifo$ $!
     restore 
     endtry ;
 
+: say-ready ( -- nflag ) \ nflag is false if server has told the world it is ready 
+    mysem_t* @ semaphore+ ;
+
+: message-ready ( -- )
+    begin
+	mysem_t* @ semaphore@ throw 0 =
+	if true else 2 ms false then
+    until ;
+
 : process-cadmium-sensor ( -- )
     try
 	make-sema
 	make-fifo
-	begin sensor-msg throw again
+	begin
+	    say-ready throw
+	    message-ready
+	    sensor-msg throw
+	again
     restore
     endtry
     close-sema
     close-fifo
     bye ;
 
-\ process-cadmium-sensor  bye 
+process-cadmium-sensor  bye 
 
 
 
