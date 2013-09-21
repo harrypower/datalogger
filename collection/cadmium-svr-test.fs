@@ -8,7 +8,6 @@ variable value-fifo$ value-fifo$ $init
 variable fifo-path$ fifo-path$ $init
 variable junk$ junk$ $init
 variable mysem_t*
-variable 2mysem_t*
 variable SEM_FAILED-sem_t*
 variable sema-name$ sema-name$ $init
 variable sema-system-path$ sema-system-path$ $init
@@ -48,12 +47,12 @@ s" cadmium_value" value-fifo$ $!
     sema-system-path$ $@ junk$ $! sema-name$ $@ junk$ $+! junk$ $@ ;
 
 : open-sema ( -- )
-    mysem_t* semaphore-constants drop \ ensure mysem_t* is SEM_FAILED at start
+\    semaphore-constants mysem_t* ! drop \ ensure mysem_t* is SEM_FAILED at start
     sema-name$ $@ open-existing-sema throw
     mysem_t* ! ;
 
 : close-sema ( -- )
-    mysem_t* @ 2mysem_t* semaphore-constants drop 2mysem_t* @ <>
+    mysem_t* @ semaphore-constants swap drop <>
     if  mysem_t* @ close-semaphore throw
     then ;
 

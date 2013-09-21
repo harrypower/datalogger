@@ -70,12 +70,11 @@ s" cadmium_value" value-fifo$ $!
     sema-system-path$ junk$ $! sema-name$ junk$ $+! junk$ $@ ;
 
 : make-sema ( -- )
-    mysem_t* semaphore-constants drop \ just to initalize mysem_t* to the failed state at start
     sema-name$ $@ 0 open-named-sema throw 
     mysem_t* ! ;
 
 : close-sema ( -- )
-    mysem_t* @ pad semaphore-constants drop <>
+    mysem_t* @ semaphore-constants swap drop <> 
     if  mysem_t* @ close-semaphore throw
 	sema-name$ $@ remove-semaphore throw
     then ;
