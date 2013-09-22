@@ -62,18 +62,23 @@ end-c-library
 : semaphore@ ( asem_t* -- nvalue nflag ) \ nflag is false if nvalue is valid.  nvalue is semaphore value.  Note pad is clobered. 
     0 pad ! pad sem-getvalue pad @ swap ;
 
+\ This is to close the current process's access to the semaphore
 : close-semaphore ( asem_t* -- nflag ) \ nflag is false if semaphore was closed
     sem-close ;
 
+\ This is to delete the semaphore from the system.
 : remove-semaphore ( caddr u -- nflag ) \ nflag is false if semaphore was removed without errors
     *char sem-unlink ;
 
+\ This is to add one to a semaphores value.
 : semaphore+ ( asem_t* -- nflag ) \ nflag is false if semaphore was incremented by one.
     sem-inc ;
 
+\ This is to reduce a semaphores value by one but it blocks so see below for non blocking decrement.
 : semaphore- ( asem_t* -- nflag ) \ nflag is false if semaphore was decremented by one.  Note this blocks if semaphore value is zero upon entry.
     sem-dec ;
 
+\ This decrements a semaphores value by one and if that can't happen an error will be returned so it is not blocking.
 : semaphore-try- ( asem_t* -- nflag ) \ nflag is false if semaphore was decremented by one. Note this does not block as semaphore- does but will return error if failed to decrement semaphore.
     sem-trydec ;
 

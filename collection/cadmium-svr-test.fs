@@ -47,7 +47,6 @@ s" cadmium_value" value-fifo$ $!
     sema-system-path$ $@ junk$ $! sema-name$ $@ junk$ $+! junk$ $@ ;
 
 : open-sema ( -- )
-\    semaphore-constants mysem_t* ! drop \ ensure mysem_t* is SEM_FAILED at start
     sema-name$ $@ open-existing-sema throw
     mysem_t* ! ;
 
@@ -68,7 +67,9 @@ s" cadmium_value" value-fifo$ $!
     then ;
 
 : close-cad-svr ( -- )
-    cmd-path$ junk$ $! $init s" sudo echo end > " junk$ $! junk$ $+! system $? throw ;
+    cmd-path$ w/o open-file throw
+    s" end" rot dup >r write-file r> close-file throw throw
+;
 
 : read-cad-svr ( -- caddr u )
     cmd-path$  w/o open-file throw
@@ -91,4 +92,16 @@ s" cadmium_value" value-fifo$ $!
     restore  dup if 0 0 rot then
     endtry ;
 
-    
+
+: send-end ( -- nflag ) \ nflag is false if the end command was sent or if server not running do nothing
+    try
+	cadmium-srv-running?
+	if
+	    open-sema
+	    mysem_t* @ semaphore- throw
+	    close-sema
+	    close-cad-svr
+	then
+	false
+    restore 
+    endtry ;
