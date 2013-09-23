@@ -47,13 +47,13 @@ end-c-library
     sem-info-oflag sem-info-sem_t ;   
 
 \ This is to open an existing named semaphore in caddr u.  You get a sem_t* to access semaphore until you close it so save this value to access it!
-: open-existing-sema ( caddr u -- asem_t* nflag )
+: open-existing-sema ( caddr u -- asem_t* nflag ) \ nflag is false if semaphore was made and asem_t* is now pointer to semaphore
     *char
     0 sem-openexisting dup
     semaphore-constants swap drop  = ;
 
 \ This is to create a new named semaphore with a starting value.  You will get sem_t* pointer to access the semaphore until you close it so save this value!
-: open-named-sema ( caddr u nvalue -- asem_t* nflag )
+: open-named-sema ( caddr u nvalue -- asem_t* nflag ) \ nflag is false if semaphore was made and asem_t* is now pointer to semaphore
     >r *char
     semaphore-constants r> swap >r 436 swap 
     sem-open dup r> = ;
@@ -62,7 +62,7 @@ end-c-library
 : semaphore@ ( asem_t* -- nvalue nflag ) \ nflag is false if nvalue is valid.  nvalue is semaphore value.  Note pad is clobered. 
     0 pad ! pad sem-getvalue pad @ swap ;
 
-\ This is to close the current process's access to the semaphore
+\ This is to close access to semaphore pointed to by asem_t*
 : close-semaphore ( asem_t* -- nflag ) \ nflag is false if semaphore was closed
     sem-close ;
 

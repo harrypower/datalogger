@@ -67,11 +67,19 @@ s" cadmium_value" value-fifo$ $!
 
 : sema-path$ ( -- caddr u )
     junk$ $init
-    sema-system-path$ junk$ $! sema-name$ junk$ $+! junk$ $@ ;
+    sema-system-path$ $@ junk$ $! sema-name$ $@ junk$ $+! junk$ $@ ;
+
+: existing-sema ( -- )
+    sema-name$ $@ open-existing-sema throw
+    mysem_t* ! ;
 
 : make-sema ( -- )
-    sema-name$ $@ 0 open-named-sema throw 
-    mysem_t* ! ;
+    sema-name$ $@ 0 open-named-sema
+    if
+       existing-sema	
+    else
+	mysem_t* !
+    then ;
 
 : close-sema ( -- )
     mysem_t* @ semaphore-constants swap drop <> 
@@ -97,14 +105,45 @@ s" cadmium_value" value-fifo$ $!
     if value-path$ junk$ $init s" sudo rm " junk$ $! junk$ $+! junk$ $@ system $? throw then ;
 
 : cadmium-srv-running? ( -- nflag ) \ nflag is false if there is no other cadmium srv software running
-    sema-path$ filetest
-    if false else true then
-    \ note make this if it finds this semaphore file do a test and send a message to server running
-    \ if this message returns good info then the cadmium server is running and report that
-    \ if this message does not get back in resonable time then assume cadmium srv is not working
-    \ so delete the two fifo's and the semaphore take over functions to get messages from client programs
-    \ or something like this to restart the server 
-;    
+    \ nflag is true if server is running and  responding
+    try
+	sema-path$ filetest              
+	if                               
+	    \ sema not present so server not running so start this process as server
+	    false
+	else
+	    \ sema present so try talking to it to see if it is working
+	    existing-sema
+	    utime
+	    begin
+		2dup utime 2swap d- d>s 1000000 <
+		if
+		    mysem_t* @ semaphore-try- false =
+		else
+		    true
+		then
+	    until
+	    utime 2swap d- d>s 1000000 <
+	    if  \ semaphore was decremented now ask if running?
+		cmd-path$ w/o open-file throw dup 
+		s" running?" rot write-file throw
+		close-file throw
+		value-path$ r/o open-file throw
+		dup pad 20 rot read-file throw
+		swap close-file throw
+		pad swap s" yes!" search
+		if 2drop true \ server responded to running ? with yes! so it is running 
+		else 2drop false \ server did not respond it is not running
+		then 
+	    else  \ timed out so server must not be working!
+		mysem_t* close-semaphore throw
+		sema-name$ $@ remove-semaphore throw
+		close-fifo
+		false
+	    then
+	then
+    restore 
+    endtry ;    
 
 : CdS-raw-read { ncadpin -- ntime nflag } \ nflag is 0 if ntime is a real value
     try 
@@ -149,6 +188,15 @@ s" cadmium_value" value-fifo$ $!
     restore 
     endtry ;
 
+: running-reply ( -- nflag ) \ nflag is false for running reply yes sent
+    try 
+	value-path$ w/o open-file throw
+	s" yes!" rot dup >r write-file throw
+	r> close-file throw
+	false
+    restore
+    endtry ;
+
 : getpin ( caddr u -- npin ) \ npin will be zero for no pin or a GPIO pin number that cadmium sensor is attached to
    s>unumber? if d>s else 2drop 0 then ;
 
@@ -163,7 +211,9 @@ s" cadmium_value" value-fifo$ $!
 	\ if 6 - swap 5 + swap getpin cad-value-write throw
 	else 2drop then
 	caddr u s" end" search
-	if 2drop true throw then 
+	if 2drop true throw then
+	caddr u s" running?" search
+	if 2drop running-reply throw then
 	false 
     restore 
     endtry ;
@@ -178,21 +228,24 @@ s" cadmium_value" value-fifo$ $!
     until ;
 
 : process-cadmium-sensor ( -- )
-    try
-	make-sema
-	make-fifo
-	begin
-	    say-ready throw
-	    message-ready
-	    sensor-msg throw
-	again
-    restore
-    endtry
-    close-sema
-    close-fifo
+\    cadmium-srv-running? false =
+\    if
+	try
+	    make-sema
+	    make-fifo
+	    begin
+		say-ready throw
+		message-ready
+		sensor-msg throw
+	    again
+	restore
+	endtry
+	close-sema
+	close-fifo
+\    then
     bye ;
 
-process-cadmium-sensor  bye 
+process-cadmium-sensor   
 
 
 
