@@ -83,40 +83,76 @@ end-c-library
     sem-trydec ;
 
 \ ***************************************************
-\ Note the following words are not finished and need some error checking and memory managment issue to be worked on yet!
 \ The following words allow treating a semaphore something like a variable in gforth
-\ use as follows:
-\ 3234 sema-make-named mysemavar .  \ This would make a semaphore named mysemavar that contained 3234 at start.  False returned means all ok semaphore made.
-\ mysemavar . . \ you would see 0 3234 returned to command line.
-\ sema-close mysemavar . \ would close the sema but the memory for the gforth structure is still present
-\ sema-rm mysemavar . \ should remove the semaphore from linux system but the structure is still in gforth
+\ *************************************************************
+\ these words are the perfered method ... first a word for making a structure to hold semaphore info
+\ ... then a word to make a new semaphore using this new structure
+\ ... then a word to retrieve the semaphore value
+\ Note the structure holds the semaphore name for c transfer and also has place for pointer to semaphore and a cell for value passing
+: semaphore% ( compilation. "semaphore-name" -- : run-time. -- asema% )
+    \ sem_t* nvalue "semaphore-name" (the "semaphore-name" is stored here with null terminator for transfering to c code)
+    CREATE sem-info-sem_t dup 2, latest name>string dup 1 + here dup rot erase swap cmove  ;
+
+: sema-make-named2 ( nvalue asema% -- nflag )
+    swap >r dup 2 cells + r> semaphore-constants >r swap 436 swap sem-open dup r> = -rot swap ! ;
+
+: semaphore@2 ( asema% -- nvalue nflag )
+    dup cell+ dup rot @ swap sem-getvalue swap @ swap ;
+\ ************************************************************ 
+
+\ This word is the DOES> for sema-make-named and sema-open-existing and not used directly!
+: dosema@ DOES> dup cell + @ if drop 0 true else dup 2 cells + dup rot @ swap sem-getvalue then ;
 
 \ Used to make a named semaphore with an initial value of nvalue. nflag is false for all ok.
 \ When the "semaphore-name" is used it will return the current semaphore value and a false nflag meaning the value is valid
-: sema-make-named ( compilation. nvalue "semaphore-name" -- nflag : run-time. -- ncurrentvalue nflag )
-    CREATE latest name>string rot open-named-sema swap , dup , DOES> dup cell + @ if drop 0 true else @ semaphore@ then ;
+: sema-make-named ( compilation. nvalue "semaphore-name" -- nflag : run-time. -- address_of_currentvalue nflag )
+    parse-name 2dup find-name dup
+    if
+	name>int dup execute 
+	if
+	    drop >body -rot 2swap swap 2swap rot open-named-sema rot dup 2swap rot cell+ ! swap dup rot swap ! cell+ @ 
+	else
+	    2drop 2drop true \ true this time because this semaphore does exist so it is not closed and not reassigned a value.
+	then
+    else
+	drop nextname CREATE latest name>string rot open-named-sema swap , dup , 0 , dosema@
+    then ; \ structure is (sem_t* nflag nvalue) each item is a cell size 
 
 \ Used to open an existing named semaphore variable to use with words following.  Nflag should be false for opened successfuly!
-: sema-open-existing ( compilation. "semaphore-name" -- nflag : run-time. -- ncurrentvalue nflag )
-    CREATE latest name>string open-existing-sema swap , dup , DOES> dup cell + @ if drop 0 true else @ semaphore@ then ;
+: sema-open-existing ( compilation. "semaphore-name" -- nflag : run-time. -- address_of_currentvalue nflag )
+    parse-name 2dup find-name dup
+    if
+	-rot open-existing-sema rot name>int >body dup 2swap swap rot ! dup rot cell+ ! 
+    else
+	drop nextname CREATE latest name>string open-existing-sema swap , dup , 0 , dosema@ 
+    then ;
 
 \ Need to use the same name that was used to create or open semaphore as used in sema-make-named or sema-open-existing for all the following words!
 \ Use this to increment semaphore. nflag is false for increment happened.
-: sema+ ( "semaphore" -- nflag )
-    ' >body @ sem-inc ;
+: sema+ ( a_sema-value nflag  -- nflag1 )
+    0 = if 2 cells - @ sem-inc else 2drop true then ;
 
 \ Use this to decrement semaphore but realize this blocks if value is at zero already!  Nflag is false for decrement worked fine!
 : sema- ( "semaphore" -- nflag )
-    ' >body @ sem-dec ;
+    0 = if 2 cells - @ sem-dec else 2drop true then ;
 
 \ Use this to decrement semaphore without blocking.  Nflag is false for decrement worked properly true for can not decrement for some reason.
 : sema-try- ( "semaphore" -- nflag )
-    ' >body @ sem-trydec ;
+    0 = if 2 cells - @ sem-trydec else 2drop true then ;
 
-\ Use this to close the semaphore.  To open again you use sema-open-existing providing you have not removed the semaphore from system with sema-rm.  False means semaphore closed properly.
+\ Use this to close the semaphore.  To open again you use sema-open-existing providing you have not removed the semaphore from system with sema-rm.
+\ nflag is False for semaphore closed properly.
 : sema-close ( "semaphore" -- nflag )
-    ' >body @ sem-close ;
+    ' >body dup @ sem-close swap cell+ true swap ! ;
 
-\ Use this to remove the semaphore from the system perminently.  nflag is false if this semaphore does get deleted properly here!
+\ Use this to remove the semaphore from the system perminently.  nflag is false if this semaphore does get deleted properly from system!
+\ Note the structure "semaphore" is still in the gforth dictionary and can be used to reopen the same named semaphore.
+\  To do this use sema-make-named again and the structure will be reused rather then a new structure created.
 : sema-rm ( "semaphore" -- nflag )
-    ' >name dup if dup -2048 <> if name>string *char sem-unlink else drop then else drop then ;
+    parse-name 2dup find-name dup
+    if
+	-rot *char sem-unlink if drop true else name>int >body dup cell+ true swap ! sem-info-sem_t swap ! false then 
+    else
+	2drop drop true
+    then ;
+\    ' >name dup if dup -2048 <> if name>string *char sem-unlink else drop then else drop then ;
