@@ -1,5 +1,3 @@
-#! /usr/bin/gforth
-
 \ This Gforth code part of my library of linux tools!
 \    Copyright (C) 2013  Philip King Smith
 
@@ -15,6 +13,8 @@
 
 \    You should have received a copy of the GNU General Public License
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+[IFUNDEF] sem-info-sem_t
 
 clear-libs
 c-library mysemaphore
@@ -43,6 +43,12 @@ end-c-library
 \ The following words access or make a semaphore that you need to manage the handle for yourself.
 \ Note some words will clober pad in there use!
 \ *************************************************
+\ Use the following words like this:
+\ variable mysemapointer
+\ s" asema" 872 open-named-sema [if] drop [then] mysemapointer @ [then]
+\ mysemapointer @ semaphore@ [if] drop s" semaphore can't be retrieved!" type [else] s"Semaphore value is " type . [then]
+\ Basically you can see that you need to manage the storage of the semaphore pointer and the string name for the semaphore in your own way! See below for a structure that does this somewhat for you!
+
 : *char ( caddr u -- caddr ) \ note this clobers pad up to u + 2 elements 
     dup 2 + pad swap erase pad swap move pad  ;
 
@@ -91,6 +97,7 @@ end-c-library
 \ *************************************************************
 \ use as follows:
 \ semaphore% asemaphore          \ makes structure to hold semaphore stuff named "asemaphore" in dictionary.  Will return asema% or the address of the structure when used!
+\ s" asemaphore" $semaphore%     \ you can use this to create the semaphore structure aslo.  This allows you to use caps in semaphore name but remember gforth stores names without caps so the created structure can be accessed without caps. 
 \ 593 asemaphore sema-mk-named . \ you will show false if asemaphore was created with value 593 in it.
 \ asemaphore sema@ . .           \ will return 0 593.  The 0 shows the next value is the real value from the semaphore. 593 is the value asemaphore contains now!
 \ asemaphore sema-close .        \ will return 0.  This means this process does not have access to the semaphore anymore but the structure is still in memory!
@@ -99,12 +106,19 @@ end-c-library
 \ asemaphore sema-try- .         \ will return 0 when it decrements "asemaphore" or non zero meaning decrement of asemaphore did not happen.
 \ asemaphore sema+ .             \ will return 0 when asemaphore is incremented.
 \ asemaphore sema-delete .       \ will return false if asemaphore was deleted from the system.
-\ Note as seamphores are system variables other processes can do things to them also so these commands will be cued by the system apropriatly and then acted on in proper time!
+\ Note as seamphores are system variables other processes can do things to them also so these commands will be cued by the system properly and then acted on in proper time!
 
-\ Note the structure holds the semaphore name for c transfer and also has place for pointer to semaphore and a cell for value passing
-: semaphore% ( compilation. "semaphore-name" -- : run-time. -- asema% )
+: semaphore% ( compilation. "semaphore-name" -- : run-time. -- asema% ) \ use this to make a semaphore structure
     \ sem_t* nvalue "semaphore-name" (the "semaphore-name" is stored here with null terminator for transfering to c code)
+    \ Note the structure holds the semaphore name for c transfer and also has place for pointer to semaphore and a cell for value passing.
     CREATE sem-info-sem_t dup 2, latest name>string dup 1 + here dup rot erase swap cmove  ;
+
+: $semaphore% ( compilation. caddr u -- : run-time. -- asema% )
+    \ caddr u is a string containing the name of the created structure and the semaphore name that the system will create later.
+    \ the null terminator will be added to the structure when storing the string so no need to add it at compiling time.
+    \ note not all letters can be used to make a system semaphore!
+    \ See above word for how the structure is organized because this word does the same thing!
+    nextname CREATE sem-info-sem_t dup 2, latest name>string dup 1 + here dup rot erase swap cmove ;
 
 : sema-mk-named ( nvalue asema% -- nflag ) \ nflag will be false if semaphore was made in system.  The pointer to semaphore is stored in asema% now.
     swap >r dup 2 cells + r> semaphore-constants >r swap 436 swap sem-open dup r> = -rot swap ! ;
@@ -144,3 +158,4 @@ end-c-library
  
 \ ************************************************************ 
 
+[THEN]
