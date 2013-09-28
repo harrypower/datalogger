@@ -28,25 +28,15 @@ include /home/pi/git/datalogger/collection/semaphore.fs
 10000 constant fail-loop-limit
 
 variable junk$ junk$ $init
-variable SEM_FAILED* semaphore-constants SEM_FAILED* ! value oflag
-variable cad-ready* sem_failed* @ cad-ready* !
-variable cad-ready$ cad-ready$ $init
-variable cad-value* sem_failed* @ cad-value* !
-variable cad-value$ cad-value$ $init
-variable cad-error* sem_failed* @ cad-error* !
-variable cad-error$ cad-error$ $init
-variable cad-pin*   sem_failed* @ cad-pin* !
-variable cad-pin$   cad-pin$ $init
-variable cad-cmd*   sem_failed* @ cad-cmd* !
-variable cad-cmd$   cad-cmd$ $init
 variable sema-system-path$ sema-system-path$ $init
 
 s" /dev/shm/sem." sema-system-path$ $!
-s" cadmium-ready" cad-ready$ $!
-s" cadmium-value" cad-value$ $!
-s" cadmium-error" cad-error$ $!
-s" cadmium-pin"   cad-pin$   $!
-s" cadmium-cmd"   cad-cmd$   $!
+
+sema% cadmium-ready
+sema% cadmium-value
+sema% cadmium-error
+sema% cadmium-pin
+sema% cadmium-cmd
 
 : shget ( caddr u -- caddr1 u1 nflag )  \ nflag is false if caddr1 and u1 are valid messages from system 
     try	
