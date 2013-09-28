@@ -70,11 +70,11 @@ s" cadmium_value" value-fifo$ $!
     sema-system-path$ $@ junk$ $! sema-name$ $@ junk$ $+! junk$ $@ ;
 
 : existing-sema ( -- )
-    sema-name$ $@ open-existing-sema throw
+    sema-name$ $@ semaphore-op-existing throw
     mysem_t* ! ;
 
 : make-sema ( -- )
-    sema-name$ $@ 0 open-named-sema
+    sema-name$ $@ 0 semaphore-mk-named
     if
        existing-sema	
     else
@@ -83,8 +83,8 @@ s" cadmium_value" value-fifo$ $!
 
 : close-sema ( -- )
     mysem_t* @ semaphore-constants swap drop <> 
-    if  mysem_t* @ close-semaphore throw
-	sema-name$ $@ remove-semaphore throw
+    if  mysem_t* @ semaphore-close throw
+	sema-name$ $@ semaphore-delete throw
     then ;
 
 : make-fifo ( -- )
@@ -136,8 +136,8 @@ s" cadmium_value" value-fifo$ $!
 		else 2drop false \ server did not respond it is not running
 		then 
 	    else  \ timed out so server must not be working!
-		mysem_t* close-semaphore throw
-		sema-name$ $@ remove-semaphore throw
+		mysem_t* semaphore-close throw
+		sema-name$ $@ semaphore-delete throw
 		close-fifo
 		false
 	    then

@@ -47,12 +47,12 @@ s" cadmium_value" value-fifo$ $!
     sema-system-path$ $@ junk$ $! sema-name$ $@ junk$ $+! junk$ $@ ;
 
 : open-sema ( -- )
-    sema-name$ $@ open-existing-sema throw
+    sema-name$ $@ semaphore-op-existing throw
     mysem_t* ! ;
 
 : close-sema ( -- )
     mysem_t* @ semaphore-constants swap drop <>
-    if  mysem_t* @ close-semaphore throw
+    if  mysem_t* @ semaphore-close throw
     then ;
 
 : cadmium-srv-running? ( -- nflag ) \ nflag is false if there is no cadmium srv software running
