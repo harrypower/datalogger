@@ -111,14 +111,14 @@ end-c-library
 : sema% ( compilation. "semaphore-name" -- : run-time. -- asema% ) \ use this to make a semaphore structure
     \ sem_t* nvalue "semaphore-name" (the "semaphore-name" is stored here with null terminator for transfering to c code)
     \ Note the structure holds the semaphore name for c transfer and also has place for pointer to semaphore and a cell for value passing.
-    CREATE sem-info-sem_t dup 2, latest name>string dup 1 + here dup rot erase swap cmove  ;
+    CREATE sem-info-sem_t dup 2, latest name>string dup dup 1+ here dup rot allot rot erase swap cmove  ;
 
 : $sema% ( compilation. caddr u -- : run-time. -- asema% )
     \ caddr u is a string containing the name of the created structure and the semaphore name that the system will create later.
     \ the null terminator will be added to the structure when storing the string so no need to add it at compiling time.
     \ note not all letters can be used to make a system semaphore!
     \ See above word for how the structure is organized because this word does the same thing!
-    nextname CREATE sem-info-sem_t dup 2, latest name>string dup 1 + here dup rot erase swap cmove ;
+    nextname CREATE sem-info-sem_t dup 2, latest name>string dup dup 1+ here dup rot allot rot erase swap cmove  ;
 
 : sema-mk-named ( nvalue asema% -- nflag ) \ nflag will be false if semaphore was made in system.  The pointer to semaphore is stored in asema% now.
     swap >r dup 2 cells + r> semaphore-constants >r swap 436 swap sem-open dup r> = -rot swap ! ;
@@ -146,7 +146,7 @@ end-c-library
 	asema% @ sem-dec
     restore endtry ;
 
-: sema-try- { asema% -- nflag } \ nflag is false if semaphore was decrement proplery. Not this word does not block!!
+: sema-try- { asema% -- nflag } \ nflag is false if semaphore was decrement properly. Not this word does not block!!
     try
 	asema% @ sem-trydec
     restore endtry ;

@@ -26,17 +26,28 @@ include /home/pi/git/datalogger/collection/semaphore.fs
 
 777 constant time-exceeded-fail
 10000 constant fail-loop-limit
+15 constant wait-time
+5  constant response-time
 
+66 constant running?
+77 constant yes
+88 constant get-cadmium-value
+99 constant end-srv
+55 constant time-error
+
+0 value counter
 variable junk$ junk$ $init
 variable sema-system-path$ sema-system-path$ $init
 
 s" /dev/shm/sem." sema-system-path$ $!
 
-sema% cadmium-ready
-sema% cadmium-value
-sema% cadmium-error
-sema% cadmium-pin
-sema% cadmium-cmd
+sema% cadmium-ready  \ srv makes only
+sema% cadmium-value  \ srv makes only
+sema% cadmium-error  \ srv makes only
+sema% cadmium-pin    \ client makes only
+sema% cadmium-cmd    \ client makes only
+sema% cadmium-pid
+sema% cad-client-response
 
 : shget ( caddr u -- caddr1 u1 nflag )  \ nflag is false if caddr1 and u1 are valid messages from system 
     try	
@@ -78,32 +89,88 @@ sema% cadmium-cmd
    restore dup if dup -9 = if 0 swap else 0 swap piocleanup drop then  then
    endtry ;
 
+
 : another-cad-srv-running? ( -- nflag ) \ nflag is true if there is another server running and responding!
+    cadmium-ready sema-op-exist         \ nflag is false for any other possible issue other then a fully responding other server 
+    if
+	false s" No other server running!" type cr
+    else
+	try
+	    0 to counter
+	    begin cadmium-ready sema-try- counter 1+ dup to counter swap if wait-time > if true throw else 1 ms false then else drop true then until 
+	    running? cadmium-cmd sema-mk-named if cadmium-cmd sema-delete drop running? cadmium-cmd sema-mk-named throw then 
+	    response-time ms
+	    cadmium-error sema-op-exist throw \ if this throws then if server was there it did not respond in resonable time so assume server is not working
+	    cadmium-error sema@ throw yes = if false s" Server responding!" type cr else true s" Other detected server not responding!" type cr then 
+	restore
+	    if false s" Other detected server not responding at error sema!" type cr else true then 
+	    cadmium-error sema-close drop
+	    cadmium-cmd dup sema-close drop sema-delete if cadmium-cmd dup sema-close drop sema-delete throw then
+	endtry
+	cadmium-ready sema-close drop
+    then ;
 
-;
+: start-cad-srv ( -- ) \ this will start the server by making cadmium-ready semaphore at 0
+    \ this word will throw if for some reason the cadmium-ready semaphore could not be started!
+    0 cadmium-ready sema-mk-named
+    if cadmium-ready dup sema-close drop sema-delete drop 0 cadmium-ready sema-mk-named if cadmium-ready dup sema-close drop sema-delete drop true throw then then ;
 
-: start-cad-srv ( -- nflag ) \ nflag is false if server was started ok and semaphore variables opened ok
+: wait-for-cmd ( -- ) \ this manages ready signal to clients to get ready for the commands from clients
+    \ this word will throw if for some reason the cadmium-ready semaphore does not work correctly 
+    cadmium-ready sema+
+    if cadmium-ready dup sema-close drop sema-delete drop start-cad-srv cadmium-ready sema+ throw then
+    begin
+	1 ms
+	cadmium-ready sema@ if drop cadmium-ready sema@ throw then
+	0 =
+    until ;
 
-;
+: process-running-cmd ( -- ) \ creates cadmium-error sema and puts yes into it.  If this cant be done it throws so this server can be shutdown and asking client can restart server
+    yes cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop yes cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop true throw then then
+    wait-time ms
+    cadmium-error dup sema-close drop sema-delete drop ;
 
-: wait-for-cmd ( -- )
+: process-get-cadmium-value ( -- )
+    678 cadmium-value sema-mk-named if 690 cadmium-value sema-mk-named if cadmium-value dup sema-close drop sema-delete drop true throw then then
+    0 cadmium-error sema-mk-named if 0 cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop true throw then then
+    wait-time ms
+    cadmium-error dup sema-close drop sema-delete if cadmium-error dup sema-close drop sema-delete throw then
+    cadmium-value dup sema-close drop sema-delete if cadmium-value dup sema-close drop sema-delete throw then ;
 
-;
+: process-time-error ( -- )
+    time-error cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop time-error cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop true throw then then
+    wait-time ms
+    cadmium-error dup sema-close drop sema-delete if cadmium-error dup sema-close drop sema-delete throw then ;
+
+: process-end-srv ( -- )
+    0 cadmium-error sema-mk-named if 0 cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop true throw then then
+    wait-time ms
+    cadmium-ready dup sema-close drop sema-delete drop
+    cadmium-value dup sema-close drop sema-delete drop
+    cadmium-error dup sema-close drop sema-delete drop ;
 
 : process-cmd ( -- )
-
+    0 to counter
+    begin cadmium-cmd sema-op-exist if counter 1+ dup to counter wait-time > if 0 true else 1 ms false then else cadmium-cmd sema@ false = then until
+    dup running? =          if process-running-cmd s" Asked if running!" type cr then
+    dup get-cadmium-value = if process-get-cadmium-value s" Value delivered!" type cr then 
+    dup end-srv =           if process-end-srv s" Asked to close this server process. Closing now!" type cr then
+        0 =                 if process-time-error s" Client exceeded command delivery time!" type cr then
 ;
 
 : do-cad-srv ( -- )
     start-cad-srv
-    wait-for-cmd
-    process-cmd
-;
+    begin
+	wait-for-cmd
+	process-cmd
+    again ;
 
 : process-cadmium ( -- )
     try
-	another-cad-srv-running? throw
+	another-cad-srv-running? dup if s" Another server is currently running closing this process now!" type cr else s" Started this process as server!" type cr then  throw
 	do-cad-srv
-    restore bye
+    restore
+	bye
     endtry ;
 
+process-cadmium
