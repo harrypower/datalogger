@@ -26,7 +26,7 @@ include /home/pi/git/datalogger/collection/semaphore.fs
 
 777 constant time-exceeded-fail
 10000 constant fail-loop-limit
-15 constant wait-time
+200 constant wait-time
 5  constant response-time
 
 66 constant running?
@@ -105,7 +105,7 @@ sema% cad-client-response
 	restore
 	    if false s" Other detected server not responding at error sema!" type cr else true then 
 	    cadmium-error sema-close drop
-	    cadmium-cmd dup sema-close drop sema-delete if cadmium-cmd dup sema-close drop sema-delete throw then
+	    cadmium-cmd dup sema-close drop sema-delete if cadmium-cmd dup sema-close drop sema-delete drop then
 	endtry
 	cadmium-ready sema-close drop
     then ;
@@ -130,9 +130,10 @@ sema% cad-client-response
     wait-time ms
     cadmium-error dup sema-close drop sema-delete drop ;
 
-: process-get-cadmium-value ( -- )
-    678 cadmium-value sema-mk-named if 690 cadmium-value sema-mk-named if cadmium-value dup sema-close drop sema-delete drop true throw then then
-    0 cadmium-error sema-mk-named if 0 cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop true throw then then
+: process-get-cadmium-value ( -- ) \ need to add the pin value to this 
+    7 cds-raw-read { nvalue nerror } nvalue . s"   " type nerror . cr
+    nvalue cadmium-value sema-mk-named if 690 cadmium-value sema-mk-named if cadmium-value dup sema-close drop sema-delete drop true throw then then
+    nerror cadmium-error sema-mk-named if 0 cadmium-error sema-mk-named if cadmium-error dup sema-close drop sema-delete drop true throw then then
     wait-time ms
     cadmium-error dup sema-close drop sema-delete if cadmium-error dup sema-close drop sema-delete throw then
     cadmium-value dup sema-close drop sema-delete if cadmium-value dup sema-close drop sema-delete throw then ;
@@ -154,9 +155,10 @@ sema% cad-client-response
     begin cadmium-cmd sema-op-exist if counter 1+ dup to counter wait-time > if 0 true else 1 ms false then else cadmium-cmd sema@ false = then until
     dup running? =          if process-running-cmd s" Asked if running!" type cr then
     dup get-cadmium-value = if process-get-cadmium-value s" Value delivered!" type cr then 
-    dup end-srv =           if process-end-srv s" Asked to close this server process. Closing now!" type cr then
+    dup end-srv =           if process-end-srv s" Asked to close this server process. Closing now!" type cr true throw then
         0 =                 if process-time-error s" Client exceeded command delivery time!" type cr then
-;
+    cadmium-cmd sema-close if cadmium-cmd sema-close drop then	
+    ;
 
 : do-cad-srv ( -- )
     start-cad-srv
