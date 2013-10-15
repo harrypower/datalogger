@@ -4,6 +4,8 @@ include ../string.fs
 include cadmium-svr-test.fs
 include script.fs
 include cadmium-sensor2.fs
+include cadmium-socket.fs
+
 
 : time-test
     utime
@@ -32,6 +34,16 @@ include cadmium-sensor2.fs
 
 : dotime-test2
     0 0 50 0 ?do time-test2 d+ loop 2dup d. 1 51 m*/ d. ;
+
+
+: time-test3
+    utime
+    cadmium-client 2drop \ type cr
+    utime 2swap d-
+;
+
+: dotime-test3
+    0 0 50 0 ?do time-test3 d+ loop 2dup d. 1 51 m*/ d. ;
 
 
 

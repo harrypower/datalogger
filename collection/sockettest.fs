@@ -8,6 +8,7 @@ include ../string.fs
 variable junk$ junk$ $init
 
 4445 value myserver-port#
+4445 value sensor-port#
 
 : #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
     s>d
@@ -25,16 +26,51 @@ variable junk$ junk$ $init
 
 
 : socket-server ( -- )
-    s" Scripting is starting server!" type cr 
+    s" Starting server!" type cr 
     myserver-port# create-server 0 { lsocket socketid }
     lsocket 1 listen
-    lsocket accept-socket to socketid
-    socketid pad 80 read-socket 2dup datastore
-    2dup type cr
-    socketid write-socket
-    s" Got it!" socketid write-socket
+    begin
+	lsocket accept-socket to socketid
+	0 0 begin
+	    2drop
+	    socketid pad 80 read-socket-from
+	    2dup s" GET" search swap drop swap drop
+	until
+	2dup socketid write-socket
+	s" Temperature 24 Humidity 35" socketid write-socket
+	socketid close-socket
+	s" close server" search swap drop swap drop 
+    until
+;
+
+: socket-client ( -- )
+    cr
+    s" Starting client!" type cr
+    s" 192.168.0.107" sensor-port# open-socket { socketid }
+    s" GET" socketid write-socket
+    0 0 begin
+	2drop
+	socketid pad 80 read-socket-from dup 20 >
+    until
+    s" The response is as follows:" type cr
+    type cr
     hostname type cr
     socketid close-socket
 ;
 
-script? [if] :noname socket-server bye ; is bootmessage [then]
+: server-close ( -- )
+    cr
+    s" Sending server close!" type cr
+    s" 192.168.0.107" sensor-port# open-socket { socketid }
+    s" GET close server" socketid write-socket
+    0 0 begin
+	2drop
+	socketid pad 80 read-socket-from dup 20 >
+    until
+    s" the response is as follows:" type cr
+    type  cr
+    socketid close-socket
+;
+
+\ script? [if] :noname socket-server bye ; is bootmessage [then]
+\ script? [if] :noname socket-client bye ; is bootmessage [then]
