@@ -25,7 +25,7 @@ To use this server you need to install Gforth, inetd and then configure this ser
 -Configure inetd service and start the webserver as follows:
     $ sudo nano /etc/inetd.conf
 	Move the curser to the end of the document and enter the following text:
-	http stream tcp nowait.100 root /home/pi/git/datalogger/httpd.fs
+	http stream tcp nowait.1000 root /home/pi/git/datalogger/httpd.fs
 	Save the file with control x y enter
 	Now at this moment you can restart your pi as follows:
 	$ sudo shutdown "now" -r
