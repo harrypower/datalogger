@@ -4,7 +4,7 @@
 /* to compile this in debian do the following:
 sudo apt-get install sqlite3
 sudo apt-get install libsqlite3-dev
-gcc sqlitetest.cpp -o sqlitetest -lsqlite3  
+gcc sqlitetest.cpp -o sqlitetest.exe -lsqlite3  
 */
   
 static int callback(void *NotUsed, int argc, char **argv, char **azColName){
