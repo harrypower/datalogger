@@ -28,19 +28,42 @@ s" sqlite3" add-lib
 
 \c #include <stdio.h>
 \c #include "sqlite3.h"
+\c #include <string.h>
+\c
+\c char * theBuffer = 0;
+\c int maxBuffsize = 0;
+\c char * separator = 0;
 \c
 \c static int callback( void * NotUsed, int argc, char ** argv, char ** azColName ) {
 \c int i;
-\c for(i=0; i < argc ; i++) {
-\c    printf( "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL" );
-\c    }
-\c printf("\n");
+\c char temp[maxBuffsize/4] ;
+\c int tempSize;
+\c int tempBuffsize;
+\c
+\c for(i = 0; i < argc ; i++) {
+\c      sprintf(temp,"%s",argv[i] ? argv[i] : "NULL");
+\c      strcat(temp,separator);    
+\c      tempSize = strlen(temp);
+\c      tempBuffsize = strlen(theBuffer);
+\c      if((tempBuffsize + tempSize + 1) < maxBuffsize){
+\c           strcat(theBuffer,temp);
+\c           } else { return 0; }
+\c      }
+\ This was from testing but i left it here to remember the variable meanings!
+\ \c for(i=0; i < argc ; i++) {
+\ \c    printf( "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL" );
+\ \c    }
 \c return 0;  
 \c }
-\c int sqlite3to4th( const char * filename, char * sqlite3_cmds, char * sqlite3_ermsg ) {
+\c
+\c int sqlite3to4th( const char * filename, char * sqlite3_cmds, char * sqlite3_ermsg , char * buffer, int buffsize , char * sep) {
 \c sqlite3 *db;
 \c char * zErrMsg = 0 ;
 \c int rc = 0 ;
+\c theBuffer = buffer;
+\c maxBuffsize = buffsize;
+\c separator = sep;
+\c
 \c rc = sqlite3_open( filename, &db ) ;
 \c if( rc ) {
 \c    sprintf( sqlite3_ermsg,"Can't open database: %s\n", sqlite3_errmsg( db ) );
@@ -60,10 +83,17 @@ s" sqlite3" add-lib
 
 \ **** sqlite3 gforth wrappers ****
 
-c-function sqlite3 sqlite3to4th a a a -- n
+c-function sqlite3 sqlite3to4th a a a a n a -- n
 \ note that c strings are always null terminated unlike gforth strings! 
     
 end-c-library
 
-
-    
+: mkZstr ( caddr u -- caddr1 nflag )  \ make a z string to pass to c code that can be freed later
+    \ nflag is 0 if caddr1 is a valid memory location with caddr u transfered to it and can be freed later
+    TRY
+	0 { caddr u caddr1 }
+	u 1+ allocate throw to caddr1
+	caddr1 u 1+ erase
+	caddr caddr1 u move caddr1 false
+    RESTORE dup if swap drop then 
+    ENDTRY ;
