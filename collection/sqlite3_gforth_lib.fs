@@ -124,7 +124,8 @@ struct
 end-struct sqlite3message%
 
 create sqlmessg
-sqlmessg sqlite3message% %size dup allot erase 
+\ sqlmessg sqlite3message% %size dup allot erase 
+sqlite3message%  %allot drop
 
 : mkretbuff ( nsize -- )
     sqlmessg retbuffmaxsize-cell !
@@ -134,7 +135,6 @@ sqlmessg sqlite3message% %size dup allot erase
     addr free throw ;
 
 : mkerrorbuff ( -- )
-    \ s" stuff" sqlmessg dberrors-$ z$!
     80 allocate throw { addr }
     addr 80 erase
     addr 80 sqlmessg dberrors-$ z$!
@@ -160,6 +160,8 @@ initsqlmessg \ structure now has allocated memory
     sqlmessg seperator-$ z$! ;
 
 : sendsqlite3cmd ( -- nerror ) \ will send the commands to sqlite3 and nerror contains false if no errors
+    mkerrorbuff
+    200 mkretbuff
     sqlmessg dbname-$ z$@
     sqlmessg dbcmds-$ z$@
     sqlmessg dberrors-$ z$@
@@ -167,4 +169,6 @@ initsqlmessg \ structure now has allocated memory
     sqlmessg retbuffmaxsize-cell @
     sqlmessg seperator-$ z$@
     sqlmessg buffok-flag 
-    sqlite3  ;
+    sqlite3
+    \ remember to put here the buffok-flag check to see if result buffer overflow has happened!
+;
