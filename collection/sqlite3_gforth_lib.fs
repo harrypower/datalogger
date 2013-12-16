@@ -20,6 +20,7 @@
 
 \ I will put here how to use this code when i get there!
 
+include string.fs
 
 clear-libs
 c-library mysqlite3
@@ -33,10 +34,11 @@ s" sqlite3" add-lib
 \c char * theBuffer = 0;
 \c int maxBuffsize = 0;
 \c char * separator = 0;
+\c int bufferok =0;
 \c
 \c static int callback( void * NotUsed, int argc, char ** argv, char ** azColName ) {
 \c int i;
-\c char temp[maxBuffsize/4] ;
+\c char temp[maxBuffsize] ;
 \c int tempSize;
 \c int tempBuffsize;
 \c
@@ -47,22 +49,37 @@ s" sqlite3" add-lib
 \c      tempBuffsize = strlen(theBuffer);
 \c      if((tempBuffsize + tempSize + 1) < maxBuffsize){
 \c           strcat(theBuffer,temp);
-\c           } else { return 0; }
+\c           } else {
+\c           bufferok = 1;
+\c           return 0; }
 \c      }
+\c if((strlen(theBuffer) + strlen(separator) + 1) < maxBuffsize) {
+\c    strcat(theBuffer,separator);
+\c    } else {
+\c    bufferok = 1; }
+\c return 0;
 \ This was from testing but i left it here to remember the variable meanings!
 \ \c for(i=0; i < argc ; i++) {
 \ \c    printf( "%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL" );
 \ \c    }
-\c return 0;  
 \c }
-\c
-\c int sqlite3to4th( const char * filename, char * sqlite3_cmds, char * sqlite3_ermsg , char * buffer, int buffsize , char * sep) {
+\  filename is a string for the filename of the database.
+\  sqlite3_cmds is a string of the comands to send to sqlite3.
+\  sqlite3_ermsg is the returned string of errors if any happen.
+\  buffer is a string that will contain the result of the sqlite3 commands if any results are expected!
+\  buffsize is the size or the buffer string including room for the null terminator
+\  sep is a string that contains the field and record seperator to incert into the returned result in buffer.
+\  buffok is a char string of dimention one that contains 0 or 1 depending on if the result returned fit in the buffsize of buffer.
+\  Note all these strings are need to be zero terminated at entry to this function.
+\c 
+\c int sqlite3to4th( const char * filename, char * sqlite3_cmds, char * sqlite3_ermsg , char * buffer, int buffsize , char * sep, char * buffok) {
 \c sqlite3 *db;
 \c char * zErrMsg = 0 ;
 \c int rc = 0 ;
 \c theBuffer = buffer;
 \c maxBuffsize = buffsize;
 \c separator = sep;
+\c buffok[0]=0;
 \c
 \c rc = sqlite3_open( filename, &db ) ;
 \c if( rc ) {
@@ -77,23 +94,77 @@ s" sqlite3" add-lib
 \c   sqlite3_free( zErrMsg );
 \c }
 \c sqlite3_close( db );
+\c if(bufferok==1) buffok[0]=1;
 \c return 0;
 \c }
 \c
 
 \ **** sqlite3 gforth wrappers ****
 
-c-function sqlite3 sqlite3to4th a a a a n a -- n
+c-function sqlite3 sqlite3to4th a a a a n a a -- n
 \ note that c strings are always null terminated unlike gforth strings! 
     
 end-c-library
 
-: mkZstr ( caddr u -- caddr1 nflag )  \ make a z string to pass to c code that can be freed later
-    \ nflag is 0 if caddr1 is a valid memory location with caddr u transfered to it and can be freed later
-    TRY
-	0 { caddr u caddr1 }
-	u 1+ allocate throw to caddr1
-	caddr1 u 1+ erase
-	caddr caddr1 u move caddr1 false
-    RESTORE dup if swap drop then 
-    ENDTRY ;
+: z$! ( caddr u addr1 -- ) \ works with $! from string.fs but adds a null at end or string to pass to c code
+    swap 1 + swap dup { pointer } $! \ note $! will free allocated memory if it needs to
+    0 pointer $@ 1 - + c! ;
+
+: z$@ ( caddr -- caddr1 ) \ returns the pointer to char ready for c code to use!
+    $@ drop ;
+
+struct
+    cell% field dbname-$
+    cell% field dbcmds-$
+    cell% field dberrors-$
+    cell% field retbuff-$
+    cell% field retbuffmaxsize-cell
+    cell% field seperator-$
+    char% field buffok-flag
+end-struct sqlite3message%
+
+create sqlmessg
+sqlmessg sqlite3message% %size dup allot erase 
+
+: mkretbuff ( nsize -- )
+    sqlmessg retbuffmaxsize-cell !
+    sqlmessg retbuffmaxsize-cell @ allocate throw { addr } 
+    addr sqlmessg retbuffmaxsize-cell @ erase
+    addr sqlmessg retbuffmaxsize-cell @ sqlmessg retbuff-$ z$!
+    addr free throw ;
+
+: mkerrorbuff ( -- )
+    \ s" stuff" sqlmessg dberrors-$ z$!
+    80 allocate throw { addr }
+    addr 80 erase
+    addr 80 sqlmessg dberrors-$ z$!
+    addr free throw ;
+
+: initsqlmessg ( -- ) \ clear all sqlmessg data 
+    s" " sqlmessg dbname-$ z$!
+    s" " sqlmessg dbcmds-$ z$!
+    mkerrorbuff
+    200 mkretbuff \ start with a return string buffer of 200 
+    s" ," sqlmessg seperator-$ z$!
+    0 sqlmessg buffok-flag c! ;
+
+initsqlmessg \ structure now has allocated memory 
+
+: dbname ( caddr u -- )
+    sqlmessg dbname-$ z$! ;
+
+: dbcmds ( caddr u -- )
+    sqlmessg dbcmds-$ z$! ;
+
+: dbfieldseparator ( caddr u -- )
+    sqlmessg seperator-$ z$! ;
+
+: sendsqlite3cmd ( -- nerror ) \ will send the commands to sqlite3 and nerror contains false if no errors
+    sqlmessg dbname-$ z$@
+    sqlmessg dbcmds-$ z$@
+    sqlmessg dberrors-$ z$@
+    sqlmessg retbuff-$ z$@
+    sqlmessg retbuffmaxsize-cell @
+    sqlmessg seperator-$ z$@
+    sqlmessg buffok-flag 
+    sqlite3  ;
