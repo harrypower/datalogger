@@ -5,3 +5,6 @@
 	path = htdocs/chart
 	url = https://github.com/nnnick/Chart.js.git
 
+[submodule "Gforth-Tools"]
+	path = Gforth-Tools
+	url = https://github.com/harrypower/Gforth-Tools.git
