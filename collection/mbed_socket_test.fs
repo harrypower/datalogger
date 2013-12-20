@@ -2,7 +2,9 @@
 
 include ../string.fs
 include ../socket.fs
+include ../Gforth-Tools/sqlite3_gforth_lib.fs
 
+decimal 
 4446 value mbed-port#
 
 variable mbed-ip$
@@ -14,7 +16,7 @@ here to buffer 500 allot
 : mbedread-client ( caddr u nport# -- caddr1 u1 )
     \ s" Start client!" type cr
     open-socket { socketid }
-    s\" GET /read \r\n\r\n" socketid write-socket
+    s\" GET /val \r\n\r\n" socketid write-socket
     0 0 begin
 	2drop
  	socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
@@ -35,4 +37,29 @@ here to buffer 500 allot
 
 : read116 ( -- )
     s" 192.168.0.116" 4446 mbedread-client ." total: " dup . cr cr type cr ;
+
+: get-thp$ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
+    try   \ flag is false for reading of mbed was ok true means reading failed for some reason
+	mbed-ip$ $@ mbed-port# mbedread-client
+	s" HTTP/1.0 200 OK" search
+	if
+	    s\" \r\n\r\n" search
+	    if
+		2dup 4 + s\" \r\n\r\n" search
+		if 2drop 8 - swap 4 + swap false else 2drop 2drop true then
+	    else
+		2drop true
+	    then
+	else
+	    2drop true
+	then
+    restore dup if 0 swap 0 swap then
+    endtry ;
+
+: ck-thp$ ( caddr u count -- nflag )  \ looks at string to see if all data is present by finding 4 comma's 
+    0 { count }  \ if 4 comma's are found then false is returned true is returned if any other value is found
+    0 ?do
+	dup c@ ',' = if count 1+ to count then 1+
+    loop drop
+    count 4 = if false else true then ;
 
