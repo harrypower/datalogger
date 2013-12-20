@@ -16,13 +16,6 @@ variable junk$ junk$ $init
 variable temp$ temp$ $init
 
 
-
-: #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
-    s>d
-    swap over dabs
-    <<# #s rot sign #> #>>
-        junk$ $! s" ," junk$ $+! junk$ $@ ;
-
 : mbedread-client ( caddr u nport# -- caddr1 u1 )
     \ s" Start client!" type cr
     open-socket { socketid }
