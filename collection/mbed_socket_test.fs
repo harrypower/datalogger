@@ -13,6 +13,14 @@ here to buffer 500 allot
 variable junk$ junk$ $init
 variable temp$ temp$ $init
 
+\ these are the errors that this code can produce!
+struct
+    cell% field socketfail-err
+    cell% field mbedfail-err
+end-struct errors%
+create myerrors% errors% %allot drop
+s" Data from mbed incomplete!" exception myerrors% mbedfail-err !                       \ -2050
+s" Socket failure in get-thp$ function" exception myerrors% socketfail-err !  \ -2051 
 
 struct
     cell% field http$
@@ -67,7 +75,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 
 : !data ( caddr u -- )
     mystrings% mbed-dbname$ $@ dbname
-    s" insert into thpdata values(" temp$ $!
+    s" insert into thpdata values(NULL," temp$ $!
     datetime datetime$ $@ temp$ $+!
     temp$ $+!
     s" );" temp$ $+!
@@ -83,34 +91,42 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	if  \ data from mbed checks out now put in database
 	    !data
 	else \ data is missing throw error
-	    2drop s" Data from mbed incomplete!" exception throw
+	    2drop mystrings% mbedfail-err @ throw
 	then
     else
-	2drop s" Socket failure in get-thp$ function" exception throw
+	2drop myerrors% socketfail-err @ throw
     then ;
 
 : createdb ( -- )
     mystrings% mbed-dbname$ $@ dbname
-    s" CREATE TABLE IF NOT EXISTS thpdata(year int,month int,day int, hour int, min int, sec int, age int,temp int,humd int,btemp int, pressure int);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS thpdata(rowid INTEGER PRIMARY KEY AUTOINCREMENT, year int,month int,day int, hour int, min int, sec int, age int,temp int,humd int,btemp int, pressure int);" dbcmds
     sendsqlite3cmd throw
-    s" CREATE TABLE IF NOT EXISTS errors(year int,month int,day int,hour int,min int,sec int,error int);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS errors(rowid INTEGER PRIMARY KEY AUTOINCREMENT, year int,month int,day int,hour int,min int,sec int,error int);" dbcmds
     sendsqlite3cmd throw ;
 
 : see-db ( -- caddr u )
     mystrings% mbed-dbname$ $@ dbname
     s" select * from thpdata;" dbcmds
-    sendsqlite3cmd throw
-    dbret$ ;
+    sendsqlite3cmd throw dbret$ ;
+
+: see-lastdb ( -- caddr u )
+    mystrings% mbed-dbname$ $@ dbname
+    s" SELECT * FROM thpdata ORDER BY rowid DESC LIMIT 2;" dbcmds
+    sendsqlite3cmd throw dbret$ ;
 
 : see-dberrors ( -- caddr u )
     mystrings% mbed-dbname$ $@ dbname
     s" select * from errors;" dbcmds
-    sendsqlite3cmd throw
-    dbret$ ;
+    sendsqlite3cmd throw dbret$ ;
+
+: see-lastdberrors ( -- caddr u )
+    mystrings% mbed-dbname$ $@ dbname
+    s" SELECT * FROM errors ORDER BY rowid DESC LIMIT 2;" dbcmds
+    sendsqlite3cmd throw dbret$ ;
 
 : !error ( n -- nerror ) \ nerror is the returned error from sendsqlite3cmd false for ok anything else is an error
     mystrings% mbed-dbname$ $@ dbname
-    s" insert into errors values(" temp$ $!
+    s" insert into errors values(NULL," temp$ $!
     datetime datetime$ $@ temp$ $+!
     #to$ 1- temp$ $+!
     s" );" temp$ $+!
