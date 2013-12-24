@@ -217,7 +217,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	d>s 0 ?do
 	    s" select * from errors limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
-	    sendsqlite3cmd throw dbret$ type cr
+	    sendsqlite3cmd throw dbret$ 2dup swap drop 0=
+	    if
+		2drop s" **sql msg**" type dberrmsg drop type cr
+	    else
+		type cr
+	    then
 	loop
     then
 ;
@@ -231,7 +236,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	d>s 0 ?do
 	    s" select * from thpdata limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
-	    sendsqlite3cmd throw dbret$ type cr
+	    sendsqlite3cmd throw dbret$ 2dup swap drop 0=
+	    if
+		2drop s" **sql msg**" type dberrmsg drop type cr
+	    else
+		type cr
+	    then
 	loop
     then
 ;
