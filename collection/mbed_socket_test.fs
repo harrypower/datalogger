@@ -7,6 +7,7 @@ include errorlogging.fs
 
 decimal 
 4446 value mbed-port#
+500000 value mbed-timeout#
 
 0 value buffer
 here to buffer 500 allot
@@ -22,6 +23,7 @@ struct
     cell% field mbedpackagetermfail-err
     cell% field mbedhttpfail-err
     cell% field mbedmessagefail-err
+    cell% field sockettime-err
 end-struct errors%
 create myerrors% errors% %allot drop
 s" Data from mbed incomplete!" exception myerrors% mbedfail-err !             \ -2051
@@ -30,6 +32,7 @@ s" Mbed tcp socket package second terminator not present" exception myerrors% mb
 s" Mbed tcp socket terminator not present" exception myerrors% mbedpackagetermfail-err ! \ -2054
 s" Mbed tcp HTTP header missing" exception myerrors% mbedhttpfail-err !       \ -2055
 s" Mbed data message incomplete" exception myerrors% mbedmessagefail-err !    \ -2056
+s" Socket timeout failure in mbedread-client" exception myerrors% sockettime-err ! \ -2057
 
 struct
     cell% field http$
@@ -73,18 +76,19 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     open-socket { socketid }
     s\" GET /val \r\n\r\n" socketid write-socket
     buffer 499 erase
-    socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
-    \ 2dup find2sockterm 
-    \ if
-\	buffer2$ $! 
-\    else
-\	buffer2$ $!
-\	buffer 499 erase
-\	socketid buffer 499 read-socket
-\	buffer2$ $+!
- \   then
+    utime
+    begin
+	2dup
+	socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
+	2dup find2sockterm rot rot buffer2$ $!
+	rot rot utime 2swap d- d>s mbed-timeout# >
+	if
+	    myerrors% sockettime-err @ throw
+	then
+    until
+    2drop
     socketid close-socket
-    \    buffer2$ $@
+    buffer2$ $@
 ;
 
 : get-thp$ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
@@ -195,8 +199,24 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : dto$ ( d -- caddr u )
     <<# #s #> #>> ;
 
+: testsocketerror! ( nerror -- )
+    s" testsocket.data" dbname
+    s" insert into errors values(NULL," temp$ $!
+    utime dto$ temp$ $+! s" ," temp$ $+!
+    s>d dto$ temp$ $+!
+    s" );" temp$ $+!
+    temp$ $@ dbcmds
+    sendsqlite3cmd throw ;
+
 : testsocket ( -- dsockettime dtime )
-	utime mystrings% mbed-ip$ $@ mbed-port# mbedread-client type cr utime 2swap d- utime ;
+    try
+	utime mystrings% mbed-ip$ $@ mbed-port# mbedread-client type cr utime 2swap d- utime
+	false
+    restore dup
+	if
+	    testsocketerror! 0 s>d 0 s>d 
+	else drop then
+    endtry ;
 
 : createtestdb ( -- )
     s" testsocket.data" dbname
@@ -218,7 +238,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : dosockettest ( -- )
     createtestdb
     begin
-	testsocket testsocket! 10000 ms
+	testsocket testsocket! 5000 ms
     again ;
 
 : seetestsocketdb ( -- caddr u )
@@ -226,3 +246,22 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     s" select * from socketdata limit 2 offset (( select max(row) from socketdata) -2);" dbcmds
     sendsqlite3cmd throw dbret$ ;
 
+: seetestdberrors ( -- caddr u )
+    s" testsocket.data" dbname
+    s" select * from errors limit 2 offset (( select max(row) from errors) -2);" dbcmds
+    sendsqlite3cmd throw dbret$ ;
+
+
+: listtestdata ( -- )
+    s" testsocket.data" dbname
+    s" select max(row) from socketdata;" dbcmds
+    sendsqlite3cmd throw dbret$
+    s>number? 0 =
+    if
+	d>s 1 ?do
+	    s" select * from socketdata limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
+	    junk$ $@ dbcmds
+	    sendsqlite3cmd throw dbret$ type cr
+	loop
+    then
+    ;
