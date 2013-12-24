@@ -254,12 +254,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 
 : listtestdata ( -- )
     s" testsocket.data" dbname
-    s" select max(row) from socketdata;" dbcmds
+    s" select max(row) from errors;" dbcmds
     sendsqlite3cmd throw dbret$
     s>number? 0 =
     if
-	d>s 1 ?do
-	    s" select * from socketdata limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
+	d>s 0 ?do
+	    s" select * from errors limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
 	    sendsqlite3cmd throw dbret$ type cr
 	loop
