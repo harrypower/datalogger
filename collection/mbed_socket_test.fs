@@ -10,6 +10,7 @@ decimal
 
 0 value buffer
 here to buffer 500 allot
+variable buffer2$ buffer2$ $init
 variable junk$ junk$ $init
 variable temp$ temp$ $init
 
@@ -17,10 +18,18 @@ variable temp$ temp$ $init
 struct
     cell% field socketfail-err
     cell% field mbedfail-err
+    cell% field mbedpackage2termfail-err
+    cell% field mbedpackagetermfail-err
+    cell% field mbedhttpfail-err
+    cell% field mbedmessagefail-err
 end-struct errors%
 create myerrors% errors% %allot drop
 s" Data from mbed incomplete!" exception myerrors% mbedfail-err !             \ -2051
 s" Socket failure in get-thp$ function" exception myerrors% socketfail-err !  \ -2052 
+s" Mbed tcp socket package second terminator not present" exception myerrors% mbedpackage2termfail-err ! \ -2053
+s" Mbed tcp socket terminator not present" exception myerrors% mbedpackagetermfail-err ! \ -2054
+s" Mbed tcp HTTP header missing" exception myerrors% mbedhttpfail-err !       \ -2055
+s" Mbed data message incomplete" exception myerrors% mbedmessagefail-err !    \ -2056
 
 struct
     cell% field http$
@@ -36,31 +45,65 @@ s\" \r\n\r\n" mystrings% socketterm$ $!
 s" 192.168.0.116" mystrings% mbed-ip$ $!
 s" sensordb.data" mystrings% mbed-dbname$ $!
 
+: findsockterm ( caddr u -- caddr1 u1 nflag ) \ nflag is true if socket terminator is found and caddr1 u1 is a
+    \ new string past the terminator.  String is the same as caddr u but the first part is removed as well as
+    \ terminator
+    \ nflag is false if there was no terminator found and caddr1 and u1 will contain original string 
+    mystrings% socketterm$ $@ search
+    if
+	mystrings% socketterm$ $@ swap drop dup rot swap - rot rot + swap true
+    else
+	false
+    then ;
+
+: find2sockterm ( caddr u -- nflag ) \ looks for both socket terminators and returns true if it finds them
+    findsockterm
+    if
+	findsockterm
+	if
+	    2drop true
+	else
+	    2drop false
+	then
+    else
+	2drop false
+    then ;
+
 : mbedread-client ( caddr u nport# -- caddr1 u1 )
     open-socket { socketid }
     s\" GET /val \r\n\r\n" socketid write-socket
-    0 0 begin
-	2drop
- 	socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
-	2dup s\" \r\n\r\n" search swap drop swap drop
-	\ this will bail if it finds end cr lf cr lf or it will generate error 
-    until
-    socketid close-socket ;
+    buffer 499 erase
+    socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
+    \ 2dup find2sockterm 
+    \ if
+\	buffer2$ $! 
+\    else
+\	buffer2$ $!
+\	buffer 499 erase
+\	socketid buffer 499 read-socket
+\	buffer2$ $+!
+ \   then
+    socketid close-socket
+    \    buffer2$ $@
+;
 
 : get-thp$ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
-    try   \ flag is false for reading of mbed was ok true means reading failed for some reason
+    try   \ flag is false for reading of mbed was ok any other value is some error
 	mystrings% mbed-ip$ $@ mbed-port# mbedread-client
 	mystrings% http$ $@ search
 	if
 	    mystrings% socketterm$ $@ search
 	    if
 		2dup 4 + mystrings% socketterm$ $@ search
-		if 2drop 8 - swap 4 + swap false else 2drop 2drop true then
+		if
+		    2drop 8 - swap 4 + swap false
+		else 2drop 2drop myerrors% mbedpackage2termfail-err @ 
+		then
 	    else
-		2drop true
+		2drop myerrors% mbedpackagetermfail-err @ 
 	    then
 	else
-	    2drop true
+	    2drop myerrors% mbedhttpfail-err @
 	then
     restore dup if 0 swap 0 swap then
     endtry ;
@@ -70,7 +113,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     0 ?do
 	dup c@ ',' = if count 1+ to count then 1+
     loop drop
-    count 4 = if false else true then ;
+    count 4 = if false else myerrors% mbedmessagefail-err @ then ;
 
 
 : !data ( caddr u -- )
