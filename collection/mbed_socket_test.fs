@@ -58,7 +58,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     \ new string past the terminator.  String is the same as caddr u but the first part is removed as well as
     \ terminator
     \ nflag is false if there was no terminator found and caddr1 and u1 will contain original string 
-    mystrings% socketterm$ $@ search
+    mystrings% socketterm$ $@ search 
     if
 	mystrings% socketterm$ $@ swap drop dup rot swap - rot rot + swap true
     else
