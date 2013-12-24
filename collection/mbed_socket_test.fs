@@ -12,6 +12,7 @@ decimal
 0 value buffer
 here to buffer 500 allot
 variable buffer2$ buffer2$ $init
+1000 value buff2max 
 variable junk$ junk$ $init
 variable temp$ temp$ $init
 
@@ -24,6 +25,7 @@ struct
     cell% field mbedhttpfail-err
     cell% field mbedmessagefail-err
     cell% field sockettime-err
+    cell% field tcpoverflow-err
 end-struct errors%
 create myerrors% errors% %allot drop
 s" Data from mbed incomplete!" exception myerrors% mbedfail-err !             \ -2051
@@ -33,6 +35,7 @@ s" Mbed tcp socket terminator not present" exception myerrors% mbedpackagetermfa
 s" Mbed tcp HTTP header missing" exception myerrors% mbedhttpfail-err !       \ -2055
 s" Mbed data message incomplete" exception myerrors% mbedmessagefail-err !    \ -2056
 s" Socket timeout failure in mbedread-client" exception myerrors% sockettime-err ! \ -2057
+s" Socket message recieved to large" exception myerrors% tcpoverflow-err ! \ -2058
 
 struct
     cell% field http$
@@ -47,6 +50,9 @@ s" HTTP/1.0 200 OK" mystrings% http$ $!
 s\" \r\n\r\n" mystrings% socketterm$ $!
 s" 192.168.0.116" mystrings% mbed-ip$ $!
 s" sensordb.data" mystrings% mbed-dbname$ $!
+
+: dto$ ( d -- caddr u )
+    swap over dabs <<# #s rot sign #> #>> ;
 
 : findsockterm ( caddr u -- caddr1 u1 nflag ) \ nflag is true if socket terminator is found and caddr1 u1 is a
     \ new string past the terminator.  String is the same as caddr u but the first part is removed as well as
@@ -76,14 +82,19 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     open-socket { socketid }
     s\" GET /val \r\n\r\n" socketid write-socket
     buffer 499 erase
+    buffer2$ $init
     utime
     begin
 	2dup
 	socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
-	2dup find2sockterm rot rot buffer2$ $!
+	2dup find2sockterm rot rot buffer2$ $+!
 	rot rot utime 2swap d- d>s mbed-timeout# >
 	if
 	    myerrors% sockettime-err @ throw
+	then
+	buffer2$ $@ swap drop buff2max >
+	if
+	    myerrors% tcpoverflow-err @ throw
 	then
     until
     2drop
@@ -141,7 +152,8 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	    2drop mystrings% mbedfail-err @ throw
 	then
     else
-	2drop myerrors% socketfail-err @ throw
+	throw
+	\ myerrors% socketfail-err @ throw
     then ;
 
 : createdb ( -- )
@@ -165,7 +177,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     TRY
 	begin
 	    gcs-thp$
-	    30000 ms \ get the data every 30 seconds 
+	    5000 ms \ get the data every 30 seconds 
 	again
     RESTORE dup if dup !error dup 0<> if !error drop else drop then then 
     ENDTRY ;
@@ -196,8 +208,33 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     s" SELECT * FROM errors LIMIT 2 OFFSET ((SELECT max(row) FROM thpdata) - 2);" dbcmds
     sendsqlite3cmd throw dbret$ ;
 
-: dto$ ( d -- caddr u )
-    <<# #s #> #>> ;
+: listdberrors ( -- )
+    mystrings% mbed-dbname$ $@ dbname
+    s" select max(row) from errors;" dbcmds
+    sendsqlite3cmd throw dbret$
+    s>number? 0 =
+    if
+	d>s 0 ?do
+	    s" select * from errors limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
+	    junk$ $@ dbcmds
+	    sendsqlite3cmd throw dbret$ type cr
+	loop
+    then
+;
+
+: listdbdata ( -- )
+    mystrings% mbed-dbname$ $@ dbname
+    s" select max(row) from thpdata;" dbcmds
+    sendsqlite3cmd throw dbret$
+    s>number? 0 =
+    if
+	d>s 0 ?do
+	    s" select * from thpdata limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
+	    junk$ $@ dbcmds
+	    sendsqlite3cmd throw dbret$ type cr
+	loop
+    then
+;
 
 : testsocketerror! ( nerror -- )
     s" testsocket.data" dbname
