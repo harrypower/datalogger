@@ -87,8 +87,8 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     begin
 	2dup
 	socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
-	2dup find2sockterm rot rot buffer2$ $+!
-	rot rot utime 2swap d- d>s mbed-timeout# >
+	buffer2$ $+! 
+	utime 2swap d- d>s mbed-timeout# >
 	if
 	    myerrors% sockettime-err @ throw
 	then
@@ -96,10 +96,11 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	if
 	    myerrors% tcpoverflow-err @ throw
 	then
+	buffer2$ $@ find2sockterm
     until
     2drop
     socketid close-socket
-    buffer2$ $@
+    buffer2$ $@ 
 ;
 
 : get-thp$ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
@@ -107,20 +108,17 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	mystrings% mbed-ip$ $@ mbed-port# mbedread-client
 	mystrings% http$ $@ search
 	if
-	    mystrings% socketterm$ $@ search
+	    2dup find2sockterm
 	    if
-		2dup 4 + mystrings% socketterm$ $@ search
-		if
-		    2drop 8 - swap 4 + swap false
-		else 2drop 2drop myerrors% mbedpackage2termfail-err @ 
-		then
+		findsockterm drop
+		4 - false
 	    else
-		2drop myerrors% mbedpackagetermfail-err @ 
+		2drop myerrors% mbedpackage2termfail-err @
 	    then
 	else
-	    2drop myerrors% mbedhttpfail-err @
+	    2drop myerrors% mbedhttpfail-err @ 
 	then
-    restore dup if 0 swap 0 swap then
+    restore dup if 0 swap 0 swap then 
     endtry ;
 
 : ck-thp$ ( caddr u -- nflag )  \ looks at string to see if all data is present by finding 4 comma's 
@@ -142,10 +140,10 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 ;
 
 : gcs-thp$ ( -- )  \ get check store temperature humidity pressure string into database or throw errors
-    get-thp$ dup 0 =
+    get-thp$ dup false =
     if
 	drop 2dup 
-	ck-thp$ 0 =
+	ck-thp$ false =
 	if  \ data from mbed checks out now put in database
 	    !data
 	else \ data is missing throw error
@@ -176,7 +174,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : main_process ( -- nerror )
     TRY
 	begin
-	    gcs-thp$
+	    gcs-thp$ \ depth . cr
 	    5000 ms \ get the data every 30 seconds 
 	again
     RESTORE dup if dup !error dup 0<> if !error drop else drop then then 
