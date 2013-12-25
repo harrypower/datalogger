@@ -7,7 +7,7 @@ include errorlogging.fs
 
 decimal 
 4446 value mbed-port#
-500000 value mbed-timeout#
+2000000 value mbed-timeout#
 
 0 value buffer
 here to buffer 500 allot
@@ -28,14 +28,14 @@ struct
     cell% field tcpoverflow-err
 end-struct errors%
 create myerrors% errors% %allot drop
-s" Data from mbed incomplete!" exception myerrors% mbedfail-err !             \ -2051
-s" Socket failure in get-thp$ function" exception myerrors% socketfail-err !  \ -2052 
-s" Mbed tcp socket package second terminator not present" exception myerrors% mbedpackage2termfail-err ! \ -2053
-s" Mbed tcp socket terminator not present" exception myerrors% mbedpackagetermfail-err ! \ -2054
-s" Mbed tcp HTTP header missing" exception myerrors% mbedhttpfail-err !       \ -2055
-s" Mbed data message incomplete" exception myerrors% mbedmessagefail-err !    \ -2056
-s" Socket timeout failure in mbedread-client" exception myerrors% sockettime-err ! \ -2057
-s" Socket message recieved to large" exception myerrors% tcpoverflow-err ! \ -2058
+s" Data from mbed incomplete!" exception myerrors% mbedfail-err !             \ -2052
+s" Socket failure in get-thp$ function" exception myerrors% socketfail-err !  \ -2053 
+s" Mbed tcp socket package second terminator not present" exception myerrors% mbedpackage2termfail-err ! \ -2054
+s" Mbed tcp socket terminator not present" exception myerrors% mbedpackagetermfail-err ! \ -2055
+s" Mbed tcp HTTP header missing" exception myerrors% mbedhttpfail-err !       \ -2056
+s" Mbed data message incomplete" exception myerrors% mbedmessagefail-err !    \ -2057
+s" Socket timeout failure in mbedread-client" exception myerrors% sockettime-err ! \ -2058
+s" Socket message recieved to large" exception myerrors% tcpoverflow-err ! \ -2059
 
 struct
     cell% field http$
@@ -78,34 +78,39 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	2drop false
     then ;
 
-: mbedread-client ( caddr u nport# -- caddr1 u1 )
-    open-socket { socketid }
-    s\" GET /val \r\n\r\n" socketid write-socket
-    buffer 499 erase
-    buffer2$ $init
-    utime
-    begin
-	2dup
-	socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
-	buffer2$ $+! 
-	utime 2swap d- d>s mbed-timeout# >
-	if
-	    myerrors% sockettime-err @ throw
-	then
-	buffer2$ $@ swap drop buff2max >
-	if
-	    myerrors% tcpoverflow-err @ throw
-	then
-	buffer2$ $@ find2sockterm
-    until
-    2drop
-    socketid close-socket
-    buffer2$ $@ 
-;
+: mbedread-client ( caddr u nport# -- caddr1 u1 nflag )
+    try
+	open-socket { socketid }
+	s\" GET /val \r\n\r\n" socketid write-socket
+	buffer 500 erase
+	buffer2$ $init
+	utime
+	begin 
+	    2dup
+	    socketid buffer 499 read-socket dup . \ note read-socket is for TCP read-socket-from is for UDP
+	    buffer2$ $+! 
+	    utime 2swap d- d>s mbed-timeout# >
+	    if
+		socketid close-socket
+		myerrors% sockettime-err @ throw
+	    then
+	    buffer2$ $@ swap drop buff2max >
+	    if
+		socketid close-socket
+		myerrors% tcpoverflow-err @ throw
+	    then
+	    buffer2$ $@ find2sockterm
+	until  
+	2drop
+	socketid close-socket
+	buffer2$ $@ false
+    restore buffer2$ $@ swap drop . dup . depth . cr
+	dup if swap drop then  
+    endtry ;
 
 : get-thp$ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
     try   \ flag is false for reading of mbed was ok any other value is some error
-	mystrings% mbed-ip$ $@ mbed-port# mbedread-client
+	mystrings% mbed-ip$ $@ mbed-port# mbedread-client throw
 	mystrings% http$ $@ search
 	if
 	    2dup find2sockterm
