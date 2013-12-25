@@ -76,7 +76,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	utime
 	begin 
 	    2dup
-	    socketid buffer 499 read-socket dup . \ note read-socket is for TCP read-socket-from is for UDP
+	    socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
 	    buffer2$ $+! 
 	    utime 2swap d- d>s mbed-timeout# >
 	    if
@@ -93,7 +93,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	2drop
 	socketid close-socket
 	buffer2$ $@ false
-    restore buffer2$ $@ swap drop . dup . depth . cr
+    restore buffer2$ $@ type dup . depth . cr
 	dup if swap drop then  
     endtry ;
 
@@ -122,6 +122,8 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     loop drop
     count 4 = if false else mbedmessagefail-err then ;
 
+: ck-thp$zero ( caddr u -- nflag ) \ looks for a message from mbed of zeros
+    s" 0, 0, 0," search swap drop swap drop ; \ returns true if zeros are found false otherwise
 
 : !data ( caddr u -- )
     mystrings% mbed-dbname$ $@ dbname
@@ -136,12 +138,15 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : gcs-thp$ ( -- )  \ get check store temperature humidity pressure string into database or throw errors
     get-thp$ dup false =
     if
-	drop 2dup 
+	drop 2dup 2dup
 	ck-thp$ false =
 	if  \ data from mbed checks out now put in database
-	    !data
+	    ck-thp$zero false =
+	    if !data
+	    else 2drop \ mbed resets and returns zero so do not store that
+	    then	
 	else \ data is missing throw error
-	    2drop mbedfail-err throw
+	    2drop 2drop mbedfail-err throw
 	then
     else
 	throw
