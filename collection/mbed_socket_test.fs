@@ -17,25 +17,14 @@ variable junk$ junk$ $init
 variable temp$ temp$ $init
 
 \ these are the errors that this code can produce!
-struct
-    cell% field socketfail-err
-    cell% field mbedfail-err
-    cell% field mbedpackage2termfail-err
-    cell% field mbedpackagetermfail-err
-    cell% field mbedhttpfail-err
-    cell% field mbedmessagefail-err
-    cell% field sockettime-err
-    cell% field tcpoverflow-err
-end-struct errors%
-create myerrors% errors% %allot drop
-s" Data from mbed incomplete!" exception myerrors% mbedfail-err !             \ -2052
-s" Socket failure in get-thp$ function" exception myerrors% socketfail-err !  \ -2053 
-s" Mbed tcp socket package second terminator not present" exception myerrors% mbedpackage2termfail-err ! \ -2054
-s" Mbed tcp socket terminator not present" exception myerrors% mbedpackagetermfail-err ! \ -2055
-s" Mbed tcp HTTP header missing" exception myerrors% mbedhttpfail-err !       \ -2056
-s" Mbed data message incomplete" exception myerrors% mbedmessagefail-err !    \ -2057
-s" Socket timeout failure in mbedread-client" exception myerrors% sockettime-err ! \ -2058
-s" Socket message recieved to large" exception myerrors% tcpoverflow-err ! \ -2059
+s" Data from mbed incomplete!" exception constant mbedfail-err              \ -2052
+s" Socket failure in get-thp$ function" exception constant socketfail-err   \ -2053 
+s" Mbed tcp socket package second terminator not present" exception constant mbedpackage2termfail-err \ -2054
+s" Mbed tcp socket terminator not present" exception constant mbedpackagetermfail-err \ -2055
+s" Mbed tcp HTTP header missing" exception constant mbedhttpfail-err       \ -2056
+s" Mbed data message incomplete" exception constant mbedmessagefail-err     \ -2057
+s" Socket timeout failure in mbedread-client" exception constant sockettime-err \ -2058
+s" Socket message recieved to large" exception constant tcpoverflow-err  \ -2059
 
 struct
     cell% field http$
@@ -92,12 +81,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	    utime 2swap d- d>s mbed-timeout# >
 	    if
 		socketid close-socket
-		myerrors% sockettime-err @ throw
+		sockettime-err throw
 	    then
 	    buffer2$ $@ swap drop buff2max >
 	    if
 		socketid close-socket
-		myerrors% tcpoverflow-err @ throw
+		tcpoverflow-err throw
 	    then
 	    buffer2$ $@ find2sockterm
 	until  
@@ -118,10 +107,10 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 		findsockterm drop
 		4 - false
 	    else
-		2drop myerrors% mbedpackage2termfail-err @
+		2drop mbedpackage2termfail-err 
 	    then
 	else
-	    2drop myerrors% mbedhttpfail-err @ 
+	    2drop mbedhttpfail-err  
 	then
     restore dup if 0 swap 0 swap then 
     endtry ;
@@ -131,7 +120,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     0 ?do
 	dup c@ ',' = if count 1+ to count then 1+
     loop drop
-    count 4 = if false else myerrors% mbedmessagefail-err @ then ;
+    count 4 = if false else mbedmessagefail-err then ;
 
 
 : !data ( caddr u -- )
@@ -152,11 +141,10 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	if  \ data from mbed checks out now put in database
 	    !data
 	else \ data is missing throw error
-	    2drop mystrings% mbedfail-err @ throw
+	    2drop mbedfail-err throw
 	then
     else
 	throw
-	\ myerrors% socketfail-err @ throw
     then ;
 
 : createdb ( -- )
@@ -180,7 +168,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     TRY
 	begin
 	    gcs-thp$ \ depth . cr
-	    5000 ms \ get the data every 30 seconds 
+	    5000 ms  \ get the data every 30 seconds 
 	again
     RESTORE dup if dup !error dup 0<> if !error drop else drop then then 
     ENDTRY ;
