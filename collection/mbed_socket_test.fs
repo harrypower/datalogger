@@ -93,7 +93,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	2drop
 	socketid close-socket
 	buffer2$ $@ false
-    restore buffer2$ $@ type dup . depth . cr
+    restore  
 	dup if swap drop then  
     endtry ;
 
@@ -204,43 +204,73 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     s" SELECT * FROM errors LIMIT 2 OFFSET ((SELECT max(row) FROM thpdata) - 2);" dbcmds
     sendsqlite3cmd throw dbret$ ;
 
+    
 : listdberrors ( -- )
     mystrings% mbed-dbname$ $@ dbname
     s" select max(row) from errors;" dbcmds
-    sendsqlite3cmd throw dbret$
+    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
+    if
+	s" **sql msg**" type dberrmsg drop type
+	begin
+	    2 ms
+	    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+	until
+    then
+    dbret$  
     s>number? 0 =
     if
-	d>s 0 ?do
-	    s" select * from errors limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
+	d>s 0 { end now }  begin
+	    s" select * from errors limit 1 offset " junk$ $! now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
-	    sendsqlite3cmd throw dbret$ 2dup swap drop 0=
+	    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
 	    if
-		2drop s" **sql msg**" type dberrmsg drop type cr
+		s" **sql msg**" type dberrmsg drop type
+		begin
+		    2 ms
+		    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+		until
+		now 1- to now
 	    else
-		type cr
+		dbret$ type cr
 	    then
-	loop
+	    now 1+ to now
+	    now end >=
+	until
     then
 ;
 
 : listdbdata ( -- )
     mystrings% mbed-dbname$ $@ dbname
     s" select max(row) from thpdata;" dbcmds
-    sendsqlite3cmd throw dbret$
-    s>number? 0 =
+    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
     if
-	d>s 0 ?do
-	    s" select * from thpdata limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
-	    junk$ $@ dbcmds
-	    sendsqlite3cmd throw dbret$ 2dup swap drop 0=
-	    if
-		2drop s" **sql msg**" type dberrmsg drop type cr
-	    else
-		type cr
-	    then
-	loop
+	s" **sql msg**" type dberrmsg drop type
+	begin
+	    2 ms
+	    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+	until
     then
-;
+    dbret$
+    s>number? 0 = 
+    if
+	d>s 1 { end now } begin
+	    s" select * from thpdata limit 1 offset " junk$ $! now s>d dto$ junk$ $+! s" ;" junk$ $+!
+	    junk$ $@ dbcmds
+	    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
+	    if
+		s" **sql msg**" type dberrmsg drop type
+		begin
+		    2 ms
+		    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+		until
+		now 1- to now
+	    else
+		dbret$ type cr
+	    then
+	    now 1+ to now
+	    now end >=
+	until
+    then ;
 
 : testsocketerror! ( nerror -- )
     s" testsocket.data" dbname
