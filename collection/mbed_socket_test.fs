@@ -1,4 +1,4 @@
-#! /usr/local/bin/gforth
+#! /usr/bin/gforth
 
 include ../string.fs
 include ../socket.fs
@@ -173,7 +173,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     TRY
 	begin
 	    gcs-thp$ \ depth . cr
-	    5000 ms  \ get the data every 30 seconds 
+	    60000 ms  \ get the data every 60 seconds 
 	again
     RESTORE dup if dup !error dup 0<> if !error drop else drop then then 
     ENDTRY ;
@@ -253,7 +253,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     dbret$
     s>number? 0 = 
     if
-	d>s 1 { end now } begin
+	d>s 0 { end now } begin
 	    s" select * from thpdata limit 1 offset " junk$ $! now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
 	    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
@@ -272,69 +272,4 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	until
     then ;
 
-: testsocketerror! ( nerror -- )
-    s" testsocket.data" dbname
-    s" insert into errors values(NULL," temp$ $!
-    utime dto$ temp$ $+! s" ," temp$ $+!
-    s>d dto$ temp$ $+!
-    s" );" temp$ $+!
-    temp$ $@ dbcmds
-    sendsqlite3cmd throw ;
-
-: testsocket ( -- dsockettime dtime )
-    try
-	utime mystrings% mbed-ip$ $@ mbed-port# mbedread-client type cr utime 2swap d- utime
-	false
-    restore dup
-	if
-	    testsocketerror! 0 s>d 0 s>d 
-	else drop then
-    endtry ;
-
-: createtestdb ( -- )
-    s" testsocket.data" dbname
-    s" CREATE TABLE IF NOT EXISTS socketdata(row INTEGER PRIMARY KEY AUTOINCREMENT, time int,sockettime int);" dbcmds
-    sendsqlite3cmd throw
-    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,time int, error int);" dbcmds
-    sendsqlite3cmd throw ;
-
-: testsocket! ( dsockettime dtime -- )
-    s" testsocket.data" dbname
-    s" insert into socketdata values(NULL," temp$ $!
-    dto$ temp$ $+! s" ," temp$ $+!
-    dto$ temp$ $+!
-    s" );" temp$ $+!
-    temp$ $@ dbcmds
-    sendsqlite3cmd throw
-;
-
-: dosockettest ( -- )
-    createtestdb
-    begin
-	testsocket testsocket! 5000 ms
-    again ;
-
-: seetestsocketdb ( -- caddr u )
-    s" testsocket.data" dbname
-    s" select * from socketdata limit 2 offset (( select max(row) from socketdata) -2);" dbcmds
-    sendsqlite3cmd throw dbret$ ;
-
-: seetestdberrors ( -- caddr u )
-    s" testsocket.data" dbname
-    s" select * from errors limit 2 offset (( select max(row) from errors) -2);" dbcmds
-    sendsqlite3cmd throw dbret$ ;
-
-
-: listtestdata ( -- )
-    s" testsocket.data" dbname
-    s" select max(row) from errors;" dbcmds
-    sendsqlite3cmd throw dbret$
-    s>number? 0 =
-    if
-	d>s 0 ?do
-	    s" select * from errors limit 1 offset " junk$ $! i s>d dto$ junk$ $+! s" ;" junk$ $+!
-	    junk$ $@ dbcmds
-	    sendsqlite3cmd throw dbret$ type cr
-	loop
-    then
-    ;
+\ main_loop
