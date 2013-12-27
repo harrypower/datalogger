@@ -1,5 +1,6 @@
 #! /usr/bin/gforth
 
+warnings off
 include ../string.fs
 include ../socket.fs
 include ../Gforth-Tools/sqlite3_gforth_lib.fs
@@ -17,14 +18,15 @@ variable junk$ junk$ $init
 variable temp$ temp$ $init
 
 \ these are the errors that this code can produce!
-s" Data from mbed incomplete!" exception constant mbedfail-err              \ -2052
-s" Socket failure in get-thp$ function" exception constant socketfail-err   \ -2053 
-s" Mbed tcp socket package second terminator not present" exception constant mbedpackage2termfail-err \ -2054
-s" Mbed tcp socket terminator not present" exception constant mbedpackagetermfail-err \ -2055
-s" Mbed tcp HTTP header missing" exception constant mbedhttpfail-err       \ -2056
-s" Mbed data message incomplete" exception constant mbedmessagefail-err     \ -2057
-s" Socket timeout failure in mbedread-client" exception constant sockettime-err \ -2058
-s" Socket message recieved to large" exception constant tcpoverflow-err  \ -2059
+\ Note these are enumerated starting at -2051 but -2051 is in another module so the enumeration is first one gets -2051
+s" Data from mbed incomplete!"                            exception constant mbedfail-err              \ -2052
+s" Socket failure in get-thp$ function"                   exception constant socketfail-err            \ -2053 
+s" Mbed tcp socket package second terminator not present" exception constant mbedpackage2termfail-err  \ -2054
+s" Mbed tcp socket terminator not present"                exception constant mbedpackagetermfail-err   \ -2055
+s" Mbed tcp HTTP header missing"                          exception constant mbedhttpfail-err          \ -2056
+s" Mbed data message incomplete"                          exception constant mbedmessagefail-err       \ -2057
+s" Socket timeout failure in mbedread-client"             exception constant sockettime-err            \ -2058
+s" Socket message recieved to large"                      exception constant tcpoverflow-err           \ -2059
 
 struct
     cell% field http$
@@ -272,4 +274,34 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	until
     then ;
 
+: config-mbed-client ( -- ) \ will run when this file is loaded and will look at arguments for operation
+    next-arg dup 0=
+    if
+	." Argument needed!" cr 2drop s" -help"
+    then
+
+    s" -help" search
+    if
+	." -r use to start the datalogging process!" cr
+	." -i use to enter the gforth command line to issue commands!" cr
+	2drop bye
+    then
+    s" -r" search
+    if
+	2drop main_loop bye
+    then
+    s" -i" search
+    if
+	2drop \ now just enter the gforth cmd line
+    else
+	2drop
+	." Switch not supported!" cr
+	." -r use to start the datalogging process!" cr
+	." -i use to enter the gforth command line to issue commands!" cr
+	bye
+    then
+    ;
+
+    config-mbed-client
+    
 \ main_loop
