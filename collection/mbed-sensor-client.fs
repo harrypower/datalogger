@@ -4,7 +4,6 @@ warnings off
 include ../string.fs
 include ../socket.fs
 include ../Gforth-Tools/sqlite3_gforth_lib.fs
-include errorlogging.fs
 
 decimal 
 4446 value mbed-port#
@@ -45,6 +44,21 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 
 : dto$ ( d -- caddr u )
     swap over dabs <<# #s rot sign #> #>> ;
+
+: #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
+    s>d
+    swap over dabs
+    <<# #s rot sign #> #>>
+    junk$ $! s" ," junk$ $+! junk$ $@ ;
+
+: dberror? ( nerror -- nflag )        \ nerror is normaly output from sendsqlite3cmd this word will throw nerror 
+    throw                             \ nflag is false only if there is no message from sqlite3  
+    sqlmessg dberrors-$ $@ drop c@    \ any other value is a message from sqlite3
+;                                     \ meaning if no error from sqlite3 then nflag is false or zero 
+    
+: datetime$ ( -- caddr u )
+    utime 1000000 fm/mod swap drop
+    #to$ ;
 
 : findsockterm ( caddr u -- caddr1 u1 nflag ) \ nflag is true if socket terminator is found and caddr1 u1 is a
     \ new string past the terminator.  String is the same as caddr u but the first part is removed as well as
@@ -131,7 +145,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : !data ( caddr u -- )
     mystrings% mbed-dbname$ $@ dbname
     s" insert into thpdata values(NULL," temp$ $!
-    datetime datetime$ $@ temp$ $+!
+    datetime$ temp$ $+!
     temp$ $+!
     s" );" temp$ $+!
     temp$ $@ dbcmds
@@ -157,15 +171,15 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 
 : createdb ( -- )
     mystrings% mbed-dbname$ $@ dbname
-    s" CREATE TABLE IF NOT EXISTS thpdata(row INTEGER PRIMARY KEY AUTOINCREMENT, year int,month int,day int, hour int, min int, sec int, age int,DTHtemperature int,DTHhumd int,BMPtemperature int, BMPpressure int);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS thpdata(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER, age int,DTHtemperature int,DTHhumd int,BMPtemperature int, BMPpressure int);" dbcmds
     sendsqlite3cmd throw
-    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT, year int,month int,day int,hour int,min int,sec int,error int);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error int);" dbcmds
     sendsqlite3cmd throw ;
 
 : !error ( n -- nerror ) \ nerror is the returned error from sendsqlite3cmd false for ok anything else is an error
     mystrings% mbed-dbname$ $@ dbname
     s" insert into errors values(NULL," temp$ $!
-    datetime datetime$ $@ temp$ $+!
+    datetime$ temp$ $+!
     #to$ 1- temp$ $+!
     s" );" temp$ $+!
     temp$ $@ dbcmds
@@ -212,26 +226,27 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : listdberrors ( -- )
     mystrings% mbed-dbname$ $@ dbname
     s" select max(row) from errors;" dbcmds
-    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
+    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
     if
 	s" **sql msg**" type dberrmsg drop type
 	begin
 	    2 ms
-	    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+	    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
 	until
     then
     dbret$  
     s>number? 0 =
     if
 	d>s 0 { end now }  begin
-	    s" select * from errors limit 1 offset " junk$ $! now s>d dto$ junk$ $+! s" ;" junk$ $+!
+	    s" select row,datetime(dtime,'unixepoch'),error from errors limit 1 offset " junk$ $!
+	    now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
-	    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
+	    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
 	    if
 		s" **sql msg**" type dberrmsg drop type
 		begin
 		    2 ms
-		    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+		    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
 		until
 		now 1- to now
 	    else
@@ -246,26 +261,27 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : listdbdata ( -- )
     mystrings% mbed-dbname$ $@ dbname
     s" select max(row) from thpdata;" dbcmds
-    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
+    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
     if
 	s" **sql msg**" type dberrmsg drop type
 	begin
 	    2 ms
-	    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+	    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
 	until
     then
     dbret$
     s>number? 0 = 
     if
 	d>s 0 { end now } begin
-	    s" select * from thpdata limit 1 offset " junk$ $! now s>d dto$ junk$ $+! s" ;" junk$ $+!
+	    s" select row,datetime(dtime,'unixepoch'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure from thpdata limit 1 offset " junk$ $!
+	    now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
-	    sendsqlite3cmd throw dberrmsg 2drop c@ 0<>
+	    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
 	    if
 		s" **sql msg**" type dberrmsg drop type
 		begin
 		    2 ms
-		    sendsqlite3cmd throw dberrmsg 2drop c@ 0=
+		    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
 		until
 		now 1- to now
 	    else
