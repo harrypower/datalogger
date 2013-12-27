@@ -9,6 +9,7 @@ include errorlogging.fs
 decimal 
 4446 value mbed-port#
 2000000 value mbed-timeout#
+60000 value mbed-readtime
 
 0 value buffer
 here to buffer 500 allot
@@ -175,7 +176,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     TRY
 	begin
 	    gcs-thp$ \ depth . cr
-	    60000 ms  \ get the data every 60 seconds 
+	    mbed-readtime  ms  \ get the data every 60 seconds 
 	again
     RESTORE dup if dup !error dup 0<> if !error drop else drop then then 
     ENDTRY ;
@@ -184,6 +185,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     createdb
     begin
 	main_process -28 = if true else false then \ bail only if user canceled program
+	mbed-readtime ms \ wait for next read time 
     until ;
 
 : see-db ( -- caddr u )
