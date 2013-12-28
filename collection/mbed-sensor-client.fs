@@ -39,10 +39,10 @@ end-struct strings%
 
 create mystrings% strings% %allot drop
 
-s" HTTP/1.0 200 OK" mystrings% http$ $!
-s\" \r\n\r\n" mystrings% socketterm$ $!
-s" 192.168.0.116" mystrings% mbed-ip$ $!
-s" sensordb.data" mystrings% mbed-dbname$ $!
+s" HTTP/1.0 200 OK"  mystrings% http$ $!
+s\" \r\n\r\n"        mystrings% socketterm$ $!
+s" 192.168.0.116"    mystrings% mbed-ip$ $!
+s" sensordb.data"    mystrings% mbed-dbname$ $!
 
 : error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
     >stderr Errlink   \ this may only work in gforth ver 0.7 and may only work with use exceptions made 
@@ -55,7 +55,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	    then
     repeat ;
 
-: dto$ ( d -- caddr u )
+: dto$ ( d -- caddr u )  \ convert double signed to a string
     swap over dabs <<# #s rot sign #> #>> ;
 
 : #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
@@ -64,7 +64,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     <<# #s rot sign #> #>>
     junk$ $! s" ," junk$ $+! junk$ $@ ;
 
-: datetime$ ( -- caddr u )
+: datetime$ ( -- caddr u ) \ create the current time value of unixepoch and make into a string with a "," at the end of string
     utime 1000000 fm/mod swap drop
     #to$ ;
 
@@ -227,7 +227,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     ENDTRY ;
 
 : main_loop ( -- )
-    createdb  \ *** currently this word throws if cant talk to sqlite3 and create db... trap these errors and do something betterh then that! ***
+    createdb  \ *** currently this word throws if cant talk to sqlite3 and create db... trap these errors and do something better then that! ***
     createErrorList  \ *** change this word to deal with errors or trap them somehow! *** 
     begin
 	main_process -28 = if true else false then \ bail only if user canceled program
