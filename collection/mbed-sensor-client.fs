@@ -1,6 +1,7 @@
 #! /usr/bin/gforth
 
 warnings off
+next-exception @ value errorListStart
 include ../string.fs
 include ../socket.fs
 include ../Gforth-Tools/sqlite3_gforth_lib.fs
@@ -27,6 +28,7 @@ s" Mbed tcp HTTP header missing"                          exception constant mbe
 s" Mbed data message incomplete"                          exception constant mbedmessagefail-err       \ -2057
 s" Socket timeout failure in mbedread-client"             exception constant sockettime-err            \ -2058
 s" Socket message recieved to large"                      exception constant tcpoverflow-err           \ -2059
+next-exception @ value errorListEnd
 
 struct
     cell% field http$
@@ -41,6 +43,17 @@ s" HTTP/1.0 200 OK" mystrings% http$ $!
 s\" \r\n\r\n" mystrings% socketterm$ $!
 s" 192.168.0.116" mystrings% mbed-ip$ $!
 s" sensordb.data" mystrings% mbed-dbname$ $!
+
+: error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
+    >stderr Errlink   \ this may only work in gforth ver 0.7 and may only work with use exceptions made 
+    begin             \ if the nerror does not exist then a null string is returned!
+	@ dup
+    while
+	    2dup cell+ @ =
+	    if
+		2 cells + count rot drop exit
+	    then
+    repeat ;
 
 : dto$ ( d -- caddr u )
     swap over dabs <<# #s rot sign #> #>> ;
@@ -171,10 +184,13 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 
 : createdb ( -- )
     mystrings% mbed-dbname$ $@ dbname
-    s" CREATE TABLE IF NOT EXISTS thpdata(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER, age int,DTHtemperature int,DTHhumd int,BMPtemperature int, BMPpressure int);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS thpdata(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER, age INT,DTHtemperature INT,DTHhumd INT,BMPtemperature INT, BMPpressure INT);" dbcmds
     sendsqlite3cmd throw
-    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error int);" dbcmds
-    sendsqlite3cmd throw ;
+    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT);" dbcmds
+    sendsqlite3cmd throw
+    s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT);" dbcmds
+    sendsqlite3cmd throw
+;
 
 : !error ( n -- nerror ) \ nerror is the returned error from sendsqlite3cmd false for ok anything else is an error
     mystrings% mbed-dbname$ $@ dbname
@@ -185,6 +201,26 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     temp$ $@ dbcmds
     sendsqlite3cmd  \ if sendsqlite3cmd produces and error here figure out how to handle it
 ;
+
+: createErrorList ( -- )
+    mystrings% mbed-dbname$ $@ dbname
+    s" select error from errorList where ( error = " temp$ $!
+    errorListStart #to$ 1 - temp$ $+!
+    s" ) ;" temp$ $+!
+    temp$ $@ dbcmds sendsqlite3cmd throw
+    dbret$ drop c@ 0 = 
+    if
+	errorListStart 1 +  errorListEnd 1 + ?do
+	    s" insert into errorList values(" temp$ $!
+	    i #to$ temp$ $+!
+	    s\" \"" temp$ $+!
+	    i error#to$ temp$ $+!
+	    s\" \"" temp$ $+!
+	    s" );" temp$ $+!
+	    temp$ $@ dbcmds
+	    sendsqlite3cmd throw
+	loop
+   then ;
 
 : main_process ( -- nerror )
     TRY
@@ -197,6 +233,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 
 : main_loop ( -- )
     createdb
+    createErrorList 
     begin
 	main_process -28 = if true else false then \ bail only if user canceled program
 	mbed-readtime ms \ wait for next read time 
@@ -222,6 +259,10 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     s" SELECT * FROM errors LIMIT 2 OFFSET ((SELECT max(row) FROM thpdata) - 2);" dbcmds
     sendsqlite3cmd throw dbret$ ;
 
+: see-lastdberrorlist ( -- caddr u )
+    mystrings% mbed-dbname$ $@ dbname
+    s" select * from errorList limit 1 offset (select min(error) from errorList);" dbcmds
+    sendsqlite3cmd throw dbret$ ;
     
 : listdberrors ( -- )
     mystrings% mbed-dbname$ $@ dbname
