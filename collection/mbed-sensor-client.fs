@@ -64,11 +64,6 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     <<# #s rot sign #> #>>
     junk$ $! s" ," junk$ $+! junk$ $@ ;
 
-: dberror? ( nerror -- nflag )        \ nerror is normaly output from sendsqlite3cmd this word will throw nerror 
-    throw                             \ nflag is false only if there is no message from sqlite3  
-    sqlmessg dberrors-$ $@ drop c@    \ any other value is a message from sqlite3
-;                                     \ meaning if no error from sqlite3 then nflag is false or zero 
-    
 : datetime$ ( -- caddr u )
     utime 1000000 fm/mod swap drop
     #to$ ;
@@ -162,7 +157,7 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     temp$ $+!
     s" );" temp$ $+!
     temp$ $@ dbcmds
-    sendsqlite3cmd throw
+    sendsqlite3cmd throw  \ note if this throws the data is lost for this reading ... maybe changed that behavior
 ;
 
 : gcs-thp$ ( -- )  \ get check store temperature humidity pressure string into database or throw errors
@@ -182,8 +177,8 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	throw
     then ;
 
-: createdb ( -- )
-    mystrings% mbed-dbname$ $@ dbname
+: createdb ( -- )  \ creates the database if it is not present already 
+    mystrings% mbed-dbname$ $@ dbname   \ **** note this word needs to be changed to deal with the errors it can produce ******
     s" CREATE TABLE IF NOT EXISTS thpdata(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER, age INT,DTHtemperature INT,DTHhumd INT,BMPtemperature INT, BMPpressure INT);" dbcmds
     sendsqlite3cmd throw
     s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT);" dbcmds
@@ -199,18 +194,18 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     #to$ 1- temp$ $+!
     s" );" temp$ $+!
     temp$ $@ dbcmds
-    sendsqlite3cmd  \ if sendsqlite3cmd produces and error here figure out how to handle it
+    sendsqlite3cmd  \ this may return non zero and should be thrown but not sure how to deal with this yet!
 ;
 
-: createErrorList ( -- )
-    mystrings% mbed-dbname$ $@ dbname
+: createErrorList ( -- )  \ this word should only be run after db is setup 
+    mystrings% mbed-dbname$ $@ dbname  \ **** note this word needs to deal with the errors it can create ****
     s" select error from errorList where ( error = " temp$ $!
     errorListStart #to$ 1 - temp$ $+!
     s" ) ;" temp$ $+!
     temp$ $@ dbcmds sendsqlite3cmd throw
     dbret$ drop c@ 0 = 
     if
-	errorListStart 1 +  errorListEnd 1 + ?do
+	errorListStart 1 +  errorListEnd 1 + ?do  \ store other error stings then just these ones *****
 	    s" insert into errorList values(" temp$ $!
 	    i #to$ temp$ $+!
 	    s\" \"" temp$ $+!
@@ -232,8 +227,8 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
     ENDTRY ;
 
 : main_loop ( -- )
-    createdb
-    createErrorList 
+    createdb  \ *** currently this word throws if cant talk to sqlite3 and create db... trap these errors and do something betterh then that! ***
+    createErrorList  \ *** change this word to deal with errors or trap them somehow! *** 
     begin
 	main_process -28 = if true else false then \ bail only if user canceled program
 	mbed-readtime ms \ wait for next read time 
@@ -267,12 +262,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : listdberrors ( -- )
     mystrings% mbed-dbname$ $@ dbname
     s" select max(row) from errors;" dbcmds
-    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
+    sendsqlite3cmd 0<> 
     if
 	s" **sql msg**" type dberrmsg drop type
 	begin
 	    2 ms
-	    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
+	    sendsqlite3cmd 0= 
 	until
     then
     dbret$  
@@ -282,12 +277,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	    s" select row,datetime(dtime,'unixepoch'),error from errors limit 1 offset " junk$ $!
 	    now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
-	    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
+	    sendsqlite3cmd 0<> 
 	    if
 		s" **sql msg**" type dberrmsg drop type
 		begin
 		    2 ms
-		    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
+		    sendsqlite3cmd 0=
 		until
 		now 1- to now
 	    else
@@ -302,12 +297,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 : listdbdata ( -- )
     mystrings% mbed-dbname$ $@ dbname
     s" select max(row) from thpdata;" dbcmds
-    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
+    sendsqlite3cmd 0<> 
     if
 	s" **sql msg**" type dberrmsg drop type
 	begin
 	    2 ms
-	    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
+	    sendsqlite3cmd 0= 
 	until
     then
     dbret$
@@ -317,12 +312,12 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 	    s" select row,datetime(dtime,'unixepoch'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure from thpdata limit 1 offset " junk$ $!
 	    now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
-	    sendsqlite3cmd dberror? 0<> \ throw dberrmsg 2drop c@ 0<>
+	    sendsqlite3cmd 0<> 
 	    if
 		s" **sql msg**" type dberrmsg drop type
 		begin
 		    2 ms
-		    sendsqlite3cmd dberror? 0= \ throw dberrmsg 2drop c@ 0=
+		    sendsqlite3cmd 0= 
 		until
 		now 1- to now
 	    else
@@ -363,4 +358,3 @@ s" sensordb.data" mystrings% mbed-dbname$ $!
 
     config-mbed-client
     
-\ main_loop
