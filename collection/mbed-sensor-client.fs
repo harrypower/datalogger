@@ -227,7 +227,7 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
 	drop 
 	s\" insert into errorList values(-2, \'Abort\" has occured!\');" dbcmds
     then
-    sendsqlite3cmd drop 
+    sendsqlite3cmd drop \ ****note if there is a sqlite3 error here this new error will not be stored in list*****
 ;
 
 : !errorlist { nerror -- } \ will add the nerror associated string for that error to database
