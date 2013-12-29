@@ -197,25 +197,49 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
     sendsqlite3cmd  \ this may return non zero and should be thrown but not sure how to deal with this yet!
 ;
 
-: createErrorList ( -- )  \ this word should only be run after db is setup 
-    mystrings% mbed-dbname$ $@ dbname  \ **** note this word needs to deal with the errors it can create ****
-    s" select error from errorList where ( error = " temp$ $!
-    errorListStart #to$ 1 - temp$ $+!
-    s" ) ;" temp$ $+!
-    temp$ $@ dbcmds sendsqlite3cmd throw
-    dbret$ drop c@ 0 = 
+: errorINlist? { nsyserror -- nflag ndberror }  \ see if nsyserror number is in database list of errors
+    \ ndberror is false only if there was no dberror if ndberror is true then nflag is undefined
+    \ nflag is true if nsyserror is in the dbase
+    \ nflag is false if nsyserror is not in the dbase
+    mystrings% mbed-dbname$ $@ dbname  
+    s" select exists (select error from errorList where (error = " temp$ $!
+    nsyserror #to$ 1 - temp$ $+!
+    s" ));" temp$ $+! temp$ $@ dbcmds
+    10 1 ?do
+	sendsqlite3cmd 0= if leave else i 20 * ms then
+    loop
+    dbret$ s" 1" search swap drop swap drop dup 
+    dbret$ s" 0" search swap drop swap drop xor false =
     if
-	errorListStart 1 +  errorListEnd 1 + ?do  \ store other error stings then just these ones *****
-	    s" insert into errorList values(" temp$ $!
-	    i #to$ temp$ $+!
-	    s\" \"" temp$ $+!
-	    i error#to$ temp$ $+!
-	    s\" \"" temp$ $+!
-	    s" );" temp$ $+!
-	    temp$ $@ dbcmds
-	    sendsqlite3cmd throw
-	loop
-   then ;
+	true
+    else
+	dberrmsg swap drop swap drop 
+    then ;
+
+: puterrorINlist ( nerror -- ) \ add nerror number and string to the error list
+    mystrings% mbed-dbname$ $@ dbname
+    dup -2 <>
+    if
+	s" insert into errorList values(" temp$ $!
+	dup  #to$ temp$ $+! s\" \"" temp$ $+!
+	error#to$ temp$ $+! s\" \");" temp$ $+! temp$ $@ dbcmds
+    else
+	drop 
+	s\" insert into errorList values(-2, \'Abort\" has occured!\');" dbcmds
+    then
+    sendsqlite3cmd drop 
+;
+
+: !errorlist { nerror -- } \ will add the nerror associated string for that error to database
+    10 1 ?do
+	nerror errorINlist?
+	false =
+	if false =
+	    if nerror puterrorINlist then
+	    leave
+	else drop i 20 * ms
+	then
+    loop ;
 
 : main_process ( -- nerror )
     TRY
@@ -223,12 +247,13 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
 	    gcs-thp$ \ depth . cr
 	    mbed-readtime  ms  \ get the data every 60 seconds 
 	again
-    RESTORE dup if dup !error dup 0<> if !error drop else drop then then 
+    RESTORE
+	dup dup !errorlist
+	if dup !error dup 0<> if 100 ms !error drop else drop then then 
     ENDTRY ;
 
 : main_loop ( -- )
     createdb  \ *** currently this word throws if cant talk to sqlite3 and create db... trap these errors and do something better then that! ***
-    createErrorList  \ *** change this word to deal with errors or trap them somehow! *** 
     begin
 	main_process -28 = if true else false then \ bail only if user canceled program
 	mbed-readtime ms \ wait for next read time 
