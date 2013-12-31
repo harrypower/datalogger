@@ -16,10 +16,10 @@ dup file-size throw 1 s>d d-
 rot dup 2tuck drop resize-file throw
 close-file throw drop
 
-variable junk$ 
-s" nohup " junk$ $! s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file 2dup junk$ $+!
-s" /collection/logger.fs > " junk$ $+! junk$ $+! s" /collection/logginglastmsg.data &" junk$ $+!
-junk$ $@ type
+\ variable junk$ 
+\ s" nohup " junk$ $! s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file 2dup junk$ $+!
+\ s" /collection/logger.fs > " junk$ $+! junk$ $+! s" /collection/logginglastmsg.data &" junk$ $+!
+\ junk$ $@ type
 \ not sure what to do yet... this string junk$ contains now is the command to put into /etc/rc.local to start up logging from system boot!
 
 bye
