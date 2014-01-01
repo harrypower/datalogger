@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Logged Temperature Humidity and Barometric Pressure</title>
+</head>
+<$
+\ warnings off
+include ../string.fs
+include ../Gforth-Tools/sqlite3_gforth_lib.fs
+decimal
+
+
+variable  mbed-dbname$ 
+variable datalogger_path$ 
+variable junk$
+
+s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
+s" /collection/sensordb.data"  mbed-dbname$ $!
+
+: see-lastdb ( -- caddr u nerror ) \ nerror is false for db query ok
+\ caddr u will contain the string if nerror is false only
+    datalogger_path$ $@ junk$ $!
+    mbed-dbname$ $@ junk$ $+! junk$ $@ dbname
+    s" SELECT row,datetime(dtime,'unixepoch'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure FROM thpdata LIMIT 1 offset ((select max(row) from thpdata)-1);" dbcmds
+    sendsqlite3cmd dbret$  rot ;
+$>
+<body>
+<h1><p> <$ see-lastdb [if] s" db not available now!" type 2drop [else] type  [then]  $> </p></h1>
+</body>
+</html>

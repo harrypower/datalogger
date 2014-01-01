@@ -41,7 +41,8 @@ create mystrings% strings% %allot drop
 
 s" HTTP/1.0 200 OK"  mystrings% http$ $!
 s\" \r\n\r\n"        mystrings% socketterm$ $!
-s" 192.168.0.116"    mystrings% mbed-ip$ $!
+\ s" 192.168.0.116"    mystrings% mbed-ip$ $!
+s" harrypi.dlinkddns.com" mystrings% mbed-ip$ $!
 s" sensordb.data"    mystrings% mbed-dbname$ $!
 
 : error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
