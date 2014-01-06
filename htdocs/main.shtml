@@ -22,7 +22,7 @@ s" /collection/sensordb.data"  mbed-dbname$ $!
 \ caddr u will contain the string if nerror is false only
     datalogger_path$ $@ junk$ $!
     mbed-dbname$ $@ junk$ $+! junk$ $@ dbname
-    s" SELECT row,datetime(dtime,'unixepoch'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure FROM thpdata LIMIT 1 offset ((select max(row) from thpdata)-1);" dbcmds
+    s" SELECT row,datetime(dtime,'unixepoch','localtime'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure FROM thpdata LIMIT 1 offset ((select max(row) from thpdata)-1);" dbcmds
     sendsqlite3cmd dbret$  rot ;
 $>
 <body>

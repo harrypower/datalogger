@@ -311,12 +311,48 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
 		until
 		now 1- to now
 	    else
-		dbret$ type cr
+		dbret$ type \ cr
 	    then
 	    now 1+ to now
 	    now end >=
 	until
     then
+;
+
+: listerrors ( -- )
+    mystrings% mbed-dbname$ $@ dbname
+    s" select max(rowid) from errorList;" dbcmds
+    sendsqlite3cmd 0<>
+    if
+	s" **sql msg**" type dberrmsg drop type
+	begin
+	    2 ms
+	    sendsqlite3cmd 0=
+	until
+    then
+    dbret$
+    s>number? 0 =
+    if  cr
+	d>s 0 { end now }  begin
+	    s" select error,errorText from errorList limit 1 offset " junk$ $!
+	    now s>d dto$ junk$ $+! s" ;" junk$ $+!
+	    junk$ $@ dbcmds
+	    sendsqlite3cmd 0<>
+	    if
+		s" **sql msg**" type dberrmsg drop type
+		begin
+		    2 ms
+		    sendsqlite3cmd 0=
+		until
+		now 1- to now
+	    else
+		dbret$ type \ cr
+	    then
+	    now 1+ to now
+	    now end >=
+	until
+    then
+    
 ;
 
 : listdbdata ( -- )
@@ -346,7 +382,7 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
 		until
 		now 1- to now
 	    else
-		dbret$ type cr
+		dbret$ type \ cr
 	    then
 	    now 1+ to now
 	    now end >=
