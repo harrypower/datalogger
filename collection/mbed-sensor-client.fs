@@ -41,8 +41,7 @@ create mystrings% strings% %allot drop
 
 s" HTTP/1.0 200 OK"  mystrings% http$ $!
 s\" \r\n\r\n"        mystrings% socketterm$ $!
-\ s" 192.168.0.116"    mystrings% mbed-ip$ $!
-s" harrypi.dlinkddns.com" mystrings% mbed-ip$ $!
+s" 192.168.0.120"    mystrings% mbed-ip$ $!
 s" sensordb.data"    mystrings% mbed-dbname$ $!
 
 : error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
@@ -300,7 +299,7 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
     s>number? 0 =
     if
 	d>s 0 { end now }  begin
-	    s" select row,datetime(dtime,'unixepoch'),error from errors limit 1 offset " junk$ $!
+	    s" select row,datetime(dtime,'unixepoch','localtime'),error from errors limit 1 offset " junk$ $!
 	    now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
 	    sendsqlite3cmd 0<> 
@@ -335,7 +334,7 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
     s>number? 0 = 
     if
 	d>s 0 { end now } begin
-	    s" select row,datetime(dtime,'unixepoch'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure from thpdata limit 1 offset " junk$ $!
+	    s" select row,datetime(dtime,'unixepoch','localtime'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure from thpdata limit 1 offset " junk$ $!
 	    now s>d dto$ junk$ $+! s" ;" junk$ $+!
 	    junk$ $@ dbcmds
 	    sendsqlite3cmd 0<> 
