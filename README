@@ -6,41 +6,39 @@ To use this server you need to install Gforth, inetd and then configure this ser
 -Install stuff
     $ sudo apt-get install gforth
     $ sudo apt-get install inetutils-inetd
+    $ sudo apt-get install sqlite3 libsqlite3-dev
 -Install dependent Rpi_Gforth_GPIO library submodule ( the raspberry pi gpio stuff depends on this library !)
-	Note that this Rpi_Gforth_GPIO is a submodule in this repository.  This means you must issue these four commands from this gforth_webserver repositorys directory to get the files:
+	Note that this Rpi_Gforth_GPIO is a submodule in this repository.  This means you must issue these commands from this gforth_webserver repositorys directory to get the files:
 		$ sudo git submodule init
 		$ sudo git submodule update
-		$ cd gpio
-		$ sudo git checkout master
 	Now follow the README in the gpio directory for information on compiling the C code into a shared library.
 	Run gforth as in the README in the gpio directory and enter the following as show in that README:
 		include rpi_GPIO_lib.fs
 	There should be no message if all is working.  Note if you need to recompile the library just follow the README file for how to remove the old and recompile the new library.  Then use ./clean command to remove the gforth library and then do the above include rpi_GPIO_lib.fs from gforth command line to reconnect the c library to gforth.  
 -Install dependant Chart.js library submodule ( this is only needed if you want to see the chart test or work with it in any way!)
-	Do the following to install it from the gforth_webserver directory:
-		$ cd /htdocs/chart
-		$ sudo git checkout master
 	Nothing else is needed to be done for this submodule.  
 	Note there are example html files in this submodule directory for example usage of the chart.js library.
 -Configure inetd service and start the webserver as follows:
     $ sudo nano /etc/inetd.conf
 	Move the curser to the end of the document and enter the following text:
 	http stream tcp nowait.1000 root /home/pi/git/datalogger/httpd.fs
+	Note the path in the above line is the path for where you installed this repository.
 	Save the file with control x y enter
 	Now at this moment you can restart your pi as follows:
 	$ sudo shutdown "now" -r
 When the pi starts up it will serve index.html !
--The data collection is done with logging.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
+-Configure path for repository as follows:
+	There is a batch file called configure in the datalogger directory.  Use it as follows:
+	$ sudo ./configure
+	This just puts a file in /var/lib/datalogger-gforth/ directory called datalobber_home_path. 
+	In this file is simply stored the path to the repository so now the project can find files in this repository.  
+	Note the only module that uses this at this writing is the web server but you can use it how ever you choose in your code!
+-The data collection is done with mbed-sensor-client.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
         $ sudo nano /etc/rc.local 
         This above command will open the file for editing that is used to run a script at the end of boot processes. Place the following into file before exit at bottom of the file:
         ####
-	nohup /home/pi/git/datalogger/collection/logger.fs > /home/pi/git/datalogger/collection/logginglastmsg.data &
+	sudo /home/pi/git/datalogger/collection/mbed-sensor-client.fs -r & 
 	####
-        Note this will run the logger.fs gforth program as root after boot up is done.  Note this script starts with #! but it will start gforth for the compiling of the rest of logger.fs. 
-        Data collection will be in a file called logged_events.data and the first event will be logged once the pi starts up unless the file already has other events in it then that file will just be added to!
-        There is a monitoring program called isdatalogging?.fs that can restart the logger.fs program if for some reason it stops.  Note both this isdatalogging?.fs and logger.fs issue errors into an error log.
-	To have this monitoring program run do the following in the /etc/rc.local file:
-	####
-	nohup /home/pi/git/datalogger/collection/isdatalogging?.fs > /home/pi/git/datalogger/collection/isdatalogging_lastmsg.data &
-	####
-	This should be just after the logger.fs entry in /etc/rc.local.
+        Note this will run the mbed-sensor-client.fs gforth program as root after boot up is done.  Note this script starts with #! but it will start gforth for the compiling of the rest of mbed-sensor-client.fs. 
+        Data collection will be in a file called sensordb.data but this is a sqlite3 database file!
+        You can use sqlite3 
