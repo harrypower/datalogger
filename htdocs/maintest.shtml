@@ -18,6 +18,9 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ 
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
 junks$ $@ dbname
 
+: dto$ ( d -- caddr u )  \ convert double signed to a string
+    swap over dabs <<# #s rot sign #> #>> ;
+
 : nextcomma ( caddr u -- caddr1 u1 nflag ) \ nflag is true if next comma is found and caddr u contains the string past that comma
     s" ," search if
 	swap 1 + swap 1 - true
@@ -65,6 +68,13 @@ junks$ $@ dbname
     s" select DTHtemperature,DTHhumd,BMPpressure,row,datetime(dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(row) from thpdata)-1);" dbcmds
     issuedbcmds to rvdataerror rvdata$ $! ;
 
+: getrawx ( drow -- caddr u nerror )
+    1 s>d d- dto$ 
+    s" select row,datetime(dtime,'unixepoch','localtime'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure from thpdata limit 1 offset "  junks$ $!
+    junks$ $+! s" ;" junks$ $+!
+    junks$ $@ dbcmds
+    issuedbcmds ;
+
 : totalerrors ( -- dmaxerrors nerror )
     s" select max(row) from errors;" dbcmds
     issuedbcmds if
@@ -99,12 +109,12 @@ getlastdata
 
 $>
 <body>
-<h1><p> Last logged temperature value was: <$ temperature rvdataerror false = and [if] d>f 10 s>d d>f f/ f. s" C" type [else] notvalidmsg 2drop [then] $> </p></h1>
-<h1><p> Last logged humidity value was: <$ humidity rvdataerror false = and [if] d>f 10 s>d d>f f/ f. s" rH" type [else] notvalidmsg 2drop [then] $> </p></h1>
+<h1><p> Last logged temperature value was: <$ temperature rvdataerror false = and [if] d>f 10 s>d d>f f/ 7 1 2 f.rdp s" C" type [else] notvalidmsg 2drop [then] $> </p></h1>
+<h1><p> Last logged humidity value was: <$ humidity rvdataerror false = and [if] d>f 10 s>d d>f f/ 7 1 2 f.rdp s" rH" type [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Last logged pressure value was: <$ pressure rvdataerror false = and [if] d. s" pa" type [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Total data Points: <$ totaldata rvdataerror false = and [if] d. [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Last data point time was: <$ lasttime rvdataerror false = and [if] type [else] notvalidmsg 2drop [then] $> </p></h>
-<h1><p> Raw data: <$ rvdataerror [if] notvalidmsg [else] rvdata$ $@ type [then]  $> </p></h1>
+<h1><p> Raw data: <$ totaldata [if] getrawx [if] notvalidmsg 2drop [else]  type [then] [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Total errors <$ totalerrors [if]  d. [else] notvalidmsg 2drop [then] $> </p></h1>
 </body>
 </html>
