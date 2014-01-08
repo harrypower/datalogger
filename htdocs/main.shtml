@@ -18,17 +18,35 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ 
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
 junks$ $@ dbname
 
-: nextcomma ( caddr u -- caddr u nflag )
+: nextcomma ( caddr u -- caddr1 u1 nflag ) \ nflag is true if next comma is found and caddr u contains the string past that comma
     s" ," search if
 	swap 1 + swap 1 - true
     then ;
 
-: #uptocomma { caddr u -- d nflag }
+: #uptocomma { caddr u -- d nflag } \ nflag is true is d is the number from string before a comma
     caddr u s" ," search if
 	swap drop u swap - caddr swap s>number?
     else
 	0 0 false
     then ;
+
+: #pastxcomma { caddr u n#comma -- d nflag } \ nflag is true if n#comma is found and a number d can be extracted from it  
+    try
+	n#comma 0 ?do
+	    caddr u nextcomma if to u to caddr else 1 throw then 
+	loop
+	caddr u #uptocomma 
+    restore 1 = if 0 0 false else true then   
+    endtry ;
+
+: $pastxcomma { caddr u n#comma -- caddr1 u1 nflag } \ nflag is true if n#comma is found .. the caddr1 u1 will contain the string before that last comma  
+    try
+	n#comma 0 ?do
+	    caddr u nextcomma if to u to caddr else 1 throw then
+	loop
+	caddr u true
+    restore 1 = if 0 0 false else true then 
+    endtry ;
 
 : issuedbcmds ( -- caddr u nerror ) \ nerror is false if db query is ok
     sendsqlite3cmd \ if nerror is not false caddr u will contain the error otherwise it is the sqlite3 message
@@ -56,68 +74,23 @@ junks$ $@ dbname
     then ;
 	
 : temperature ( -- dtemp nerror )
-    rvdata$ $@
-    #uptocomma  ;
+    rvdata$ $@ 0 #pastxcomma ;
 
 : humidity ( -- dhumd nerror )
-    rvdata$ $@
-    nextcomma if
-	#uptocomma 
-    else
-	false
-    then ;
+    rvdata$ $@ 1 #pastxcomma ;
 
 : pressure ( -- dpress nerror )
-    rvdata$ $@
-    nextcomma if
-	nextcomma if
-	    #uptocomma
-	else
-	     false
-	then
-    else
-	false
-    then ;
+    rvdata$ $@ 2 #pastxcomma ;
 
 : totaldata ( -- dmaxdata nerror )
-    rvdata$ $@
-    nextcomma if
-	nextcomma if
-	    nextcomma if
-		#uptocomma 
-	    else
-		false
-	    then
-	else
-	    false
-	then
-    else
-	false
-    then ;
+    rvdata$ $@ 3 #pastxcomma ;
 
 : lasttime ( -- caddr u nerror )
-    rvdata$ $@
-    nextcomma if
-	nextcomma if
-	    nextcomma if
-		nextcomma if
-		    2dup nextcomma if
-			swap drop - 1 - true
-		    else
-			2drop false
-		    then
-		else
-		    false
-		then
-	    else
-		false
-	    then
-	else
-	    false
-	then
-    else
-	false
-    then ;
+    rvdata$ $@ 4 $pastxcomma ;
+
+
+: newtime ( -- d nerror )
+    rvdata$ $@ 0 $pastxcomma if #uptocomma else false then  ;
 
 getlastdata
 
