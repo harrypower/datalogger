@@ -394,16 +394,31 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
     if
 	." Argument needed!" cr 2drop s" -help"
     then
-
+    
     s" -help" search
     if
-	." -r use to start the datalogging process!" cr
+	." -r use to start the datalogging process at 5 min. default time!" cr
+	\ ." -r 10 use to start datalogging process with 10 min. logging time!" cr
+	\ ." -r x  where x is a number for minuets for logging time!" cr
 	." -i use to enter the gforth command line to issue commands!" cr
 	2drop bye
     then
     s" -r" search
     if
-	2drop main_loop bye
+	2drop
+	5 60000 * to mbed-readtime
+	next-arg dup 0<> if
+	    s>number? if
+		d>s dup 1 >= if
+		    60000 * to mbed-readtime
+		else
+		    drop
+		then
+	    then
+	else
+	    2drop
+	then
+	main_loop bye
     then
     s" -i" search
     if
@@ -415,7 +430,7 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
 	." -i use to enter the gforth command line to issue commands!" cr
 	bye
     then
-    ;
-
-    config-mbed-client
+;
+    
+config-mbed-client
     
