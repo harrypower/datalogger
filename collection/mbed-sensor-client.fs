@@ -1,6 +1,6 @@
 #! /usr/bin/gforth
 
-warnings off
+\ warnings off
 next-exception @ value errorListStart
 include ../string.fs
 include ../socket.fs
@@ -17,6 +17,9 @@ variable buffer2$ buffer2$ $init
 1000 value buff2max 
 variable junk$ junk$ $init
 variable temp$ temp$ $init
+variable path$ path$ $init
+
+s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!
 
 \ these are the errors that this code can produce!
 \ Note these are enumerated starting at -2051 but -2051 is in another module so the enumeration is first one gets -2051
@@ -42,7 +45,9 @@ create mystrings% strings% %allot drop
 s" HTTP/1.0 200 OK"  mystrings% http$ $!
 s\" \r\n\r\n"        mystrings% socketterm$ $!
 s" 192.168.0.120"    mystrings% mbed-ip$ $!
-s" sensordb.data"    mystrings% mbed-dbname$ $!
+s" /collection/sensordb.data"    mystrings% mbed-dbname$ $!
+
+path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-dbname$ $!
 
 : error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
     >stderr Errlink   \ this may only work in gforth ver 0.7 and may only work with use exceptions made 
@@ -407,17 +412,17 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
     if
 	2drop
 	5 60000 * to mbed-readtime
-	\  next-arg dup 0<> if
-	\    s>number? if
-	\	d>s dup 1 >= if
-	\	    60000 * to mbed-readtime
-	\	else
-	\	    drop
-	\	then
-	\    then
-	\ else
-	\    2drop
-	\ then
+	next-arg dup 0<> if
+	    s>number? if
+		d>s dup 1 >= if
+		    60000 * to mbed-readtime
+		else
+		    drop
+		then
+	    then
+	else
+	    2drop
+	then
 	main_loop bye
     then
     s" -i" search
