@@ -407,17 +407,17 @@ s" sensordb.data"    mystrings% mbed-dbname$ $!
     if
 	2drop
 	5 60000 * to mbed-readtime
-	next-arg dup 0<> if
-	    s>number? if
-		d>s dup 1 >= if
-		    60000 * to mbed-readtime
-		else
-		    drop
-		then
-	    then
-	else
-	    2drop
-	then
+	\  next-arg dup 0<> if
+	\    s>number? if
+	\	d>s dup 1 >= if
+	\	    60000 * to mbed-readtime
+	\	else
+	\	    drop
+	\	then
+	\    then
+	\ else
+	\    2drop
+	\ then
 	main_loop bye
     then
     s" -i" search
