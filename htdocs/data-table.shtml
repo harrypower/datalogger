@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Last data</title>
+</head>
+<$
+include ../string.fs
+include ../Gforth-Tools/sqlite3_gforth_lib.fs
+decimal
+
+variable datalogger_path$
+variable dbpath$
+variable junks$
+
+
+s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
+s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
+junks$ $@ dbname
+junks$ $@ dbpath$ $!
+
+s" </td><td>" dbfieldseparator
+s" </td></tr><td>" dbrecordseparator
+5000 mkretbuff
+
+
+: getrows
+    s" select datetime(errors.dtime,'unixepoch','localtime'),errors.error,errorList.errorText from errors inner join errorList on errors.error=errorList.error "
+   junks$ $!
+   s"  limit 15 offset ((select max(rowid) from errors) -15);" junks$ $+! junks$ $@
+   dbcmds sendsqlite3cmd dbret$ type ;
+
+$>
+<body>
+<h1>List of last 15 logging errors</h1>
+    <table>
+    <tr> <td>Date</td><td>Error #</td><td>Error Message</td></tr>
+<tr> <td>
+<$ getrows $>
+</table>
+</body>
+</html>
