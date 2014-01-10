@@ -403,8 +403,8 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
     s" -help" search
     if
 	." -r use to start the datalogging process at 5 min. default time!" cr
-	\ ." -r 10 use to start datalogging process with 10 min. logging time!" cr
-	\ ." -r x  where x is a number for minuets for logging time!" cr
+	." -r 10 use to start datalogging process with 10 min. logging time!" cr
+	." -r x  where x is a number for minuets for logging time!" cr
 	." -i use to enter the gforth command line to issue commands!" cr
 	2drop bye
     then

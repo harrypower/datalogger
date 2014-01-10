@@ -7,7 +7,7 @@
 <BODY>  
 
 <script src="../chart/Chart.js"></script>
-<canvas id="gforthChart" width="800" height="400"></canvas>
+<canvas id="gforthChart" width=1900" height="400"></canvas>
 
 <$
  
@@ -30,22 +30,17 @@ s" " dbrecordseparator
 
 10000 mkretbuff
 
-: -NULL$ ( caddr u -- caddr u1 ) \ the first null found causes string to be cut at that point
-    2dup  s"  " over 0 swap c! search if swap drop - else 2drop then ;
-
-\ : getlables s" 1389317384,1389317684,"  ;
-\ : getdata  s" 40,50,"  ;
- : getlables 
-     s" select dtime from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
-     sendsqlite3cmd dbret$ -NULL$ ;
+: getlables
+    s\" \",\"" dbfieldseparator
+    s" select datetime(dtime,'unixepoch','localtime') from thpdata limit 100 offset ((select max(rowid) from thpdata) -100);" dbcmds
+    sendsqlite3cmd dbret$ 2 -
+    s\" \"" junks$ $! junks$ $+! junks$ $@ ;
  
- : getdata
-    s" select DTHtemperature from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
-    sendsqlite3cmd dbret$  -NULL$  ;
+: getdata
+    s" ," dbfieldseparator
+    s" select ((DTHtemperature / 10)+((DTHtemperature % 10)*0.1)) from thpdata limit 100 offset ((select max(rowid) from thpdata) -100);" dbcmds
+    sendsqlite3cmd dbret$ 1 -  ;
 
-\ getdata -$zero swap drop . cr  
-\ getlables swap drop . cr
- 
 $>
 
 <script>
@@ -56,7 +51,7 @@ var gforthdata = {
 	labels : [ <$ getlables type $> ],
 	datasets : [
 		{
-			fillColor : "rgba(220,220,220,0.5)",
+			fillColor : "rgba(120,220,250,0.5)",
 			strokeColor : "rgba(220,220,220,1)",
 			pointColor : "rgba(220,220,220,1)",
 			pointStrokeColor : "#fff",

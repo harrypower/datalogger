@@ -118,5 +118,6 @@ $>
 <h1><p> Raw data: <$ totaldata [if] getrawx [if] notvalidmsg 2drop [else]  type [then] [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Total errors <$ totalerrors [if]  d. [else] notvalidmsg 2drop [then] $> </p></h1>
 <form action="errors-table.shtml" method="post"><input type="submit" value="Last errors"></form>
+<form action="data-chart.shtml" method="post"><input type="submit" value="Temperature chart testing"></form>
 </body>
 </html>
