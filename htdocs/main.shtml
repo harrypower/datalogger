@@ -73,7 +73,7 @@ junks$ $@ dbname
     s" select row,datetime(dtime,'unixepoch','localtime'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure from thpdata limit 1 offset "  junks$ $!
     junks$ $+! s" ;" junks$ $+!
     junks$ $@ dbcmds
-    issuedbcmds ;
+    issuedbcmds swap 2 - swap ;
 
 : totalerrors ( -- dmaxerrors nerror )
     s" select max(row) from errors;" dbcmds
@@ -96,11 +96,7 @@ junks$ $@ dbname
     rvdata$ $@ 3 #pastxcomma ;
 
 : lasttime ( -- caddr u nerror )
-    rvdata$ $@ 4 $pastxcomma ;
-
-
-: newtime ( -- d nerror )
-    rvdata$ $@ 0 $pastxcomma if #uptocomma else false then  ;
+    rvdata$ $@ 4 $pastxcomma swap 2 - swap ;
 
 getlastdata
 

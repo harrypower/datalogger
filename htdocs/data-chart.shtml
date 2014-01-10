@@ -7,7 +7,7 @@
 <BODY>  
 
 <script src="../chart/Chart.js"></script>
-<canvas id="gforthChart" width=1900" height="400"></canvas>
+<canvas id="gforthChart" width=1800" height="400"></canvas>
 
 <$
  
@@ -32,13 +32,13 @@ s" " dbrecordseparator
 
 : getlables
     s\" \",\"" dbfieldseparator
-    s" select datetime(dtime,'unixepoch','localtime') from thpdata limit 100 offset ((select max(rowid) from thpdata) -100);" dbcmds
+    s" select datetime(dtime,'unixepoch','localtime') from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
     sendsqlite3cmd dbret$ 2 -
     s\" \"" junks$ $! junks$ $+! junks$ $@ ;
  
 : getdata
     s" ," dbfieldseparator
-    s" select ((DTHtemperature / 10)+((DTHtemperature % 10)*0.1)) from thpdata limit 100 offset ((select max(rowid) from thpdata) -100);" dbcmds
+    s" select ((DTHtemperature / 10)+((DTHtemperature % 10)*0.1)) from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
     sendsqlite3cmd dbret$ 1 -  ;
 
 $>
