@@ -20,23 +20,23 @@ junks$ $@ dbname
 junks$ $@ dbpath$ $!
 
 s" </td><td>" dbfieldseparator
-s" </td></tr><td>" dbrecordseparator
-5000 mkretbuff
+s" </td></tr><tr><td>" dbrecordseparator
+10000 mkretbuff
 
 
 : getrows
-    s" select datetime(errors.dtime,'unixepoch','localtime'),errors.error,errorList.errorText from errors inner join errorList on errors.error=errorList.error "
+    s" select datetime(dtime,'unixepoch','localtime'),((DTHtemperature/10)+((DTHtemperature%10)*0.1)),((DTHhumd/10)+((DTHhumd%10)*0.1)),BMPpressure from thpdata  "
    junks$ $!
-   s"  limit 15 offset ((select max(rowid) from errors) -15);" junks$ $+! junks$ $@
+   s"  limit 100 offset ((select max(rowid) from thpdata) -100);" junks$ $+! junks$ $@
    dbcmds sendsqlite3cmd dbret$ type ;
 
 $>
 <body>
-<h1>List of last 15 logging errors</h1>
-    <table>
-    <tr> <td>Date</td><td>Error #</td><td>Error Message</td></tr>
+<h1>List of last 100 data points</h1>
+    <table cellspacing="20">
+    <tr> <td>Date</td><td>Temperature in C</td><td>Humidity in rH</td><td>Pressure in pa</td><td></td></tr>
 <tr> <td>
-<$ getrows $>
+<$ getrows $> </td> <td></td><td></td><td></td><td></td></tr>
 </table>
 </body>
 </html>

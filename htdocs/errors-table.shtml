@@ -20,7 +20,7 @@ junks$ $@ dbname
 junks$ $@ dbpath$ $!
 
 s" </td><td>" dbfieldseparator
-s" </td></tr><td>" dbrecordseparator
+s" </td></tr><tr><td>" dbrecordseparator
 5000 mkretbuff
 
 
@@ -33,10 +33,10 @@ s" </td></tr><td>" dbrecordseparator
 $>
 <body>
 <h1>List of last 15 logging errors</h1>
-    <table>
-    <tr> <td>Date</td><td>Error #</td><td>Error Message</td></tr>
+    <table cellspacing="20">
+    <tr> <td>Date</td><td>Error #</td><td>Error Message</td><td></td></tr>
 <tr> <td>
-<$ getrows $>
+<$ getrows $> </td> <td></td><td></td><td></td></tr>
 </table>
 </body>
 </html>
