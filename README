@@ -32,13 +32,14 @@ When the pi starts up it will serve index.html !
 	$ sudo ./configure
 	This just puts a file in /var/lib/datalogger-gforth/ directory called datalobber_home_path. 
 	In this file is simply stored the path to the repository so now the project can find files in this repository.  
-	Note the only module that uses this at this writing is the web server but you can use it how ever you choose in your code!
+	Note the web server and the mbed-sensor-client.fs programs us this method to find where files are!
 -The data collection is done with mbed-sensor-client.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
         $ sudo nano /etc/rc.local 
         This above command will open the file for editing that is used to run a script at the end of boot processes. Place the following into file before exit at bottom of the file:
         ####
-	sudo /home/pi/git/datalogger/collection/mbed-sensor-client.fs -r & 
+	/home/pi/git/datalogger/collection/mbed-sensor-client.fs -r & 
 	####
-        Note this will run the mbed-sensor-client.fs gforth program as root after boot up is done.  Note this script starts with #! but it will start gforth for the compiling of the rest of mbed-sensor-client.fs. 
+        Note this will run the mbed-sensor-client.fs gforth program as root after boot up is done and collection will be every 5 min.
+	Note this script starts with #! but it will start gforth for the compiling of the rest of mbed-sensor-client.fs. 
         Data collection will be in a file called sensordb.data but this is a sqlite3 database file!
-        You can use sqlite3 
+
