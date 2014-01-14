@@ -68,7 +68,7 @@ s" sensordb" dbname-path$ $!
 : copydb ( --  ) \ copies the db file onto the usb0 that should be mounted.
     s" sudo cp -u " junk$ $! dbname$ $@ junk$ $+! s"  " junk$ $+! mount_name$ $@ junk$ $+! s" /" junk$ $+!
     dbname-path$ $@ junk$ $+! s" ." junk$ $+! 
-    time&date s>d dto$ junk$ $+! s>d dto$ junk$ $+! 2drop 2drop
+    time&date s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! 2drop drop
     junk$ $@ system ;
 
     
