@@ -21,9 +21,7 @@ variable postsql$
 0 value startyear
 0 value startday
 0 value startmonth
-0 value dayfix
-2variable mintime
-2variable maxtime
+
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
@@ -93,79 +91,40 @@ s" " dbrecordseparator
     dbret$ 2 #pastxcomma drop d>s to startmonth
     dbret$ 3 #pastxcomma drop d>s to startday ;
 
-: gethourlables ( -- caddr u ) \ not this populates the time variables above for use later
-    getstarttimes
-    starthour 1 + dup s>d dto$ junks$ $! 23 0 ?do s" ," junks$ $+! dup 23 = if drop 0 dup else 1 + dup then s>d dto$ junks$ $+! loop
-    drop junks$ $@
-;
-
 : isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
     2dup s" NULL," search if 2drop 2drop s" ," else 2drop then ; 
 
 : add0$ ( caddr u -- caddr1 u1 ) \ simply adds a "0" to begining of sting if string caddr u only contains one char at entry
     dup 1 = if s" 0" pad $! pad $+! pad $@ then ;
 
-: gethourdatamin
+: getnowlables
     s" ," dbfieldseparator
-    s"  " postsql$ $!
-    -1 to dayfix
-    utime 
-    starthour 1 + dup s>d dto$ junks$ $! 24 0
-    ?do
-	\ pass this hour time string to sql to get min data
-	s" select ((min(DTHtemperature)/10)+((min(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-	s" (strftime('%d',dtime,'unixepoch','localtime') is '" presql$ $+!
-	startday dayfix + s>d dto$ add0$ presql$ $+!
-	s" ') and (strftime('%H',dtime,'unixepoch','localtime') is '" presql$ $+!
-	junks$ $@ add0$ presql$ $+!
-	s" ') and (strftime('%Y',dtime,'unixepoch','localtime') is '" presql$ $+!
-	startyear s>d dto$ presql$ $+!
-	s" ') and (strftime('%m',dtime,'unixepoch','localtime') is '" presql$ $+!
-	startmonth s>d dto$ add0$ presql$ $+!
-	s" ');" presql$ $+!
-	presql$ $@ dbcmds sendsqlite3cmd drop
-	dbret$ isnull? postsql$ $+! 
-	dup 24 =
-	if
-	    drop 0 dup
-	    0 to dayfix
-	else
-	    1 + dup 
-	then
-	s>d dto$ junks$ $!
-    loop drop
-    utime 2swap d- mintime 2!
-    postsql$ $@ ;
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select strftime('%H',dtime,'unixepoch','localtime') from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ 1 - ;
 
-: gethourdatamax
+: getnowmin
     s" ," dbfieldseparator
-    s"  " postsql$ $!
-    -1 to dayfix
-    starthour 1 + dup s>d dto$ junks$ $! 24 0
-    ?do
-	\ pass this hour time string to sql to get max data
-	s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-	s" (strftime('%d',dtime,'unixepoch','localtime') is '" presql$ $+!
-	startday dayfix + s>d dto$ add0$ presql$ $+!
-	s" ') and (strftime('%H',dtime,'unixepoch','localtime') is '" presql$ $+!
-	junks$ $@ add0$ presql$ $+!
-	s" ') and (strftime('%Y',dtime,'unixepoch','localtime') is '" presql$ $+!
-	startyear s>d dto$ presql$ $+!
-	s" ') and (strftime('%m',dtime,'unixepoch','localtime') is '" presql$ $+!
-	startmonth s>d dto$ add0$ presql$ $+!
-	s" ');" presql$ $+!
-	presql$ $@ dbcmds sendsqlite3cmd drop
-	dbret$ isnull? postsql$ $+!
-	dup 24 =
-	if
-	    drop 0 dup
-	    0 to dayfix
-	else
-	    1 + dup
-	then
-	s>d dto$ junks$ $!
-    loop
-    postsql$ $@ ;
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select ((min(DTHtemperature)/10)+((min(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having min(DTHtemperature) order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ 1 - ;
+: getnowmax
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having max(DTHtemperature) order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ 1 - ;
 
 $>
 
@@ -202,21 +161,21 @@ var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
 
 var options = { 'pointDotRadius':2 };
 var gforthdata = {
-labels : [ <$ gethourlables type $> ],
+labels : [ <$ getnowlables type $> ],
 datasets : [
 	{
 	fillColor : "rgba(120,220,250,0.5)",
 	strokeColor : "rgba(220,220,220,1)",
 	pointColor : "rgba(220,220,220,1)",
 	pointStrokeColor : "#fff",
-	data : [ <$ gethourdatamin type $> ]
+	data : [ <$ getnowmin type $> ]
     },
     {
     fillColor : "rgba(151,187,205,0.5)",
     strokeColor : "rgba(151,187,205,1)",
     pointColor : "rgba(151,187,205,1)",
     pointStrokeColor : "#fff",
-    data : [ <$ gethourdatamax type $> ]
+    data : [ <$ getnowmax type $> ]
                     }
 	]
 	}
@@ -237,14 +196,9 @@ var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
 
 <p>Posted message is: <$ active @ [if] posted $@ type [else] s" nothing posted!" type [then] $> </p>
 
-<p> starthour is: <$ starthour . $> </p>
-<p> startyear is: <$  startyear . $> </p>
-<p> startmonth is: <$ startmonth . $> </p>
-<p> startday is: <$ startday . $> </p>
-<p> last$ is: <$ dbret$ type $> </p>
-<p> test2: <$ postsql$ $@ type $> </p>
-<p> test3: <$ sqlmessg dbcmds-$ $@ type $> </p>
-<p> time: <$ mintime 2@ d. $> </p>
+<p> lables: <$ getnowlables type $> </p>
+<p> min: <$ getnowmin type $> </p>
+<p> max: <$ getnowmax type $> </p>
 </BODY>  
 </HTML>
 
