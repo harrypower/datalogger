@@ -6,9 +6,6 @@
 </HEAD>  
 <BODY>  
 
-<script src="../chart/Chart.js"></script>
-<canvas id="gforthChart" width=1800" height="400"></canvas>
-
 <$
  
 include ../string.fs
@@ -18,13 +15,24 @@ decimal
 variable datalogger_path$
 variable dbpath$
 variable junks$
+variable presql$
+variable postsql$
 0 value starthour 
+0 value startyear
+0 value startday
+0 value startmonth
+0 value dayfix
+2variable mintime
+2variable maxtime
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
 junks$ $@ dbname
 junks$ $@ dbpath$ $!
 
+
+: dto$ ( d -- caddr u )  \ convert double signed to a string
+    swap over dabs <<# #s rot sign #> #>> ;
 
 : nextcomma ( caddr u -- caddr1 u1 nflag ) \ nflag is true if next comma is found and caddr u contains the string past that comma
     s" ," search if
@@ -62,23 +70,107 @@ s" " dbrecordseparator
 
 10000 mkretbuff
 
-: getlables
+: getlables ( -- caddr u )
     s\" \",\"" dbfieldseparator
     s" select datetime(dtime,'unixepoch','localtime') from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
     sendsqlite3cmd drop dbret$ 2 -
     s\" \"" junks$ $! junks$ $+! junks$ $@ ;
  
-: getdata
+: getdata ( -- caddr u )
     s" ," dbfieldseparator
     s" select ((DTHtemperature / 10)+((DTHtemperature % 10)*0.1)) from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
     sendsqlite3cmd drop dbret$ 1 -  ;
 
-: getstarthour
+: getstarttimes ( -- caddr u )
     s" ," dbfieldseparator
-    s" select strftime('%H',dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata)-1);" dbcmds
-    sendsqlite3cmd drop dbret$ 0 #pastxcomma drop d>s to starthour ;
+    s" select strftime('%H',dtime,'unixepoch','localtime'), strftime('%Y',dtime,'unixepoch','localtime'), " junks$ $!
+    s" strftime('%m',dtime,'unixepoch','localtime'), strftime('%d',dtime,'unixepoch','localtime') " junks$ $+!
+    s" from thpdata limit 1 offset ((select max(rowid) from thpdata)-1);" junks$ $+!
+    junks$ $@ dbcmds
+    sendsqlite3cmd drop
+    dbret$ 0 #pastxcomma drop d>s to starthour
+    dbret$ 1 #pastxcomma drop d>s to startyear
+    dbret$ 2 #pastxcomma drop d>s to startmonth
+    dbret$ 3 #pastxcomma drop d>s to startday ;
+
+: gethourlables ( -- caddr u ) \ not this populates the time variables above for use later
+    getstarttimes
+    starthour 1 + dup s>d dto$ junks$ $! 23 0 ?do s" ," junks$ $+! dup 23 = if drop 0 dup else 1 + dup then s>d dto$ junks$ $+! loop
+    drop junks$ $@
+;
+
+: isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
+    2dup s" NULL," search if 2drop 2drop s" ," else 2drop then ; 
+
+: add0$ ( caddr u -- caddr1 u1 ) \ simply adds a "0" to begining of sting if string caddr u only contains one char at entry
+    dup 1 = if s" 0" pad $! pad $+! pad $@ then ;
+
+: gethourdatamin
+    s" ," dbfieldseparator
+    s"  " postsql$ $!
+    -1 to dayfix
+    utime 
+    starthour 1 + dup s>d dto$ junks$ $! 24 0
+    ?do
+	\ pass this hour time string to sql to get min data
+	s" select ((min(DTHtemperature)/10)+((min(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
+	s" (strftime('%d',dtime,'unixepoch','localtime') is '" presql$ $+!
+	startday dayfix + s>d dto$ add0$ presql$ $+!
+	s" ') and (strftime('%H',dtime,'unixepoch','localtime') is '" presql$ $+!
+	junks$ $@ add0$ presql$ $+!
+	s" ') and (strftime('%Y',dtime,'unixepoch','localtime') is '" presql$ $+!
+	startyear s>d dto$ presql$ $+!
+	s" ') and (strftime('%m',dtime,'unixepoch','localtime') is '" presql$ $+!
+	startmonth s>d dto$ add0$ presql$ $+!
+	s" ');" presql$ $+!
+	presql$ $@ dbcmds sendsqlite3cmd drop
+	dbret$ isnull? postsql$ $+! 
+	dup 24 =
+	if
+	    drop 0 dup
+	    0 to dayfix
+	else
+	    1 + dup 
+	then
+	s>d dto$ junks$ $!
+    loop drop
+    utime 2swap d- mintime 2!
+    postsql$ $@ ;
+
+: gethourdatamax
+    s" ," dbfieldseparator
+    s"  " postsql$ $!
+    -1 to dayfix
+    starthour 1 + dup s>d dto$ junks$ $! 24 0
+    ?do
+	\ pass this hour time string to sql to get max data
+	s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
+	s" (strftime('%d',dtime,'unixepoch','localtime') is '" presql$ $+!
+	startday dayfix + s>d dto$ add0$ presql$ $+!
+	s" ') and (strftime('%H',dtime,'unixepoch','localtime') is '" presql$ $+!
+	junks$ $@ add0$ presql$ $+!
+	s" ') and (strftime('%Y',dtime,'unixepoch','localtime') is '" presql$ $+!
+	startyear s>d dto$ presql$ $+!
+	s" ') and (strftime('%m',dtime,'unixepoch','localtime') is '" presql$ $+!
+	startmonth s>d dto$ add0$ presql$ $+!
+	s" ');" presql$ $+!
+	presql$ $@ dbcmds sendsqlite3cmd drop
+	dbret$ isnull? postsql$ $+!
+	dup 24 =
+	if
+	    drop 0 dup
+	    0 to dayfix
+	else
+	    1 + dup
+	then
+	s>d dto$ junks$ $!
+    loop
+    postsql$ $@ ;
 
 $>
+
+<script src="../chart/Chart.js"></script>
+<canvas id="gforthChart" width=1500" height="400"></canvas>
 
 <script>
 
@@ -102,6 +194,40 @@ var gforthctx = document.getElementById("gforthChart").getContext("2d");
 var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
 
 </script>
+
+<script src="../chart/Chart.js"></script>
+<canvas id="secondgforthChart" width=1000" height="400"></canvas>
+
+<script>
+
+var options = { 'pointDotRadius':2 };
+var gforthdata = {
+labels : [ <$ gethourlables type $> ],
+datasets : [
+	{
+	fillColor : "rgba(120,220,250,0.5)",
+	strokeColor : "rgba(220,220,220,1)",
+	pointColor : "rgba(220,220,220,1)",
+	pointStrokeColor : "#fff",
+	data : [ <$ gethourdatamin type $> ]
+    },
+    {
+    fillColor : "rgba(151,187,205,0.5)",
+    strokeColor : "rgba(151,187,205,1)",
+    pointColor : "rgba(151,187,205,1)",
+    pointStrokeColor : "#fff",
+    data : [ <$ gethourdatamax type $> ]
+                    }
+	]
+	}
+
+//Get the context of the canvas element we want to select
+var gforthctx = document.getElementById("secondgforthChart").getContext("2d");
+var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
+
+</script>
+	    
+    
 <select name="month" form="month">
 <option value="1">Jan</option>
 <option value="2">Feb</option>
@@ -111,8 +237,14 @@ var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
 
 <p>Posted message is: <$ active @ [if] posted $@ type [else] s" nothing posted!" type [then] $> </p>
 
-<p> starthour is: <$  getstarthour starthour . $> </p>
-
+<p> starthour is: <$ starthour . $> </p>
+<p> startyear is: <$  startyear . $> </p>
+<p> startmonth is: <$ startmonth . $> </p>
+<p> startday is: <$ startday . $> </p>
+<p> last$ is: <$ dbret$ type $> </p>
+<p> test2: <$ postsql$ $@ type $> </p>
+<p> test3: <$ sqlmessg dbcmds-$ $@ type $> </p>
+<p> time: <$ mintime 2@ d. $> </p>
 </BODY>  
 </HTML>
 
