@@ -17,6 +17,15 @@ variable dbpath$
 variable junks$
 variable presql$
 variable postsql$
+variable lablesnow$
+variable datanow$
+variable lablesday$
+variable minday$
+variable maxday$
+variable minhumdday$
+variable maxhumdday$
+variable minpresday$
+variable maxpresday$
 0 value starthour 
 0 value startyear
 0 value startday
@@ -72,12 +81,12 @@ s" " dbrecordseparator
     s\" \",\"" dbfieldseparator
     s" select datetime(dtime,'unixepoch','localtime') from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
     sendsqlite3cmd drop dbret$ 2 -
-    s\" \"" junks$ $! junks$ $+! junks$ $@ ;
+    s\" \"" junks$ $! junks$ $+! junks$ $@ lablesnow$ $! ;
  
 : getdata ( -- caddr u )
     s" ," dbfieldseparator
     s" select ((DTHtemperature / 10)+((DTHtemperature % 10)*0.1)) from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
-    sendsqlite3cmd drop dbret$ 1 -  ;
+    sendsqlite3cmd drop dbret$ 1 - datanow$ $! ;
 
 : getstarttimes ( -- caddr u )
     s" ," dbfieldseparator
@@ -105,7 +114,7 @@ s" " dbrecordseparator
     s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
     s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - ;
+    dbret$ 1 - lablesday$ $! ;
 
 : getnowmin
     s" ," dbfieldseparator
@@ -115,7 +124,7 @@ s" " dbrecordseparator
     s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
     s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having min(DTHtemperature) order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - ;
+    dbret$ 1 - minday$ $! ;
 : getnowmax
     s" ," dbfieldseparator
     s" " dbrecordseparator
@@ -124,26 +133,64 @@ s" " dbrecordseparator
     s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
     s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having max(DTHtemperature) order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - ;
+    dbret$ 1 - maxday$ $! ;
+: gethumdnowmin
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select ((min(DTHhumd)/10)+((min(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having min(DTHhumd) order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ 1 - minhumdday$ $! ;
+
+: gethumdnowmax
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select ((max(DTHhumd)/10)+((max(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having max(DTHhumd) order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ 1 - maxhumdday$ $! ;
+: getpresnowmin
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select ((min(BMPpressure)/10)+((min(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having min(BMPpressure) order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ 1 - minpresday$ $! ;
+
+: getpresnowmax
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select ((max(BMPpressure)/10)+((max(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-86400 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having max(BMPpressure) order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ 1 - maxpresday$ $! ;
 
 $>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="gforthChart" width=1500" height="400"></canvas>
+<canvas id="gforthChart" width=1500" height="300"></canvas>
 
 <script>
 
 var options = { 'pointDotRadius':2 };
 
 var gforthdata = {
-	labels : [ <$ getlables type $> ],
+	labels : [ <$ getlables lablesnow$ $@ type $> ],
 	datasets : [
 		{
 			fillColor : "rgba(120,220,250,0.5)",
 			strokeColor : "rgba(220,220,220,1)",
 			pointColor : "rgba(220,220,220,1)",
 			pointStrokeColor : "#fff",
-			data : [ <$ getdata type $> ]
+			data : [ <$ getdata datanow$ $@ type $> ]
 		}
 	]
 }
@@ -155,27 +202,27 @@ var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
 </script>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="secondgforthChart" width=1000" height="400"></canvas>
+<canvas id="secondgforthChart" width=1000" height="300"></canvas>
 
 <script>
 
 var options = { 'pointDotRadius':2 };
 var gforthdata = {
-labels : [ <$ getnowlables type $> ],
+labels : [ <$ getnowlables lablesday$ $@ type $> ],
 datasets : [
 	{
 	fillColor : "rgba(120,220,250,0.5)",
 	strokeColor : "rgba(220,220,220,1)",
 	pointColor : "rgba(220,220,220,1)",
 	pointStrokeColor : "#fff",
-	data : [ <$ getnowmin type $> ]
+	data : [ <$ getnowmin minday$ $@ type $> ]
     },
     {
     fillColor : "rgba(151,187,205,0.5)",
     strokeColor : "rgba(151,187,205,1)",
     pointColor : "rgba(151,187,205,1)",
     pointStrokeColor : "#fff",
-    data : [ <$ getnowmax type $> ]
+    data : [ <$ getnowmax maxday$ $@ type $> ]
                     }
 	]
 	}
@@ -186,19 +233,68 @@ var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
 
 </script>
 	    
-    
-<select name="month" form="month">
-<option value="1">Jan</option>
-<option value="2">Feb</option>
-</select>
-<form action="thp-day-chart.shtml" method="post" id=">
-<input type="submit" value="Select the day you want to view!"></form>
+<script src="../chart/Chart.js"></script>
+<canvas id="thirdforthChart" width=1000" height="300"></canvas>
 
-<p>Posted message is: <$ active @ [if] posted $@ type [else] s" nothing posted!" type [then] $> </p>
+<script>
 
-<p> lables: <$ getnowlables type $> </p>
-<p> min: <$ getnowmin type $> </p>
-<p> max: <$ getnowmax type $> </p>
+    var options = { 'pointDotRadius':2 };
+    var gforthdata = {
+    labels : [ <$ lablesday$ $@ type $> ],
+    datasets : [
+	{
+	fillColor : "rgba(120,220,250,0.5)",
+	strokeColor : "rgba(220,220,220,1)",
+	pointColor : "rgba(220,220,220,1)",
+	pointStrokeColor : "#fff",
+	data : [ <$ gethumdnowmin minhumdday$ $@ type $> ]
+	},
+	{
+	fillColor : "rgba(151,187,205,0.5)",
+	strokeColor : "rgba(151,187,205,1)",
+	pointColor : "rgba(151,187,205,1)",
+	pointStrokeColor : "#fff",
+	data : [ <$ gethumdnowmax maxhumdday$ $@ type $> ]
+	}
+	]
+	}
+
+	//Get the context of the canvas element we want to select
+	    var gforthctx = document.getElementById("thirdforthChart").getContext("2d");
+	    var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
+</script>
+	    
+<script src="../chart/Chart.js"></script>
+<canvas id="pressureforthChart" width=1000" height="300"></canvas>
+
+<script>
+
+	    var options = { 'pointDotRadius':2 };
+	    var gforthdata = {
+	    labels : [ <$ lablesday$ $@ type $> ],
+	    datasets : [
+		{
+		fillColor : "rgba(120,220,250,0.5)",
+		strokeColor : "rgba(220,220,220,1)",
+		pointColor : "rgba(220,220,220,1)",
+		pointStrokeColor : "#fff",
+		data : [ <$ getpresnowmin minpresday$ $@ type $> ]
+		},
+		{
+		fillColor : "rgba(151,187,205,0.5)",
+		strokeColor : "rgba(151,187,205,1)",
+		pointColor : "rgba(151,187,205,1)",
+		pointStrokeColor : "#fff",
+		data : [ <$ getpresnowmax maxpresday$ $@ type $> ]
+		}
+		]
+		}
+
+		//Get the context of the canvas element we want to select
+		    var gforthctx = document.getElementById("pressureforthChart").getContext("2d");
+		    var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
+</script>
+
 </BODY>  
 </HTML>
 

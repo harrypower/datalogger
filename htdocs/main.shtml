@@ -111,10 +111,10 @@ $>
 <h1><p> Last logged pressure value was: <$ pressure rvdataerror false = and [if] d. s" pa" type [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Total data Points: <$ totaldata rvdataerror false = and [if] d. [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Last data point time was: <$ lasttime rvdataerror false = and [if] type [else] notvalidmsg 2drop [then] $> </p></h>
-<form action="data-table.shtml" method="post"><input type="submit" value="Last Data Points List"></form>
+<form action="data-table.shtml" method="get"><input type="submit" value="Last Data Points List"></form>
 <h1><p> Raw data: <$ totaldata [if] getrawx [if] notvalidmsg 2drop [else]  type [then] [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Total errors <$ totalerrors [if]  d. [else] notvalidmsg 2drop [then] $> </p></h1>
-<form action="errors-table.shtml" method="post"><input type="submit" value="Last errors"></form>
-<form action="data-chart.shtml" method="post"><input type="submit" value="Temperature chart testing"></form>
+<form action="errors-table.shtml" method="get"><input type="submit" value="Last errors"></form>
+<form action="thp-day-chart.shtml" method="get"><input type="submit" value="Temperature chart testing"></form>
 </body>
 </html>
