@@ -173,126 +173,108 @@ s" " dbrecordseparator
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - maxpresday$ $! ;
 
+getnowlables
+getnowmin
+getnowmax
+gethumdnowmin
+gethumdnowmax
+getpresnowmin
+getpresnowmax
+
 $>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="gforthChart" width=1500" height="300"></canvas>
+<canvas id="tempChart" width=1000" height="300"></canvas>
 
 <script>
 
-var options = { 'pointDotRadius':2 };
-
-var gforthdata = {
-	labels : [ <$ getlables lablesnow$ $@ type $> ],
-	datasets : [
-		{
-			fillColor : "rgba(120,220,250,0.5)",
-			strokeColor : "rgba(220,220,220,1)",
-			pointColor : "rgba(220,220,220,1)",
-			pointStrokeColor : "#fff",
-			data : [ <$ getdata datanow$ $@ type $> ]
-		}
-	]
-}
-
-//Get the context of the canvas element we want to select
-var gforthctx = document.getElementById("gforthChart").getContext("2d");
-var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
-
-</script>
-
-<script src="../chart/Chart.js"></script>
-<canvas id="secondgforthChart" width=1000" height="300"></canvas>
-
-<script>
-
-var options = { 'pointDotRadius':2 };
-var gforthdata = {
-labels : [ <$ getnowlables lablesday$ $@ type $> ],
-datasets : [
-	{
-	fillColor : "rgba(120,220,250,0.5)",
-	strokeColor : "rgba(220,220,220,1)",
-	pointColor : "rgba(220,220,220,1)",
-	pointStrokeColor : "#fff",
-	data : [ <$ getnowmin minday$ $@ type $> ]
-    },
+  var options = { 'pointDotRadius':2 };
+  var tempdata = {
+  labels : [ <$ lablesday$ $@ type $> ],
+    datasets : [
     {
-    fillColor : "rgba(151,187,205,0.5)",
-    strokeColor : "rgba(151,187,205,1)",
-    pointColor : "rgba(151,187,205,1)",
+    fillColor : "rgba(120,220,250,0.5)",
+    strokeColor : "rgba(220,220,220,1)",
+    pointColor : "rgba(220,220,220,1)",
     pointStrokeColor : "#fff",
-    data : [ <$ getnowmax maxday$ $@ type $> ]
-                    }
+    data : [ <$ minday$ $@ type $> ]
+      },
+      {
+      fillColor : "rgba(151,187,205,0.5)",
+      strokeColor : "rgba(151,187,205,1)",
+      pointColor : "rgba(151,187,205,1)",
+      pointStrokeColor : "#fff",
+      data : [ <$ maxday$ $@ type $> ]
+        }
 	]
 	}
-
-//Get the context of the canvas element we want to select
-var gforthctx = document.getElementById("secondgforthChart").getContext("2d");
-var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
-
+	
+	//Get the context of the canvas element we want to select
+	var tempctx = document.getElementById("tempChart").getContext("2d");
+	var mygforthChart = new Chart(tempctx).Line(tempdata,options);
+	
 </script>
 	    
 <script src="../chart/Chart.js"></script>
-<canvas id="thirdforthChart" width=1000" height="300"></canvas>
+<canvas id="humdChart" width=1000" height="300"></canvas>
 
 <script>
 
-    var options = { 'pointDotRadius':2 };
-    var gforthdata = {
-    labels : [ <$ lablesday$ $@ type $> ],
+  var options = { 'pointDotRadius':2 };
+  var humddata = {
+  labels : [ <$ lablesday$ $@ type $> ],
     datasets : [
-	{
-	fillColor : "rgba(120,220,250,0.5)",
-	strokeColor : "rgba(220,220,220,1)",
-	pointColor : "rgba(220,220,220,1)",
-	pointStrokeColor : "#fff",
-	data : [ <$ gethumdnowmin minhumdday$ $@ type $> ]
-	},
-	{
-	fillColor : "rgba(151,187,205,0.5)",
-	strokeColor : "rgba(151,187,205,1)",
-	pointColor : "rgba(151,187,205,1)",
-	pointStrokeColor : "#fff",
-	data : [ <$ gethumdnowmax maxhumdday$ $@ type $> ]
+    {
+    fillColor : "rgba(120,220,250,0.5)",
+    strokeColor : "rgba(220,220,220,1)",
+    pointColor : "rgba(220,220,220,1)",
+    pointStrokeColor : "#fff",
+    data : [ <$ minhumdday$ $@ type $> ]
+      },
+      {
+      fillColor : "rgba(151,187,205,0.5)",
+      strokeColor : "rgba(151,187,205,1)",
+      pointColor : "rgba(151,187,205,1)",
+      pointStrokeColor : "#fff",
+      data : [ <$ maxhumdday$ $@ type $> ]
 	}
 	]
 	}
-
+	
 	//Get the context of the canvas element we want to select
-	    var gforthctx = document.getElementById("thirdforthChart").getContext("2d");
-	    var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
+	var humdctx = document.getElementById("humdChart").getContext("2d");
+	var mygforthChart = new Chart(humdctx).Line(humddata,options);
 </script>
 	    
 <script src="../chart/Chart.js"></script>
 <canvas id="pressureforthChart" width=1000" height="300"></canvas>
 
 <script>
-
-	    var options = { 'pointDotRadius':2 };
-	    var gforthdata = {
-	    labels : [ <$ lablesday$ $@ type $> ],
-	    datasets : [
-		{
-		fillColor : "rgba(120,220,250,0.5)",
-		strokeColor : "rgba(220,220,220,1)",
-		pointColor : "rgba(220,220,220,1)",
-		pointStrokeColor : "#fff",
-		data : [ <$ getpresnowmin minpresday$ $@ type $> ]
-		},
-		{
-		fillColor : "rgba(151,187,205,0.5)",
-		strokeColor : "rgba(151,187,205,1)",
-		pointColor : "rgba(151,187,205,1)",
-		pointStrokeColor : "#fff",
-		data : [ <$ getpresnowmax maxpresday$ $@ type $> ]
-		}
-		]
-		}
-
-		//Get the context of the canvas element we want to select
-		    var gforthctx = document.getElementById("pressureforthChart").getContext("2d");
-		    var mygforthChart = new Chart(gforthctx).Line(gforthdata,options);
+  
+  var options = { 'pointDotRadius':2 };
+  var pressuredata = {
+  labels : [ <$ lablesday$ $@ type $> ],
+    datasets : [
+    {
+    fillColor : "rgba(120,220,250,0.5)",
+    strokeColor : "rgba(220,220,220,1)",
+    pointColor : "rgba(220,220,220,1)",
+    pointStrokeColor : "#fff",
+    data : [ <$ minpresday$ $@ type $> ]
+      },
+      {
+      fillColor : "rgba(151,187,205,0.5)",
+      strokeColor : "rgba(151,187,205,1)",
+      pointColor : "rgba(151,187,205,1)",
+      pointStrokeColor : "#fff",
+      data : [ <$ maxpresday$ $@ type $> ]
+	}
+	]
+	}
+	
+	//Get the context of the canvas element we want to select
+	var pressurectx = document.getElementById("pressureforthChart").getContext("2d");
+	var mygforthChart = new Chart(pressurectx).Line(pressuredata,options);
 </script>
 
 </BODY>  
