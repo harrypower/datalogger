@@ -80,8 +80,10 @@ var tempoptions = { pointDotRadius : 2, scaleFontColor : "#572", scaleFontFamily
       //Get the context of the canvas element we want to select
       var tempctx = document.getElementById("tempChart").getContext("2d");
       var mytempChart = new Chart(tempctx).Line(tempdata,tempoptions);
-
+	  
 </script>
+	  
+<h1> Last 50 Temperature (in celsius) data points charted </h1>
 
 <script src="../chart/Chart.js"></script>
 <canvas id="humdChart" width=1400" height="300"></canvas>
@@ -109,6 +111,8 @@ var tempoptions = { pointDotRadius : 2, scaleFontColor : "#572", scaleFontFamily
       
 </script>
 
+<h1>Last 50 Humidity (in %rh) data points </h1>
+	  
 <script src="../chart/Chart.js"></script>
 <canvas id="pressureChart" width=1400" height="300"></canvas>
 	  
@@ -134,7 +138,9 @@ var tempoptions = { pointDotRadius : 2, scaleFontColor : "#572", scaleFontFamily
       var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
       
 </script>
-		    
+
+<h1>Last 50 Pressure (in pa) data points </h1>
+	  
 <P>url-args are :  <$ url-args $@ type url-args $@ swap drop  ." amounts:" . $>  </P>
     
 </BODY>  

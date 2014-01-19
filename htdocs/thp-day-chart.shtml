@@ -26,6 +26,7 @@ variable minhumdday$
 variable maxhumdday$
 variable minpresday$
 variable maxpresday$
+variable datenow$
 0 value starthour 
 0 value startyear
 0 value startday
@@ -77,29 +78,11 @@ s" " dbrecordseparator
 
 10000 mkretbuff
 
-: getlables ( -- caddr u )
-    s\" \",\"" dbfieldseparator
-    s" select datetime(dtime,'unixepoch','localtime') from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
-    sendsqlite3cmd drop dbret$ 2 -
-    s\" \"" junks$ $! junks$ $+! junks$ $@ lablesnow$ $! ;
+: getdate ( -- )
+    s" ," dbfieldseparator
+    s" select date(dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
+    sendsqlite3cmd drop dbret$ 1 - datenow$ $! ;
  
-: getdata ( -- caddr u )
-    s" ," dbfieldseparator
-    s" select ((DTHtemperature / 10)+((DTHtemperature % 10)*0.1)) from thpdata limit 50 offset ((select max(rowid) from thpdata) -50);" dbcmds
-    sendsqlite3cmd drop dbret$ 1 - datanow$ $! ;
-
-: getstarttimes ( -- caddr u )
-    s" ," dbfieldseparator
-    s" select strftime('%H',dtime,'unixepoch','localtime'), strftime('%Y',dtime,'unixepoch','localtime'), " junks$ $!
-    s" strftime('%m',dtime,'unixepoch','localtime'), strftime('%d',dtime,'unixepoch','localtime') " junks$ $+!
-    s" from thpdata limit 1 offset ((select max(rowid) from thpdata)-1);" junks$ $+!
-    junks$ $@ dbcmds
-    sendsqlite3cmd drop
-    dbret$ 0 #pastxcomma drop d>s to starthour
-    dbret$ 1 #pastxcomma drop d>s to startyear
-    dbret$ 2 #pastxcomma drop d>s to startmonth
-    dbret$ 3 #pastxcomma drop d>s to startday ;
-
 : isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
     2dup s" NULL," search if 2drop 2drop s" ," else 2drop then ; 
 
@@ -214,6 +197,8 @@ $>
 	var mytempChart = new Chart(tempctx).Line(tempdata,tempoptions);
 	
 </script>
+
+<h1> Temperature (in C) hourly minimum and maxumim values for <$ getdate datenow$ $@ type $> </h1>
 	    
 <script src="../chart/Chart.js"></script>
 <canvas id="humdChart" width=1000" height="300"></canvas>
@@ -246,6 +231,8 @@ $>
 	var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
 </script>
 	    
+<h1> Humidity hourly (in %rh) minimum and maxumim values for <$ datenow$ $@ type $> </h1>
+
 <script src="../chart/Chart.js"></script>
 <canvas id="pressureforthChart" width=1000" height="300"></canvas>
 
@@ -276,6 +263,8 @@ $>
 	var pressurectx = document.getElementById("pressureforthChart").getContext("2d");
 	var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
 </script>
+
+<h1> Pressure (in pa) hourly minimum and maxumim values for <$ datenow$ $@ type $> </h1>
 
 </BODY>  
 </HTML>
