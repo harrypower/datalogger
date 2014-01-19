@@ -62,7 +62,7 @@ $>
 
 <script>
 
-  var options = { 'pointDotRadius':2 };
+var tempoptions = { pointDotRadius : 2, scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
   
   var tempdata = {
   labels : [ <$ xlables$ $@ type $> ],
@@ -79,7 +79,7 @@ $>
 
       //Get the context of the canvas element we want to select
       var tempctx = document.getElementById("tempChart").getContext("2d");
-      var mygforthChart = new Chart(tempctx).Line(tempdata,options);
+      var mytempChart = new Chart(tempctx).Line(tempdata,tempoptions);
 
 </script>
 
@@ -88,7 +88,7 @@ $>
 	  
 <script>
   
-  var options = { 'pointDotRadius':2 };
+  var humdoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
 
   var humddata = {
   labels : [ <$ xlables$ $@ type $> ],
@@ -105,7 +105,7 @@ $>
       
       //Get the context of the canvas element we want to select
       var humdctx = document.getElementById("humdChart").getContext("2d");
-      var mygforthChart = new Chart(humdctx).Line(humddata,options);
+      var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
       
 </script>
 
@@ -114,7 +114,7 @@ $>
 	  
 <script>
   
-  var options = { 'pointDotRadius':2 };
+  var pressoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
   
   var pressuredata = {
   labels : [ <$ xlables$ $@ type $> ],
@@ -131,7 +131,7 @@ $>
       
       //Get the context of the canvas element we want to select
       var pressurectx = document.getElementById("pressureChart").getContext("2d");
-      var mygforthChart = new Chart(pressurectx).Line(pressuredata,options);
+      var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
       
 </script>
 		    
