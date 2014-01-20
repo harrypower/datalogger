@@ -198,7 +198,7 @@ $>
 	
 </script>
 
-<h1> Temperature (in C) hourly minimum and maxumim values for <$ getdate datenow$ $@ type $> </h1>
+<h1>Temperature (in C) hourly minimum and maximum values for <$ getdate datenow$ $@ type $> </h1>
 	    
 <script src="../chart/Chart.js"></script>
 <canvas id="humdChart" width=1000" height="300"></canvas>
@@ -231,7 +231,7 @@ $>
 	var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
 </script>
 	    
-<h1> Humidity hourly (in %rh) minimum and maxumim values for <$ datenow$ $@ type $> </h1>
+<h1>Humidity hourly (in %rh) minimum and maximum values for <$ datenow$ $@ type $> </h1>
 
 <script src="../chart/Chart.js"></script>
 <canvas id="pressureforthChart" width=1000" height="300"></canvas>
@@ -264,7 +264,7 @@ $>
 	var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
 </script>
 
-<h1> Pressure (in pa) hourly minimum and maxumim values for <$ datenow$ $@ type $> </h1>
+<h1>Pressure (in pa) hourly minimum and maximum values for <$ datenow$ $@ type $> </h1>
 
 </BODY>  
 </HTML>
