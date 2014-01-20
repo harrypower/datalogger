@@ -9,7 +9,7 @@ include ../Gforth-Tools/sqlite3_gforth_lib.fs
 decimal 
 4446 value mbed-port#
 2000000 value mbed-timeout#
-60000 value mbed-readtime
+60001 value mbed-readtime
 
 0 value buffer
 here to buffer 500 allot
@@ -411,11 +411,11 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
     s" -r" search
     if
 	2drop
-	5 60000 * to mbed-readtime
+	5 60001 * to mbed-readtime
 	next-arg dup 0<> if
 	    s>number? if
 		d>s dup 1 >= if
-		    60000 * to mbed-readtime
+		    60001 * to mbed-readtime
 		else
 		    drop
 		then

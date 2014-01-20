@@ -66,9 +66,10 @@ s" sensordb" dbname-path$ $!
     loop ;
 
 : copydb ( --  ) \ copies the db file onto the usb0 that should be mounted.
+    \ makes the file name have extention of yearmonthdayhour
     s" sudo cp -u " junk$ $! dbname$ $@ junk$ $+! s"  " junk$ $+! mount_name$ $@ junk$ $+! s" /" junk$ $+!
     dbname-path$ $@ junk$ $+! s" ." junk$ $+! 
-    time&date s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! 2drop drop
+    time&date s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! 2drop 
     junk$ $@ system ;
 
     
