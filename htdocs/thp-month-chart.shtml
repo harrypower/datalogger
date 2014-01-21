@@ -2,7 +2,7 @@
 <HTML>
 <HEAD>  
 <meta charset="utf-8">
-<TITLE>Day THP data Charts</TITLE>  
+<TITLE>Month THP data Charts</TITLE>  
 </HEAD>  
 <BODY>  
 
@@ -80,7 +80,7 @@ s" " dbrecordseparator
 
 : getdate ( -- )
     s" ," dbfieldseparator
-    s" select date(dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
+    s" select strftime('%Y-%m',dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
     sendsqlite3cmd drop dbret$ 1 - datenow$ $! ;
  
 : isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
@@ -93,9 +93,9 @@ s" " dbrecordseparator
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select strftime('%H',dtime,'unixepoch','localtime') from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" select strftime('%d',dtime,'unixepoch','localtime') from thpdata where " presql$ $!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - lablesday$ $! ;
 
@@ -104,8 +104,8 @@ s" " dbrecordseparator
     s" " dbrecordseparator
     1000 mkretbuff
     s" select ((min(DTHtemperature)/10)+((min(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - minday$ $! ;
 : getnowmax
@@ -113,8 +113,8 @@ s" " dbrecordseparator
     s" " dbrecordseparator
     1000 mkretbuff
     s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - maxday$ $! ;
 : gethumdnowmin
@@ -122,8 +122,8 @@ s" " dbrecordseparator
     s" " dbrecordseparator
     1000 mkretbuff
     s" select ((min(DTHhumd)/10)+((min(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - minhumdday$ $! ;
 
@@ -132,8 +132,8 @@ s" " dbrecordseparator
     s" " dbrecordseparator
     1000 mkretbuff
     s" select ((max(DTHhumd)/10)+((max(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - maxhumdday$ $! ;
 : getpresnowmin
@@ -141,8 +141,8 @@ s" " dbrecordseparator
     s" " dbrecordseparator
     1000 mkretbuff
     s" select ((min(BMPpressure)/10)+((min(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - minpresday$ $! ;
 
@@ -151,8 +151,8 @@ s" " dbrecordseparator
     s" " dbrecordseparator
     1000 mkretbuff
     s" select ((max(BMPpressure)/10)+((max(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - maxpresday$ $! ;
 
@@ -198,7 +198,7 @@ $>
 	
 </script>
 
-<h1>Temperature (in C) hourly minimum and maximum values for <$ datenow$ $@ type $> </h1>
+<h1>Temperature (in C) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
 	    
 <script src="../chart/Chart.js"></script>
 <canvas id="humdChart" width=1000" height="300"></canvas>
@@ -231,7 +231,7 @@ $>
 	var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
 </script>
 	    
-<h1>Humidity (in %rh) hourly minimum and maximum values for <$ datenow$ $@ type $> </h1>
+<h1>Humidity (in %rh) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
 
 <script src="../chart/Chart.js"></script>
 <canvas id="pressureforthChart" width=1000" height="300"></canvas>
@@ -264,7 +264,7 @@ $>
 	var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
 </script>
 
-<h1>Pressure (in pa) hourly minimum and maximum values for <$ datenow$ $@ type $> </h1>
+<h1>Pressure (in pa) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
 
 <$ url-args $@ s" testt" search swap drop swap drop 
 [if]
@@ -273,8 +273,8 @@ $>
     s" " dbrecordseparator
     1000 mkretbuff
     s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$  ;
 
