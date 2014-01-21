@@ -116,8 +116,8 @@ $>
 <h1><p> Total errors <$ totalerrors [if]  d. [else] notvalidmsg 2drop [then] $> 
 <form action="errors-table.shtml" method="get"><input type="submit" value="Last errors"></form></p></h1>
 
-<form action="thp-day-chart.shtml" method="get"><input type="submit" value="Temperature Day charts"></form>
-<form action="thp-month-chart.shtml" method="get"><input type="submit" value="Temperature Month charts"></form>
-<form action="thp-fifty-chart.shtml" method="get"><input type="submit" value="View 50 data points on a chart"></form>
+<form action="thp-day-chart.shtml" method="get"><input type="submit" value="THP Day charts"></form>
+<form action="thp-month-chart.shtml" method="get"><input type="submit" value="THP Month charts"></form>
+<form action="thp-fifty-chart.shtml" method="get"><input type="submit" value="View 50 THP data points on a chart"></form>
 </body>
 </html>
