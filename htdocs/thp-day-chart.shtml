@@ -103,27 +103,27 @@ s" " dbrecordseparator
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select ((DTHtemperature/10)+((DTHtemperature%10)*0.1)) from thpdata where " presql$ $!
+    s" select ((min(DTHtemperature)/10)+((min(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
     s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having min(DTHtemperature) order by dtime ; " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - minday$ $! ;
 : getnowmax
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select ((DTHtemperature/10)+((DTHtemperature%10)*0.1)) from thpdata where " presql$ $!
+    s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
     s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having max(DTHtemperature) order by dtime ; " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - maxday$ $! ;
 : gethumdnowmin
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select ((DTHhumd/10)+((DTHhumd%10)*0.1)) from thpdata where " presql$ $!
+    s" select ((min(DTHhumd)/10)+((min(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
     s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having min(DTHhumd) order by dtime ; " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - minhumdday$ $! ;
 
@@ -131,18 +131,18 @@ s" " dbrecordseparator
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select ((DTHhumd/10)+((DTHhumd%10)*0.1)) from thpdata where " presql$ $!
+    s" select ((max(DTHhumd)/10)+((max(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
     s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having max(DTHhumd) order by dtime ; " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - maxhumdday$ $! ;
 : getpresnowmin
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select ((BMPpressure/10)+((BMPpressure%10)*0.1)) from thpdata where " presql$ $!
+    s" select ((min(BMPpressure)/10)+((min(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
     s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having min(BMPpressure) order by dtime ; " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - minpresday$ $! ;
 
@@ -150,9 +150,9 @@ s" " dbrecordseparator
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select ((BMPpressure/10)+((BMPpressure%10)*0.1)) from thpdata where " presql$ $!
+    s" select ((max(BMPpressure)/10)+((max(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
     s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') having max(BMPpressure) order by dtime ; " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ 1 - maxpresday$ $! ;
 
