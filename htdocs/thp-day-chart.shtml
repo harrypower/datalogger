@@ -200,9 +200,21 @@ $>
 	tempctx.fillStyle="#572";
 	tempctx.font="30px Comic Sans MS";
 	tempctx.fillText('Temperature min max for <$ datenow$ $@ type $> ',700,20);
-	tempctx.font="20px Comic Sans MS";  
-        tempctx.fillText('C',13 ,270);
-	tempctx.fillText('H',35,290);
+	  tempctx.fillStyle="red";
+	  tempctx.font="15px Comic Sans MS";  
+          tempctx.fillText('C',50 ,230);
+	  tempctx.fillText('Hours',130,260);
+          tempctx.beginPath();
+          tempctx.moveTo(50,220);
+          tempctx.lineTo(50,180);
+          tempctx.moveTo(40,200);
+          tempctx.lineTo(50,180);
+          tempctx.moveTo(140,260);
+          tempctx.lineTo(200,260);
+          tempctx.moveTo(190,270);
+          tempctx.lineTo(200,260);
+          tempctx.strokeStyle="red";
+          tempctx.stroke();
 	}, 2000);
 </script>
 	    
@@ -241,12 +253,12 @@ $>
           humdctx.fillStyle="red";
 	  humdctx.font="15px Comic Sans MS";
           humdctx.fillText('% rH',90 ,230);
-          humdctx.fillText('Hours',140,260);
+          humdctx.fillText('Hours',130,260);
           humdctx.beginPath();
-          humdctx.moveTo(80,220);
-          humdctx.lineTo(80,180);
-          humdctx.moveTo(70,200);
-          humdctx.lineTo(80,180);
+          humdctx.moveTo(70,220);
+          humdctx.lineTo(70,180);
+          humdctx.moveTo(60,200);
+          humdctx.lineTo(70,180);
           humdctx.moveTo(140,260);
           humdctx.lineTo(200,260);
           humdctx.moveTo(190,270);
@@ -291,7 +303,7 @@ $>
           pressurectx.fillStyle="red";
           pressurectx.font="15px Comic Sans MS";
           pressurectx.fillText('pa',90 ,230);
-          pressurectx.fillText('Hours',140,260);
+          pressurectx.fillText('Hours',130,260);
 	  pressurectx.beginPath();
 	  pressurectx.moveTo(80,220);
 	  pressurectx.lineTo(80,180);
