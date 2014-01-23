@@ -195,17 +195,20 @@ $>
 	//Get the context of the canvas element we want to select
 	var tempctx = document.getElementById("tempChart").getContext("2d");
  	var mytempChart = new Chart(tempctx).Line(tempdata,tempoptions);
-        //tempctx.fillRect(0,0,150,75);
-	//document.getElementById('tempChart').getContext('2d').fillText('My chart', 500, 20);	    
+
+	setTimeout(function(){
+	tempctx.fillStyle="#572";
+	tempctx.font="30px Comic Sans MS";
+	tempctx.fillText('Temperature min max for <$ datenow$ $@ type $> ',700,20);
+	tempctx.font="20px Comic Sans MS";  
+        tempctx.fillText('C',13 ,270);
+	tempctx.fillText('H',35,290);
+	}, 2000);
 </script>
 	    
-<h1>Temperature (in C) hourly minimum and maximum values for <$ datenow$ $@ type $> </h1>
-	    
-
 <canvas id="humdChart" width=1000" height="300"></canvas>
 
 <script>
-
   var humdoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
   var humddata = {
   labels : [ <$ lablesday$ $@ type $> ],
@@ -230,42 +233,79 @@ $>
 	//Get the context of the canvas element we want to select
 	var humdctx = document.getElementById("humdChart").getContext("2d");
 	var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
+
+        setTimeout(function(){
+        humdctx.fillStyle="#572";
+        humdctx.font="30px Comic Sans MS";
+        humdctx.fillText('Relative Humidity min max for <$ datenow$ $@ type $> ',750,20);
+          humdctx.fillStyle="red";
+	  humdctx.font="15px Comic Sans MS";
+          humdctx.fillText('% rH',90 ,230);
+          humdctx.fillText('Hours',140,260);
+          humdctx.beginPath();
+          humdctx.moveTo(80,220);
+          humdctx.lineTo(80,180);
+          humdctx.moveTo(70,200);
+          humdctx.lineTo(80,180);
+          humdctx.moveTo(140,260);
+          humdctx.lineTo(200,260);
+          humdctx.moveTo(190,270);
+          humdctx.lineTo(200,260);
+          humdctx.strokeStyle="red";
+          humdctx.stroke();
+        }, 2000);
 </script>
 	    
-<h1>Humidity (in %rh) hourly minimum and maximum values for <$ datenow$ $@ type $> </h1>
-
-
 <canvas id="pressureforthChart" width=1000" height="300"></canvas>
 
 <script>
-  
   var pressoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
   var pressuredata = {
   labels : [ <$ lablesday$ $@ type $> ],
-    datasets : [
+  datasets : [
+  {
+  fillColor : "rgba(120,220,250,0.5)",
+  strokeColor : "rgba(220,220,220,1)",
+  pointColor : "rgba(220,220,220,1)",
+  pointStrokeColor : "#fff",
+  data : [ <$ minpresday$ $@ type $> ]
+    },
     {
-    fillColor : "rgba(120,220,250,0.5)",
-    strokeColor : "rgba(220,220,220,1)",
-    pointColor : "rgba(220,220,220,1)",
+    fillColor : "rgba(151,187,205,0.5)",
+    strokeColor : "rgba(151,187,205,1)",
+    pointColor : "rgba(151,187,205,1)",
     pointStrokeColor : "#fff",
-    data : [ <$ minpresday$ $@ type $> ]
-      },
-      {
-      fillColor : "rgba(151,187,205,0.5)",
-      strokeColor : "rgba(151,187,205,1)",
-      pointColor : "rgba(151,187,205,1)",
-      pointStrokeColor : "#fff",
-      data : [ <$ maxpresday$ $@ type $> ]
-	}
-	]
-	}
+    data : [ <$ maxpresday$ $@ type $> ]
+      }
+      ]
+      }
 	
 	//Get the context of the canvas element we want to select
 	var pressurectx = document.getElementById("pressureforthChart").getContext("2d");
 	var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
-</script>
+	
+        setTimeout(function(){
+        pressurectx.fillStyle="#572";
+        pressurectx.font="30px Comic Sans MS";
+        pressurectx.fillText('Barometric Pressure min max for <$ datenow$ $@ type $> ',750,20);
+          pressurectx.fillStyle="red";
+          pressurectx.font="15px Comic Sans MS";
+          pressurectx.fillText('pa',90 ,230);
+          pressurectx.fillText('Hours',140,260);
+	  pressurectx.beginPath();
+	  pressurectx.moveTo(80,220);
+	  pressurectx.lineTo(80,180);
+	  pressurectx.moveTo(70,200);
+	  pressurectx.lineTo(80,180);
+	  pressurectx.moveTo(140,260);
+	  pressurectx.lineTo(200,260);
+	  pressurectx.moveTo(190,270);
+	  pressurectx.lineTo(200,260);
+	  pressurectx.strokeStyle="red";
+	  pressurectx.stroke();
+        }, 2000);
 
-<h1>Pressure (in pa) hourly minimum and maximum values for <$ datenow$ $@ type $> </h1>
+</script>
 
 <$ url-args $@ s" testt" search swap drop swap drop 
 [if]
