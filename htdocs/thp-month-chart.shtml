@@ -167,7 +167,7 @@ getdate
 $>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="tempChart" width=1000" height="300"></canvas>
+<canvas id="tempChart" width="1000" height="300"></canvas>
 
 <script>
 
@@ -201,7 +201,7 @@ $>
 <h1>Temperature (in C) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
 	    
 <script src="../chart/Chart.js"></script>
-<canvas id="humdChart" width=1000" height="300"></canvas>
+<canvas id="humdChart" width="1000" height="300"></canvas>
 
 <script>
 
@@ -234,7 +234,7 @@ $>
 <h1>Humidity (in %rh) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="pressureforthChart" width=1000" height="300"></canvas>
+<canvas id="pressureforthChart" width="1000" height="300"></canvas>
 
 <script>
   

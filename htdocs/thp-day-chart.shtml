@@ -167,7 +167,7 @@ getdate
 $>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="tempChart" width=1000" height="300"></canvas>
+<canvas id="tempChart" width="1000" height="300"></canvas>
 
 <script>
 
@@ -203,7 +203,7 @@ $>
 	  tempctx.fillStyle="red";
 	  tempctx.font="15px Comic Sans MS";  
           tempctx.fillText('C',50 ,230);
-	  tempctx.fillText('Hours',130,260);
+	  tempctx.fillText('Hour',130,260);
           tempctx.beginPath();
           tempctx.moveTo(50,220);
           tempctx.lineTo(50,180);
@@ -218,7 +218,7 @@ $>
 	}, 2000);
 </script>
 	    
-<canvas id="humdChart" width=1000" height="300"></canvas>
+<canvas id="humdChart" width="1000" height="300"></canvas>
 
 <script>
   var humdoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
@@ -253,7 +253,7 @@ $>
           humdctx.fillStyle="red";
 	  humdctx.font="15px Comic Sans MS";
           humdctx.fillText('% rH',90 ,230);
-          humdctx.fillText('Hours',130,260);
+          humdctx.fillText('Hour',130,260);
           humdctx.beginPath();
           humdctx.moveTo(70,220);
           humdctx.lineTo(70,180);
@@ -268,7 +268,7 @@ $>
         }, 2000);
 </script>
 	    
-<canvas id="pressureforthChart" width=1000" height="300"></canvas>
+<canvas id="pressureforthChart" width="1000" height="300"></canvas>
 
 <script>
   var pressoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
@@ -303,7 +303,7 @@ $>
           pressurectx.fillStyle="red";
           pressurectx.font="15px Comic Sans MS";
           pressurectx.fillText('pa',90 ,230);
-          pressurectx.fillText('Hours',130,260);
+          pressurectx.fillText('Hour',130,260);
 	  pressurectx.beginPath();
 	  pressurectx.moveTo(80,220);
 	  pressurectx.lineTo(80,180);

@@ -58,7 +58,7 @@ getpresslast
 $>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="tempChart" width=1400" height="300"></canvas>
+<canvas id="tempChart" width="1400" height="300"></canvas>
 
 <script>
 
@@ -86,7 +86,7 @@ var tempoptions = { pointDotRadius : 2, scaleFontColor : "#572", scaleFontFamily
 <h1> Last 50 Temperature (in celsius) data points charted </h1>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="humdChart" width=1400" height="300"></canvas>
+<canvas id="humdChart" width="1400" height="300"></canvas>
 	  
 <script>
   
@@ -114,7 +114,7 @@ var tempoptions = { pointDotRadius : 2, scaleFontColor : "#572", scaleFontFamily
 <h1>Last 50 Humidity (in %rh) data points </h1>
 	  
 <script src="../chart/Chart.js"></script>
-<canvas id="pressureChart" width=1400" height="300"></canvas>
+<canvas id="pressureChart" width="1400" height="300"></canvas>
 	  
 <script>
   
