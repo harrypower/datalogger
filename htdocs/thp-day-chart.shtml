@@ -167,19 +167,33 @@ getdate
 $>
 
 <script src="../chart/Chart.js"></script>
-<$ \ <svg height="300" width="30">
-\ <text x="15" y="200" font-family="Comic Sans MS" font-size="15" fill="#572" transform="rotate(-90 15,200)">Temperature C</text>
-\ Your browser does now work with inline svg
-\ </svg>
-$>
 
 
-<canvas id="tempChart" width="1000" height="300"></canvas>
+<div style="position: relative; width: 1000px; height: 310px;">
+<canvas id="tempChart" width="1000" height="300" ></canvas>
+</div>
+<div style="position: absolute; top:0px; left:0px;">
+<canvas id="tcl" width="1000" height="300"></canvas>
+</div>
+
+
+<div style="position: relative; width: 1000px; height: 310px;">
 <canvas id="humdChart" width="1000" height="300"></canvas>
+</div>
+<div style="position: absolute; top:311px; left:0px;">
+<canvas id="hCl" width="1000" height="300"></canvas>
+</div>
+
+
+<div style="position: relative; width: 1000px; height: 310px;">
 <canvas id="pressureforthChart" width="1000" height="300"></canvas>
+</div>
+<div style="position: absolute; top:621px; left:0px;">
+<canvas id="pCl" width="1000" height="300"</canvas>
+</div>
+
 
 <script>
-
   var tempoptions = { 'pointDotRadius':2 , 'scaleFontColor': "#572", 'scaleFontFamily': "'Comic Sans MS'",'scaleFontStyle': "bold" };
   var tempdata = {
   labels : [ <$ lablesday$ $@ type $> ],
@@ -201,30 +215,26 @@ $>
 	]
 	}
 	
-	//Get the context of the canvas element we want to select
 	var tempctx = document.getElementById("tempChart").getContext("2d");
  	var mytempChart = new Chart(tempctx).Line(tempdata,tempoptions);
-
-	setTimeout(function(){
-	tempctx.fillStyle="#572";
-	tempctx.font="30px Comic Sans MS";
-	tempctx.fillText('Temperature min max for <$ datenow$ $@ type $> ',700,20);
-	  tempctx.fillStyle="red";
-	  tempctx.font="15px Comic Sans MS";  
-          tempctx.fillText('C',50 ,230);
-	  tempctx.fillText('Hour',130,260);
-          tempctx.beginPath();
-          tempctx.moveTo(50,220);
-          tempctx.lineTo(50,180);
-          tempctx.moveTo(40,200);
-          tempctx.lineTo(50,180);
-          tempctx.moveTo(140,260);
-          tempctx.lineTo(200,260);
-          tempctx.moveTo(190,270);
-          tempctx.lineTo(200,260);
-          tempctx.strokeStyle="red";
-          tempctx.stroke();
-	}, 2000);
+	
+	var tlctx = document.getElementById("tcl").getContext("2d");
+	tlctx.fillStyle="#572";
+	tlctx.font="30px Comic Sans MS";
+	tlctx.fillText('Temperature min max for <$ datenow$ $@ type $> ',300,40);
+	  tlctx.fillStyle="red";
+	  tlctx.font="15px Comic Sans MS";  
+          tlctx.fillText('C',60 ,240);
+	  tlctx.fillText('Hour',100,270);
+          tlctx.beginPath();
+          tlctx.moveTo(60,220);
+          tlctx.lineTo(60,180);
+          tlctx.lineTo(65,190);
+          tlctx.moveTo(140,270);
+          tlctx.lineTo(200,270);
+          tlctx.lineTo(190,265);
+          tlctx.strokeStyle="red";
+          tlctx.stroke();
 </script>
 
 <script>
@@ -253,26 +263,23 @@ $>
 	var humdctx = document.getElementById("humdChart").getContext("2d");
 	var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
 
-        setTimeout(function(){
-        humdctx.fillStyle="#572";
-        humdctx.font="30px Comic Sans MS";
-        humdctx.fillText('Relative Humidity min max for <$ datenow$ $@ type $> ',750,20);
-          humdctx.fillStyle="red";
-	  humdctx.font="15px Comic Sans MS";
-          humdctx.fillText('% rH',90 ,230);
-          humdctx.fillText('Hour',130,260);
-          humdctx.beginPath();
-          humdctx.moveTo(70,220);
-          humdctx.lineTo(70,180);
-          humdctx.moveTo(60,200);
-          humdctx.lineTo(70,180);
-          humdctx.moveTo(140,260);
-          humdctx.lineTo(200,260);
-          humdctx.moveTo(190,270);
-          humdctx.lineTo(200,260);
-          humdctx.strokeStyle="red";
-          humdctx.stroke();
-        }, 2000);
+	var hclctx = document.getElementById("hCl").getContext("2d");
+        hclctx.fillStyle="#572";
+        hclctx.font="30px Comic Sans MS";
+        hclctx.fillText('Relative Humidity min max for <$ datenow$ $@ type $> ',300,40);
+          hclctx.fillStyle="red";
+	  hclctx.font="15px Comic Sans MS";
+          hclctx.fillText('% rH',60 ,240);
+          hclctx.fillText('Hour',100,270);
+          hclctx.beginPath();
+          hclctx.moveTo(60,220);
+          hclctx.lineTo(60,180);
+          hclctx.lineTo(65,190);
+          hclctx.moveTo(140,270);
+          hclctx.lineTo(200,270);
+          hclctx.lineTo(190,265);
+          hclctx.strokeStyle="red";
+          hclctx.stroke();
 </script>
 
 <script>
@@ -301,27 +308,23 @@ $>
 	var pressurectx = document.getElementById("pressureforthChart").getContext("2d");
 	var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
 	
-        setTimeout(function(){
-        pressurectx.fillStyle="#572";
-        pressurectx.font="30px Comic Sans MS";
-        pressurectx.fillText('Barometric Pressure min max for <$ datenow$ $@ type $> ',750,20);
-          pressurectx.fillStyle="red";
-          pressurectx.font="15px Comic Sans MS";
-          pressurectx.fillText('pa',90 ,230);
-          pressurectx.fillText('Hour',130,260);
-	  pressurectx.beginPath();
-	  pressurectx.moveTo(80,220);
-	  pressurectx.lineTo(80,180);
-	  pressurectx.moveTo(70,200);
-	  pressurectx.lineTo(80,180);
-	  pressurectx.moveTo(140,260);
-	  pressurectx.lineTo(200,260);
-	  pressurectx.moveTo(190,270);
-	  pressurectx.lineTo(200,260);
-	  pressurectx.strokeStyle="red";
-	  pressurectx.stroke();
-        }, 2000);
-
+	var pclctx = document.getElementById("pCl").getContext("2d");
+        pclctx.fillStyle="#572";
+        pclctx.font="30px Comic Sans MS";
+        pclctx.fillText('Barometric Pressure min max for <$ datenow$ $@ type $> ',300,40);
+          pclctx.fillStyle="red";
+          pclctx.font="15px Comic Sans MS";
+          pclctx.fillText('pa',80 ,240);
+          pclctx.fillText('Hour',100,270);
+	  pclctx.beginPath();
+	  pclctx.moveTo(80,220);
+	  pclctx.lineTo(80,180);
+	  pclctx.lineTo(85,190);
+	  pclctx.moveTo(140,270);
+	  pclctx.lineTo(200,270);
+	  pclctx.lineTo(190,265);
+	  pclctx.strokeStyle="red";
+	  pclctx.stroke();
 </script>
 
 <$ url-args $@ s" testt" search swap drop swap drop 
