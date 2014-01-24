@@ -167,11 +167,20 @@ getdate
 $>
 
 <script src="../chart/Chart.js"></script>
+<$ \ <svg height="300" width="30">
+\ <text x="15" y="200" font-family="Comic Sans MS" font-size="15" fill="#572" transform="rotate(-90 15,200)">Temperature C</text>
+\ Your browser does now work with inline svg
+\ </svg>
+$>
+
+
 <canvas id="tempChart" width="1000" height="300"></canvas>
+<canvas id="humdChart" width="1000" height="300"></canvas>
+<canvas id="pressureforthChart" width="1000" height="300"></canvas>
 
 <script>
 
-  var tempoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
+  var tempoptions = { 'pointDotRadius':2 , 'scaleFontColor': "#572", 'scaleFontFamily': "'Comic Sans MS'",'scaleFontStyle': "bold" };
   var tempdata = {
   labels : [ <$ lablesday$ $@ type $> ],
     datasets : [
@@ -217,8 +226,6 @@ $>
           tempctx.stroke();
 	}, 2000);
 </script>
-	    
-<canvas id="humdChart" width="1000" height="300"></canvas>
 
 <script>
   var humdoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
@@ -267,8 +274,6 @@ $>
           humdctx.stroke();
         }, 2000);
 </script>
-	    
-<canvas id="pressureforthChart" width="1000" height="300"></canvas>
 
 <script>
   var pressoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
