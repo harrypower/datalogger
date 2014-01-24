@@ -7,7 +7,7 @@
 <BODY>  
 
 <script src="../chart/Chart.js"></script>
-<canvas id="gforthChart" width=1800" height="400"></canvas>
+<canvas id="gforthChart" "width=1800" height="400"></canvas>
 
 <$
  
