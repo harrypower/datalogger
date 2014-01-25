@@ -75,8 +75,7 @@ junks$ $@ dbpath$ $!
 
 
 s" " dbrecordseparator
-
-10000 mkretbuff
+\ 10000 mkretbuff
 
 : getdate ( -- )
     s" ," dbfieldseparator
@@ -88,6 +87,17 @@ s" " dbrecordseparator
 
 : add0$ ( caddr u -- caddr1 u1 ) \ simply adds a "0" to begining of sting if string caddr u only contains one char at entry
     dup 1 = if s" 0" pad $! pad $+! pad $@ then ;
+
+: getalldata ( -- caddr u )
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select strftime('%H',dtime,'unixepoch','localtime'),min(DTHtemperature),max(DTHtemperature),min(DTHhumd),max(DTHhumd)," presql$ $!
+    s" min(BMPpressure),max(BMPpressure) from thpdata where " presql$ $+!
+    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
+    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    presql$ $@ dcmds sendsqlite3cmd drop
+    dbret$ ;
 
 : getnowlables
     s" ," dbfieldseparator
@@ -346,7 +356,7 @@ $>
    gettest
    dberrmsg s" <h3>error#: " type . s"  $:" type type s" </h3><br>" type
    s" <h3>rereading: " type type s" </h3><br>" type 
-
+   s" <h3>getall: " type getalldata type s" </h3><br>" type
 [then]
 $>
 
