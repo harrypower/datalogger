@@ -2,7 +2,7 @@
 <HTML>
 <HEAD>  
 <meta charset="utf-8">
-<TITLE>Month THP data Charts</TITLE>  
+<TITLE>Day THP data Charts</TITLE>  
 </HEAD>  
 <BODY>  
 
@@ -27,6 +27,7 @@ variable maxhumdday$
 variable minpresday$
 variable maxpresday$
 variable datenow$
+variable alldata$
 0 value starthour 
 0 value startyear
 0 value startday
@@ -44,134 +45,160 @@ junks$ $@ dbpath$ $!
 
 : nextcomma ( caddr u -- caddr1 u1 nflag ) \ nflag is true if next comma is found and caddr u contains the string past that comma
     s" ," search if
-	swap 1 + swap 1 - true
+	1 - swap 1 + swap true else false
     then ;
 
 : #uptocomma { caddr u -- d nflag } \ nflag is true is d is the number from string before a comma
     caddr u s" ," search if
 	swap drop u swap - caddr swap s>number?
     else
-	0 0 false
+	2drop 0 0 false
     then ;
 
 : #pastxcomma { caddr u n#comma -- d nflag } \ nflag is true if n#comma is found and a number d can be extracted from it
     try
 	n#comma 0 ?do
-	    caddr u nextcomma if to u to caddr else 1 throw then
+	    caddr u nextcomma true = if to u to caddr else true throw then
 	loop
-	caddr u #uptocomma
-    restore 1 = if 0 0 false else true then
+	caddr u #uptocomma true = if false else 2drop true then
+    restore if 0 0 false else true then
     endtry ;
 
 : $pastxcomma { caddr u n#comma -- caddr1 u1 nflag } \ nflag is true if n#comma is found .. the caddr1 u1 will contain the string before that last comma
     try
 	n#comma 0 ?do
-	    caddr u nextcomma if to u to caddr else 1 throw then
+	    caddr u nextcomma true = if to u to caddr else true throw then
 	loop
-	caddr u 2dup nextcomma if swap drop 1 + - else 2drop 2 - then
-	true
-    restore 1 = if 0 0 false else true then
+	caddr u 2dup nextcomma true = if swap drop - 1 - false else true throw then 
+    restore if 0 0 false else true then
     endtry ;
-
+: decimalAdd { caddr u -- caddr1 u1 } \ simply adds a '.' in the string at at one string place before end  of string
+    u 0 = if s" ."
+    else caddr u 1 - junks$ $! s" ." junks$ $+! caddr u 1 - + 1 junks$ $+! junks$ $@
+    then ;
 
 s" " dbrecordseparator
+1000 mkretbuff
 
-10000 mkretbuff
+: getnowdate ( -- )
+    s" " dbfieldseparator
+    s" select strftime('%Y-%m','now')" dbcmds
+    sendsqlite3cmd drop dbret$ datenow$ $! ;
 
-: getdate ( -- )
+: getlastdate ( -- )
     s" ," dbfieldseparator
     s" select strftime('%Y-%m',dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
     sendsqlite3cmd drop dbret$ 1 - datenow$ $! ;
- 
+
 : isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
     2dup s" NULL," search if 2drop 2drop s" ," else 2drop then ; 
 
 : add0$ ( caddr u -- caddr1 u1 ) \ simply adds a "0" to begining of sting if string caddr u only contains one char at entry
     dup 1 = if s" 0" pad $! pad $+! pad $@ then ;
 
-: getnowlables
+: getalldata ( -- )
     s" ," dbfieldseparator
     s" " dbrecordseparator
     1000 mkretbuff
-    s" select strftime('%d',dtime,'unixepoch','localtime') from thpdata where " presql$ $!
+    s" select strftime('%d',dtime,'unixepoch','localtime'),min(DTHtemperature),max(DTHtemperature),min(DTHhumd),max(DTHhumd)," presql$ $!
+    s" min(BMPpressure),max(BMPpressure) from thpdata where " presql$ $+!
     s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
     s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - lablesday$ $! ;
+    dbret$ alldata$ $! ;
 
-: getnowmin
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((min(DTHtemperature)/10)+((min(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
-    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - minday$ $! ;
-: getnowmax
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
-    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - maxday$ $! ;
-: gethumdnowmin
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((min(DTHhumd)/10)+((min(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
-    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - minhumdday$ $! ;
+: getdaylablesfromall ( -- )
+    lablesday$ $init
+    27 0 ?do
+	alldata$ $@ i 7 * $pastxcomma true =  if lablesday$ $+! s" ," lablesday$ $+! else 2drop then
+    loop
+    lablesday$ $@ 1 - lablesday$ $init lablesday$ $! ;
+\ note just found a bug in strings.fs package.  i need to $init the variable before putting the string back into itself
+\ or use another variable temporarily then copy back to the original variable.
+\ I think this has been fixed in new version of strings.fs
 
-: gethumdnowmax
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((max(DTHhumd)/10)+((max(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
-    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - maxhumdday$ $! ;
-: getpresnowmin
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((min(BMPpressure)/10)+((min(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
-    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - minpresday$ $! ;
+: gettempminfromall ( -- )
+    minday$ $init
+    32 0 ?do
+	alldata$ $@ i 7 * 1 + $pastxcomma true = if decimalAdd minday$ $+! s" ," minday$ $+! else 2drop then
+    loop
+    minday$ $@ 1 - minday$ $init minday$ $! ;
 
-: getpresnowmax
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((max(BMPpressure)/10)+((max(BMPpressure)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
-    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - maxpresday$ $! ;
+: gettempmaxfromall ( -- )
+    maxday$ $init
+    32 0 ?do
+	alldata$ $@ i 7 * 2 + $pastxcomma true = if decimalAdd maxday$ $+! s" ," maxday$ $+! else 2drop then
+    loop
+    maxday$ $@ 1 - maxday$ $init maxday$ $! ;
 
-getnowlables
-getnowmin
-getnowmax
-gethumdnowmin
-gethumdnowmax
-getpresnowmin
-getpresnowmax
-getdate
+: gethumdminfromall ( -- )
+    minhumdday$ $init
+    32 0 ?do
+	alldata$ $@ i 7 * 3 + $pastxcomma true = if decimalAdd minhumdday$ $+! s" ," minhumdday$ $+! else 2drop then
+    loop
+    minhumdday$ $@ 1 - minhumdday$ $init minhumdday$ $! ;
+
+: gethumdmaxfromall ( -- )
+    maxhumdday$ $init
+     32 0 ?do
+	alldata$ $@ i 7 * 4 + $pastxcomma true = if decimalAdd maxhumdday$ $+! s" ," maxhumdday$ $+! else 2drop then
+    loop
+    maxhumdday$ $@ 1 - maxhumdday$ $init maxhumdday$ $! ;
+
+: getpresminfromall ( -- )
+    minpresday$ $init
+    32 0 ?do
+	alldata$ $@ i 7 * 5 + $pastxcomma true = if minpresday$ $+! s" ," minpresday$ $+! else 2drop then
+    loop
+    minpresday$ $@ 1 - minpresday$ $init minpresday$ $! ;
+
+: getpresmaxfromall ( -- )
+    maxpresday$ $init
+    32 0 ?do
+	alldata$ $@ i 7 * 6 + $pastxcomma true = if maxpresday$ $+! s" ," maxpresday$ $+! else 2drop then
+    loop
+    maxpresday$ $@ 1 - maxpresday$ $init maxpresday$ $! ;
+
+getalldata
+getdaylablesfromall
+gettempminfromall
+gettempmaxfromall
+gethumdminfromall
+gethumdmaxfromall
+getpresminfromall
+getpresmaxfromall
+getnowdate
 $>
 
 <script src="../chart/Chart.js"></script>
-<canvas id="tempChart" width="1000" height="300"></canvas>
+
+
+<div style="position: relative; width: 1000px; height: 310px;">
+<canvas id="tempChart" width="1000" height="300" ></canvas>
+</div>
+<div style="position: absolute; top:0px; left:0px;">
+<canvas id="tcl" width="1000" height="300"></canvas>
+</div>
+
+
+<div style="position: relative; width: 1000px; height: 310px;">
+<canvas id="humdChart" width="1000" height="300"></canvas>
+</div>
+<div style="position: absolute; top:311px; left:0px;">
+<canvas id="hCl" width="1000" height="300"></canvas>
+</div>
+
+
+<div style="position: relative; width: 1000px; height: 310px;">
+<canvas id="pressureforthChart" width="1000" height="300"></canvas>
+</div>
+<div style="position: absolute; top:621px; left:0px;">
+<canvas id="pCl" width="1000" height="300"</canvas>
+</div>
+
 
 <script>
-
-  var tempoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
+  var tempoptions = { 'pointDotRadius':2 , 'scaleFontColor': "#572", 'scaleFontFamily': "'Comic Sans MS'",'scaleFontStyle': "bold" };
   var tempdata = {
   labels : [ <$ lablesday$ $@ type $> ],
     datasets : [
@@ -192,19 +219,29 @@ $>
 	]
 	}
 	
-	//Get the context of the canvas element we want to select
 	var tempctx = document.getElementById("tempChart").getContext("2d");
-	var mytempChart = new Chart(tempctx).Line(tempdata,tempoptions);
+ 	var mytempChart = new Chart(tempctx).Line(tempdata,tempoptions);
 	
+	var tlctx = document.getElementById("tcl").getContext("2d");
+	tlctx.fillStyle="#572";
+	tlctx.font="30px Comic Sans MS";
+	tlctx.fillText('Temperature min max for <$ datenow$ $@ type $> ',300,40);
+	  tlctx.fillStyle="red";
+	  tlctx.font="15px Comic Sans MS";  
+          tlctx.fillText('C',60 ,240);
+	  tlctx.fillText('Hour',100,270);
+          tlctx.beginPath();
+          tlctx.moveTo(60,220);
+          tlctx.lineTo(60,180);
+          tlctx.lineTo(65,190);
+          tlctx.moveTo(140,270);
+          tlctx.lineTo(200,270);
+          tlctx.lineTo(190,265);
+          tlctx.strokeStyle="red";
+          tlctx.stroke();
 </script>
 
-<h1>Temperature (in C) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
-	    
-<script src="../chart/Chart.js"></script>
-<canvas id="humdChart" width="1000" height="300"></canvas>
-
 <script>
-
   var humdoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
   var humddata = {
   labels : [ <$ lablesday$ $@ type $> ],
@@ -229,63 +266,74 @@ $>
 	//Get the context of the canvas element we want to select
 	var humdctx = document.getElementById("humdChart").getContext("2d");
 	var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
-</script>
-	    
-<h1>Humidity (in %rh) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
 
-<script src="../chart/Chart.js"></script>
-<canvas id="pressureforthChart" width="1000" height="300"></canvas>
+	var hclctx = document.getElementById("hCl").getContext("2d");
+	    hclctx.fillStyle="#572";
+        hclctx.font="30px Comic Sans MS";
+        hclctx.fillText('Relative Humidity min max for <$ datenow$ $@ type $> ',300,40);
+          hclctx.fillStyle="red";
+	  hclctx.font="15px Comic Sans MS";
+          hclctx.fillText('% rH',65 ,240);
+          hclctx.fillText('Hour',100,270);
+          hclctx.beginPath();
+          hclctx.moveTo(65,220);
+	    hclctx.lineTo(65,180);
+          hclctx.lineTo(70,190);
+          hclctx.moveTo(140,270);
+          hclctx.lineTo(200,270);
+          hclctx.lineTo(190,265);
+          hclctx.strokeStyle="red";
+          hclctx.stroke();
+</script>
 
 <script>
-  
   var pressoptions = { 'pointDotRadius':2 , scaleFontColor : "#572", scaleFontFamily : "'Comic Sans MS'", scaleFontStyle : "bold" };
   var pressuredata = {
   labels : [ <$ lablesday$ $@ type $> ],
-    datasets : [
+  datasets : [
+  {
+  fillColor : "rgba(120,220,250,0.5)",
+  strokeColor : "rgba(220,220,220,1)",
+  pointColor : "rgba(220,220,220,1)",
+  pointStrokeColor : "#fff",
+  data : [ <$ minpresday$ $@ type $> ]
+    },
     {
-    fillColor : "rgba(120,220,250,0.5)",
-    strokeColor : "rgba(220,220,220,1)",
-    pointColor : "rgba(220,220,220,1)",
+    fillColor : "rgba(151,187,205,0.5)",
+    strokeColor : "rgba(151,187,205,1)",
+    pointColor : "rgba(151,187,205,1)",
     pointStrokeColor : "#fff",
-    data : [ <$ minpresday$ $@ type $> ]
-      },
-      {
-      fillColor : "rgba(151,187,205,0.5)",
-      strokeColor : "rgba(151,187,205,1)",
-      pointColor : "rgba(151,187,205,1)",
-      pointStrokeColor : "#fff",
-      data : [ <$ maxpresday$ $@ type $> ]
-	}
-	]
-	}
+    data : [ <$ maxpresday$ $@ type $> ]
+      }
+      ]
+      }
 	
 	//Get the context of the canvas element we want to select
 	var pressurectx = document.getElementById("pressureforthChart").getContext("2d");
 	var mypressChart = new Chart(pressurectx).Line(pressuredata,pressoptions);
+	
+	var pclctx = document.getElementById("pCl").getContext("2d");
+        pclctx.fillStyle="#572";
+        pclctx.font="30px Comic Sans MS";
+        pclctx.fillText('Barometric Pressure min max for <$ datenow$ $@ type $> ',300,40);
+          pclctx.fillStyle="red";
+          pclctx.font="15px Comic Sans MS";
+          pclctx.fillText('pa',70 ,240);
+          pclctx.fillText('Hour',100,270);
+	  pclctx.beginPath();
+	  pclctx.moveTo(70,220);
+	  pclctx.lineTo(70,180);
+	  pclctx.lineTo(75,190);
+	  pclctx.moveTo(140,270);
+	  pclctx.lineTo(200,270);
+	  pclctx.lineTo(190,265);
+	  pclctx.strokeStyle="red";
+	  pclctx.stroke();
 </script>
-
-<h1>Pressure (in pa) daily minimum and maximum values for <$ datenow$ $@ type $> </h1>
 
 <$ url-args $@ s" testt" search swap drop swap drop 
 [if]
-    : gettest ( -- caddr u )
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
-    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$  ;
-
-   s" <h3>minday$: " type
-   minday$ $@ type s" </h3><br>" type
-   s" <h3>maxday$: " type
-   maxday$ $@ type s" </h3><br>" type
-   gettest
-   dberrmsg s" <h3>error#: " type . s"  $:" type type s" </h3><br>" type
-   s" <h3>rereading: " type type s" </h3><br>" type 
-
+   s" <h3>test: " type s" 0" decimalAdd type s"   " type s" " decimalAdd type s" </h3><br>"
 [then]
 $>
 
