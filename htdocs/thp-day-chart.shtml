@@ -131,32 +131,12 @@ s" " dbrecordseparator
     loop
     maxday$ $@ 1 - maxday$ $init maxday$ $! ;
 
-: getnowmax
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((max(DTHtemperature)/10)+((max(DTHtemperature)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - maxday$ $! ;
-
 : gethumdminfromall ( -- )
     minhumdday$ $init
     27 0 ?do
 	alldata$ $@ i 7 * 3 + $pastxcomma true = if decimalAdd minhumdday$ $+! s" ," minhumdday$ $+! else 2drop then
     loop
     minhumdday$ $@ 1 - minhumdday$ $init minhumdday$ $! ;
-
-: gethumdnowmin
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((min(DTHhumd)/10)+((min(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - minhumdday$ $! ;
 
 : gethumdmaxfromall ( -- )
     maxhumdday$ $init
@@ -165,16 +145,6 @@ s" " dbrecordseparator
     loop
     maxhumdday$ $@ 1 - maxhumdday$ $init maxhumdday$ $! ;
 
-: gethumdnowmax
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select ((max(DTHhumd)/10)+((max(DTHhumd)%10)*0.1)) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - maxhumdday$ $! ;
-
 : getpresminfromall ( -- )
     minpresday$ $init
     27 0 ?do
@@ -182,47 +152,20 @@ s" " dbrecordseparator
     loop
     minpresday$ $@ 1 - minpresday$ $init minpresday$ $! ;
 
-: getpresnowmin
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select min(BMPpressure) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - minpresday$ $! ;
-
 : getpresmaxfromall ( -- )
     maxpresday$ $init
     27 0 ?do
-	alldata$ $@ i 7 * 5 + $pastxcomma true = if maxpresday$ $+! s" ," maxpresday$ $+! else 2drop then
+	alldata$ $@ i 7 * 6 + $pastxcomma true = if maxpresday$ $+! s" ," maxpresday$ $+! else 2drop then
     loop
     maxpresday$ $@ 1 - maxpresday$ $init maxpresday$ $! ;
 
-: getpresnowmax
-    s" ," dbfieldseparator
-    s" " dbrecordseparator
-    1000 mkretbuff
-    s" select max(BMPpressure) from thpdata where " presql$ $!
-    s" (dtime > strftime('%s','now','-87000 seconds')) " presql$ $+!
-    s" group by strftime('%Y%m%d%H',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
-    presql$ $@ dbcmds sendsqlite3cmd drop
-    dbret$ 1 - maxpresday$ $! ;
-
 getalldata
-\ getnowlables
 getdaylablesfromall
-\ getnowmin
 gettempminfromall
-\ getnowmax
 gettempmaxfromall
-\ gethumdnowmin
 gethumdminfromall
-\ gethumdnowmax
 gethumdmaxfromall
-\ getpresnowmin
 getpresminfromall
-\ getpresnowmax
 getpresmaxfromall
 getnowdate
 $>
@@ -325,7 +268,7 @@ $>
 	var myhumdChart = new Chart(humdctx).Line(humddata,humdoptions);
 
 	var hclctx = document.getElementById("hCl").getContext("2d");
-        hclctx.fillStyle="#572";
+	    hclctx.fillStyle="#572";
         hclctx.font="30px Comic Sans MS";
         hclctx.fillText('Relative Humidity min max for <$ datenow$ $@ type $> ',300,40);
           hclctx.fillStyle="red";
@@ -334,7 +277,7 @@ $>
           hclctx.fillText('Hour',100,270);
           hclctx.beginPath();
           hclctx.moveTo(65,220);
-          hclctx.lineTo(65,180);
+	    hclctx.lineTo(65,180);
           hclctx.lineTo(70,190);
           hclctx.moveTo(140,270);
           hclctx.lineTo(200,270);
@@ -390,9 +333,6 @@ $>
 
 <$ url-args $@ s" testt" search swap drop swap drop 
 [if]
-   s" <h3>getall: " type utime getalldata utime 2swap d- s"  time:" type  d. alldata$ $@ type s" </h3><br>" type
-   s" <h3>before: " type maxpresday$ $@ type s" </h3><br>" type
-   s" <h3>after::: " type getpresminfromall maxpresday$ $@ type  s"  </h3><br>" type
    s" <h3>test: " type s" 0" decimalAdd type s"   " type s" " decimalAdd type s" </h3><br>"
 [then]
 $>
