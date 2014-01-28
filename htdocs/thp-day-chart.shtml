@@ -380,7 +380,7 @@ $>
 	  pclctx.stroke();
 </script>
 
-<form action="thp-dayvar-chart.shtml" method="get">
+<form action="thp-day-chart.shtml" method="get">
 Year <input type="number" name="year" min="2014" max="2020" step="1" value="2014"><br>
 Month <input type="number" name="month" min="1" max="12" step="1" value="1"><br>
 Day <input type="number" name="day" min="1" max="31" step="1" value="1"><br>
