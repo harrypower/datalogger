@@ -27,7 +27,6 @@ variable datenow$
 variable alldata$
 
 false value datecheck
-0 value offsetrow
 0 value selectedrow
 variable selectyear$
 variable selectday$
