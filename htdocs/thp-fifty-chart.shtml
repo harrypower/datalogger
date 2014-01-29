@@ -28,6 +28,7 @@ variable alldata$
 
 false value datecheck
 0 value offsetrow
+0 value selectedrow
 variable selectyear$
 variable selectday$
 variable selectmonth$
@@ -97,7 +98,7 @@ s" " dbrecordseparator
     s" '" presql$ $+! selectymd$ $@ presql$ $+! s" '" presql$ $+!
     s" ) limit 1 ;" presql$ $+! presql$ $@ dbcmds
     sendsqlite3cmd drop dbret$
-    0 #pastxcomma to datecheck d>s to offsetrow
+    0 #pastxcomma to datecheck d>s to selectedrow
     datecheck ;
 
 : isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
@@ -129,7 +130,7 @@ s" " dbrecordseparator
     s" " dbrecordseparator
     s" select datetime(dtime,'unixepoch','localtime'),DTHtemperature,DTHhumd," presql$ $!
     s" BMPpressure from thpdata " presql$ $+!
-    s" where (row >= '" presql$ $+! offsetrow s>d dto$ presql$ $+! s" ')" presql$ $+!
+    s" where (row >= '" presql$ $+! selectedrow s>d dto$ presql$ $+! s" ')" presql$ $+!
     s" limit 50 ;" presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ alldata$ $! ;
@@ -169,18 +170,21 @@ url-args $@ swap drop 0 =
 [if]
     getalldata
 [else]
-    url-args $@ parseyear$ . s"  " type  selectyear$ $!
-    url-args $@ parsemonth$ . s"  " type  selectmonth$ $!
-    url-args $@ parseday$ . s"  " type  selectday$ $!
-    url-args $@ parsehour$ . s"  " type  selecthour$ $! 
-    selectyear$ $@ selectymd$ $! s" -" selectymd$ $+! selectmonth$ $@ selectymd$ $+! s" -" selectymd$ $+! selectday$ $@ selectymd$ $+!
-    s"  " selectymd$ $+! selecthour$ $@ selectymd$ $+! s" :00" selectymd$ $+!
-    selectymd$ $@ datenow$ $!
-    datenow$ $@ type s"  " type 
-    checkdateTimeinDB dup . true = offsetrow .
-    [if]
-	getAdatetime
-	\ getalldata
+    url-args $@ parseyear$  -rot  selectyear$ $!
+    url-args $@ parsemonth$ -rot  selectmonth$ $!
+    url-args $@ parseday$  -rot  selectday$ $!
+    url-args $@ parsehour$ -rot  selecthour$ $!
+    and and and true =
+    [if] 
+	selectyear$ $@ selectymd$ $! s" -" selectymd$ $+! selectmonth$ $@ selectymd$ $+! s" -" selectymd$ $+! selectday$ $@ selectymd$ $+!
+	s"  " selectymd$ $+! selecthour$ $@ selectymd$ $+! s" :00" selectymd$ $+!
+	selectymd$ $@ datenow$ $!
+	checkdateTimeinDB true = 
+	[if]
+	    getAdatetime
+	[else]
+	    getalldata
+	[then]
     [else]
 	getalldata
     [then]
@@ -338,7 +342,7 @@ Year <input type="number" name="year" min="2014" max="2020" step="1" value="2014
 Month <input type="number" name="month" min="1" max="12" step="1" value="1"><br>
 Day <input type="number" name="day" min="1" max="31" step="1" value="1"><br>
 Hour <input type="number" name="hour" min="0" max="60" step="1" value="0"><br>
-<input type="submit" value="Display 50 data points ending at this selected time">
+<input type="submit" value="Display 50 data points starting at this selected date & time">
 	  
 	  
 <$ url-args $@ s" testt" search swap drop swap drop 
