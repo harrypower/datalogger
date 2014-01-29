@@ -27,9 +27,11 @@ variable datenow$
 variable alldata$
 
 false value datecheck
+0 value offsetrow
 variable selectyear$
 variable selectday$
 variable selectmonth$
+variable selecthour$
 variable selectymd$
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
@@ -89,14 +91,14 @@ s" " dbrecordseparator
     s" select date(dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
     sendsqlite3cmd drop dbret$ 1 - datenow$ $! ;
 
-: checkdateinDB ( -- nflag )  \ checks the date string in selectymd$ variable to see if there are at least 2 entrys in db
+: checkdateTimeinDB ( -- nflag )  \ checks the date string in selectymd$ variable to see if 1 entrys in db close to that time
     s" ," dbfieldseparator
-    s" select row from thpdata where (date(dtime,'unixepoch','utc') = " presql$ $!
+    s" select row from thpdata where (datetime(dtime,'unixepoch','localtime') > " presql$ $!
     s" '" presql$ $+! selectymd$ $@ presql$ $+! s" '" presql$ $+!
-    s" ) limit 2 ;" presql$ $+! presql$ $@ dbcmds
+    s" ) limit 1 ;" presql$ $+! presql$ $@ dbcmds
     sendsqlite3cmd drop dbret$
-    2dup 0 #pastxcomma swap drop swap drop -rot
-    1 #pastxcomma swap drop swap drop and dup to datecheck ;
+    0 #pastxcomma to datecheck d>s to offsetrow
+    datecheck ;
 
 : isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
     2dup s" NULL," search if 2drop 2drop s" ," else 2drop then ; 
@@ -108,8 +110,10 @@ s" " dbrecordseparator
     s" year=" search if drop 5 + 4 2dup s>number? swap drop swap drop  else false then ;
 : parsemonth$ ( caddr u -- caddr1 u1 nflag ) \ finds the string 'month=' then returns only the string up to the '&' string
     s" month=" search if drop 6 + 2 2dup s" &" search if 2drop 1 - add0$ 2dup s>number? swap drop swap drop else 2drop add0$ 2dup s>number? swap drop swap drop then else false then ;
-: parseday$ ( caddr u -- caddr1 u1 nflag ) \ find the string 'day=' then returns only the string up end or string after 'day=' string
-    s" day=" search if swap 4 + swap 4 - dup 2 > if drop 2 then add0$ 2dup s>number? swap drop swap drop else false then ;
+: parseday$ ( caddr u -- caddr1 u1 nflag ) \ find the string 'day=' then returns only the string up to the '&' string after 'day=' string
+    s" day=" search if drop 4 + 2 2dup s" &" search if 2drop 1 - add0$ 2dup s>number? swap drop swap drop else  2drop add0$ 2dup s>number? swap drop swap drop then else false then ;
+: parsehour$ ( caddr u -- caddr1 u1 nflag ) \ find the string 'hour=' then returns only the string that is the hour input 
+    s" hour=" search if swap 5 + swap 5 - dup 2 > if drop 2 then add0$ 2dup s>number? swap drop swap drop else false then ;
 
 : getalldata ( -- )
     s" ," dbfieldseparator
@@ -117,6 +121,16 @@ s" " dbrecordseparator
     s" select datetime(dtime,'unixepoch','localtime'),DTHtemperature,DTHhumd," presql$ $!
     s" BMPpressure from thpdata " presql$ $+!
     s" limit 50 offset ((select max(rowid) from thpdata)-50) ;" presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ alldata$ $! ;
+
+: getAdatetime ( -- )
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    s" select datetime(dtime,'unixepoch','localtime'),DTHtemperature,DTHhumd," presql$ $!
+    s" BMPpressure from thpdata " presql$ $+!
+    s" where (row >= '" presql$ $+! offsetrow s>d dto$ presql$ $+! s" ')" presql$ $+!
+    s" limit 50 ;" presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ alldata$ $! ;
 
@@ -154,10 +168,22 @@ s" " dbrecordseparator
 url-args $@ swap drop 0 =
 [if]
     getalldata
-    getnowdate
 [else]
-    getalldata
-    getnowdate
+    url-args $@ parseyear$ . s"  " type  selectyear$ $!
+    url-args $@ parsemonth$ . s"  " type  selectmonth$ $!
+    url-args $@ parseday$ . s"  " type  selectday$ $!
+    url-args $@ parsehour$ . s"  " type  selecthour$ $! 
+    selectyear$ $@ selectymd$ $! s" -" selectymd$ $+! selectmonth$ $@ selectymd$ $+! s" -" selectymd$ $+! selectday$ $@ selectymd$ $+!
+    s"  " selectymd$ $+! selecthour$ $@ selectymd$ $+! s" :00" selectymd$ $+!
+    selectymd$ $@ datenow$ $!
+    datenow$ $@ type s"  " type 
+    checkdateTimeinDB dup . true = offsetrow .
+    [if]
+	getAdatetime
+	\ getalldata
+    [else]
+	getalldata
+    [then]
 [then]
 
 getdaylablesfromall
@@ -311,14 +337,15 @@ $>
 Year <input type="number" name="year" min="2014" max="2020" step="1" value="2014"><br>
 Month <input type="number" name="month" min="1" max="12" step="1" value="1"><br>
 Day <input type="number" name="day" min="1" max="31" step="1" value="1"><br>
-<input type="submit" value="submit">
+Hour <input type="number" name="hour" min="0" max="60" step="1" value="0"><br>
+<input type="submit" value="Display 50 data points ending at this selected time">
 	  
 	  
 <$ url-args $@ s" testt" search swap drop swap drop 
    [if]
-   s" <h3>test: " type s" 0" decimalAdd type s"   " type s" " decimalAdd type s" </h3><br>"
+   s" <h3>datetimetest: " type  checkdateTimeinDB . s" </h3><br>" type
    [then]
-   $>
+$>
 
 </BODY>  
 </HTML>
