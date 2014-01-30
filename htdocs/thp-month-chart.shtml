@@ -28,11 +28,10 @@ variable minpresday$
 variable maxpresday$
 variable datenow$
 variable alldata$
-0 value starthour 
-0 value startyear
-0 value startday
-0 value startmonth
 
+false value datecheck
+variable selectyear$
+variable selectmonth$
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
@@ -69,9 +68,10 @@ junks$ $@ dbpath$ $!
 	n#comma 0 ?do
 	    caddr u nextcomma true = if to u to caddr else true throw then
 	loop
-	caddr u 2dup nextcomma true = if swap drop - 1 - false else true throw then 
+	caddr u 2dup nextcomma true = if swap drop - 1 - false else true throw then
     restore if 0 0 false else true then
     endtry ;
+
 : decimalAdd { caddr u -- caddr1 u1 } \ simply adds a '.' in the string at at one string place before end  of string
     u 0 = if s" ."
     else caddr u 1 - junks$ $! s" ." junks$ $+! caddr u 1 - + 1 junks$ $+! junks$ $@
@@ -82,7 +82,7 @@ s" " dbrecordseparator
 
 : getnowdate ( -- )
     s" " dbfieldseparator
-    s" select strftime('%Y-%m','now')" dbcmds
+    s" select strftime('%Y-%m','now','localtime')" dbcmds
     sendsqlite3cmd drop dbret$ datenow$ $! ;
 
 : getlastdate ( -- )
@@ -102,10 +102,32 @@ s" " dbrecordseparator
     1000 mkretbuff
     s" select strftime('%d',dtime,'unixepoch','localtime'),min(DTHtemperature),max(DTHtemperature),min(DTHhumd),max(DTHhumd)," presql$ $!
     s" min(BMPpressure),max(BMPpressure) from thpdata where " presql$ $+!
-    s" (dtime > strftime('%s','now','-31 day')) " presql$ $+!
+    s" (strftime('%s',dtime,'unixepoch','utc') > strftime('%s','now','-31 day','utc')) " presql$ $+!
     s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ alldata$ $! ;
+
+: getAdatedata ( -- )
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    1000 mkretbuff
+    s" select strftime('%d',dtime,'unixepoch','localtime'),min(DTHtemperature),max(DTHtemperature),min(DTHhumd),max(DTHhumd)," presql$ $!
+    s" min(BMPpressure),max(BMPpressure) from thpdata where " presql$ $+!
+    s" (strftime('%Y%m',dtime,'unixepoch','utc') = '" presql$ $+!
+    selectyear$ $@ presql$ $+! selectmonth$ $@ presql$ $+! s" ') " presql$ $+!
+    s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
+    presql$ $@ dbcmds sendsqlite3cmd drop
+    dbret$ alldata$ $! ;
+
+: checkdateinDB ( -- nflag ) \ is the date in the database
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    200 mkretbuff
+    s" select row from thpdata where ( strftime('%Y%m',dtime,'unixepoch','utc') = " presql$ $!
+    s" '" presql$ $+! selectyear$ $@ presql$ $+! selectmonth$ $@ presql$ $+! s" '" presql$ $+!
+    s" ) limit 1 ;" presql$ $+! 
+    presql$ $@ dbcmds sendsqlite3cmd drop dbret$ 
+    0 #pastxcomma swap drop swap drop dup to datecheck ;
 
 : getdaylablesfromall ( -- )
     lablesday$ $init
@@ -159,7 +181,53 @@ s" " dbrecordseparator
     loop
     maxpresday$ $@ 1 - maxpresday$ $init maxpresday$ $! ;
 
-getalldata
+: getXurl-argvar ( -- )  \ creates variables for each url-arg variable defined by variablename=string&
+    url-args $@ { caddr u }         \ puts the string into the created variable
+    begin
+	caddr u s" =" search
+	if
+	    swap drop caddr u rot - nextname create false ,
+	    caddr u s" =" search drop
+	    1 - swap 1 + swap 2dup
+	    s" &" search
+	    if
+		2dup 1 - to u 1 + to caddr swap drop - false -rot
+	    else
+		to u to caddr true -rot
+	    then
+	    latestxt execute $!
+	else
+	    true
+	then
+    until ;
+
+url-args $@ swap drop 0 =
+[if]
+    getalldata
+    getnowdate
+[else]
+    getXurl-argvar
+    year $@ s>number? -rot 2drop
+    month $@ s>number? -rot 2drop
+    and true =
+    [if]
+	year $@ selectyear$ $!
+	month $@ add0$ selectmonth$ $!
+	checkdateinDB
+	[if]
+	    getAdatedata
+	    selectyear$ $@ datenow$ $! s" -" datenow$ $+! selectmonth$ $@ datenow$ $+! 
+	[else]
+	    getalldata
+	    getnowdate
+	[then]
+    [else]
+	getalldata
+	getnowdate
+    [then]
+[then]
+
+
 getdaylablesfromall
 gettempminfromall
 gettempmaxfromall
@@ -167,7 +235,7 @@ gethumdminfromall
 gethumdmaxfromall
 getpresminfromall
 getpresmaxfromall
-getnowdate
+
 $>
 
 <script src="../chart/Chart.js"></script>
@@ -331,9 +399,24 @@ $>
 	  pclctx.stroke();
 </script>
 
+
+	    <form action="thp-month-chart.shtml" method="get">
+	    Year <input type="number" name="year" min="2014" max="2020" step="1" value="2014"><br>
+	    Month <input type="number" name="month" min="1" max="12" step="1" value="1"><br>
+	    <input type="submit" value="Submit a month to show THP information for!">
+
+	    
 <$ url-args $@ s" testt" search swap drop swap drop 
 [if]
-   s" <h3>test: " type s" 0" decimalAdd type s"   " type s" " decimalAdd type s" </h3><br>"
+    s" <h3>datecheck: " type datecheck . s" </h3><br>"
+[else]
+    url-args $@ swap drop 0 >
+    [if]
+	datecheck false =
+	[if]
+	    s" The date you entered is not in the database!" type
+	[then]
+    [then]
 [then]
 $>
 
