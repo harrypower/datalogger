@@ -32,6 +32,7 @@ variable alldata$
 false value datecheck
 variable selectyear$
 variable selectmonth$
+variable selectym$
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
@@ -95,6 +96,11 @@ s" " dbrecordseparator
 
 : add0$ ( caddr u -- caddr1 u1 ) \ simply adds a "0" to begining of sting if string caddr u only contains one char at entry
     dup 1 = if s" 0" pad $! pad $+! pad $@ then ;
+
+: parseyear$ ( caddr u -- caddr1 u1 nflag )  \ finds the string 'year=' in the string simply returns the 4 strings chars after the 'year=' string
+    s" year=" search if drop 5 + 4 2dup s>number? swap drop swap drop  else false then ;
+: parsemonth$ ( caddr u -- caddr1 u1 nflag ) \ finds the string 'month=' then returns only the string up to the '&' string
+    s" month=" search if 6 - swap 6 + swap 2dup s>number? swap drop swap drop if add0$ true else false then else false then ;
 
 : getalldata ( -- )
     s" ," dbfieldseparator
@@ -181,52 +187,23 @@ s" " dbrecordseparator
     loop
     maxpresday$ $@ 1 - maxpresday$ $init maxpresday$ $! ;
 
-: getXurl-argvar ( -- )  \ creates variables for each url-arg variable defined by variablename=string&
-    url-args $@ { caddr u }         \ puts the string into the created variable
-    begin
-	caddr u s" =" search
-	if
-	    swap drop caddr u rot - nextname create false ,
-	    caddr u s" =" search drop
-	    1 - swap 1 + swap 2dup
-	    s" &" search
-	    if
-		2dup 1 - to u 1 + to caddr swap drop - false -rot
-	    else
-		to u to caddr true -rot
-	    then
-	    latestxt execute $!
-	else
-	    true
-	then
-    until ;
-
 url-args $@ swap drop 0 =
 [if]
     getalldata
     getnowdate
 [else]
-    getXurl-argvar
-    year $@ s>number? -rot 2drop
-    month $@ s>number? -rot 2drop
-    and true =
+    url-args $@ parseyear$ drop selectyear$ $! 
+    url-args $@ parsemonth$ drop selectmonth$ $! 
+    selectyear$ $@ selectym$ $! s" -" selectym$ $+! selectmonth$ $@ selectym$ $+!
+    selectym$ $@ datenow$ $!
+    checkdateinDB true =   
     [if]
-	year $@ selectyear$ $!
-	month $@ add0$ selectmonth$ $!
-	checkdateinDB
-	[if]
-	    getAdatedata
-	    selectyear$ $@ datenow$ $! s" -" datenow$ $+! selectmonth$ $@ datenow$ $+! 
-	[else]
-	    getalldata
-	    getnowdate
-	[then]
+	getAdatedata
     [else]
 	getalldata
 	getnowdate
     [then]
 [then]
-
 
 getdaylablesfromall
 gettempminfromall
