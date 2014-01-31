@@ -12,7 +12,11 @@ decimal
 variable datalogger_path$
 variable dbpath$
 variable junks$
-
+variable year-url$
+variable month-url$
+variable day-url$
+variable hour-url$
+false to datecheck
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
@@ -23,6 +27,30 @@ s" </td><td>" dbfieldseparator
 s" </td></tr><tr><td>" dbrecordseparator
 10000 mkretbuff
 
+: getXurl-argvar ( -- )  \ puts strings url-arg variables that are searchable in current voc
+    url-args $@ { caddr u }         
+    begin
+	caddr u s" =" search
+	if
+	    swap drop caddr u rot - junks$ $! s" -url$" junks$ $+! junks$ $@ find-name
+	    if \ found named variable 
+		caddr u s" =" search drop
+		1 - swap 1 + swap 2dup
+		s" &" search
+		if \ found "&" store string and continue parsing
+		    2dup 1 - to u 1 + to caddr swap drop - false -rot
+		else \ did not find "&" done the url-arg string parsing now
+		    to u to caddr true -rot
+		then
+		junks$ $@ find-name name?int execute $!
+	    else \ did not find named variable
+		caddr u s" =" search drop
+		1 - to u 1 + to caddr false
+	    then
+	else
+	    2drop true
+	then
+    until ;
 
 : getrows
     s" select datetime(dtime,'unixepoch','localtime'),((DTHtemperature/10)+((DTHtemperature%10)*0.1)),((DTHhumd/10)+((DTHhumd%10)*0.1)),BMPpressure from thpdata  "
@@ -31,6 +59,7 @@ s" </td></tr><tr><td>" dbrecordseparator
    dbcmds sendsqlite3cmd dbret$ type ;
 
 $>
+
 <body>
 <h1>List of last 100 data points</h1>
     <table cellspacing="20">
@@ -38,5 +67,21 @@ $>
 <tr> <td>
 <$ getrows $> </td> <td></td><td></td><td></td><td></td></tr>
 </table>
+
+<form action="data-table.shtml" method="get">
+Year <input type="number" name="year" min="2014" max="2020" step="1" value="2014"><br>
+Month <input type="number" name="month" min="1" max="12" step="1" value="1"><br>
+Day <input type="number" name="day" min="1" max="31" step="1" value="1"><br>
+Hour <input type="number" name="hour" min="0" max="60" step="1" value="0"><br>
+<input type="submit" value="Display 100 data points starting at this selected date & time">
+</form>
+    
+<$
+    url-args $@ s" testt" search swap drop swap drop
+    [if]
+	getXurl-argvar
+	year-url$ $@ type s"  " type month-url$ $@ type s"  " type day-url$ $@ type s"  " type hour-url$ $@ type s"  " type datecheck .  
+    [then]
+$>
 </body>
 </html>

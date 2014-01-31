@@ -377,11 +377,11 @@ $>
 </script>
 
 
-	    <form action="thp-month-chart.shtml" method="get">
-	    Year <input type="number" name="year" min="2014" max="2020" step="1" value="2014"><br>
-	    Month <input type="number" name="month" min="1" max="12" step="1" value="1"><br>
-	    <input type="submit" value="Submit a month to show THP information for!">
-
+<form action="thp-month-chart.shtml" method="get">
+  Year <input type="number" name="year" min="2014" max="2020" step="1" value="2014"><br>
+  Month <input type="number" name="month" min="1" max="12" step="1" value="1"><br>
+  <input type="submit" value="Submit a month to show THP information for!">
+</form>
 	    
 <$ url-args $@ s" testt" search swap drop swap drop 
 [if]
