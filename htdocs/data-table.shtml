@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Last data</title>
 </head>
+
 <$
 include ../string.fs
 include ../Gforth-Tools/sqlite3_gforth_lib.fs
@@ -12,23 +13,21 @@ decimal
 variable datalogger_path$
 variable dbpath$
 variable junks$
+variable presql$
 variable year-$url$ year-$url$ $init
 variable month-$url$ month-$url$ $init
 variable day-$url$ day-$url$ $init
 variable hour-$url$ hour-$url$ $init
 variable selectymdh$ selectymdh$ $init
 variable alldata$
+variable test$ test$ $init
 false value datecheck
+false value selectedrow
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
 junks$ $@ dbname
 junks$ $@ dbpath$ $!
-
-s" </td><td>" dbfieldseparator
-s" </td></tr><tr><td>" dbrecordseparator
-10000 mkretbuff
-
 
 : add0$ ( caddr u -- caddr1 u1 ) \ simply adds a "0" to begining of sting if string caddr u only contains one char at entry
     dup 1 = if s" 0" pad $! pad $+! pad $@ then ;
@@ -58,19 +57,62 @@ s" </td></tr><tr><td>" dbrecordseparator
 	then
     until ;
 
-: getrows
-    s" select datetime(dtime,'unixepoch','localtime'),((DTHtemperature/10)+((DTHtemperature%10)*0.1)),((DTHhumd/10)+((DTHhumd%10)*0.1)),BMPpressure from thpdata  "
-   junks$ $!
-   s"  limit 100 offset ((select max(rowid) from thpdata) -100);" junks$ $+! junks$ $@
-   dbcmds sendsqlite3cmd dbret$ alldata$ $! ;
+: checkdateTimeinDB ( -- nflag )  \ checks the date string in selectymd$ variable to see if 1 entrys in db close to that time
+    s" " dbfieldseparator
+    s" " dbrecordseparator
+    200 mkretbuff
+    s" select row from thpdata where (datetime(dtime,'unixepoch','localtime') > " presql$ $!
+    s" '" presql$ $+! selectymdh$ $@ presql$ $+! s" '" presql$ $+!
+    s" ) limit 1 ;" presql$ $+! presql$ $@ dbcmds
+    sendsqlite3cmd drop dbret$ s>number?
+    to datecheck d>s to selectedrow
+    datecheck ;
 
+: getrows
+    s" </td><td>" dbfieldseparator
+    s" </td></tr><tr><td>" dbrecordseparator
+    10000 mkretbuff
+    s" select datetime(dtime,'unixepoch','localtime'),((DTHtemperature/10)+((DTHtemperature%10)*0.1)),((DTHhumd/10)+((DTHhumd%10)*0.1)),BMPpressure from thpdata  " presql$ $!
+    s"  limit 100 offset ((select max(rowid) from thpdata) -100);" presql$ $+! presql$ $@
+    dbcmds sendsqlite3cmd drop dbret$ alldata$ $! ;
+
+: getxrows
+    s" </td><td>" dbfieldseparator
+    s" </td></tr><tr><td>" dbrecordseparator
+    10000 mkretbuff
+    s" select datetime(dtime,'unixepoch','localtime'),((DTHtemperature/10)+((DTHtemperature%10)*0.1)),((DTHhumd/10)+((DTHhumd%10)*0.1)),BMPpressure from thpdata  " presql$ $!
+    s" where (datetime(dtime,'unixepoch','localtime') > "  presql$ $+!
+    s" '" presql$ $+! selectymdh$ $@ presql$ $+! s" '" presql$ $+!
+    s"  ) limit 100  ;" presql$ $+! presql$ $@
+    dbcmds sendsqlite3cmd drop dbret$ alldata$ $! ;
+
+\ getrows
+\ false [if]
 url-args $@ swap drop 0 =
 [if]
     getrows
 [else]
     url-argvar!
-    getrows
+    year-$url$ $@ s>number? -rot 2drop 
+    month-$url$ $@ s>number? -rot 2drop and
+    day-$url$ $@ s>number? -rot 2drop and
+    hour-$url$ $@ s>number? -rot 2drop and true =
+    [if]
+	year-$url$ $@ selectymdh$ $! s" -" selectymdh$ $+!
+	month-$url$ $@ add0$ selectymdh$ $+! s" -" selectymdh$ $+!
+	day-$url$ $@ add0$ selectymdh$ $+! s"  " selectymdh$ $+!
+	hour-$url$ $@ add0$ selectymdh$ $+! s" :00" selectymdh$ $+!
+	checkdateTimeinDB true =
+	[if]
+	    getxrows
+	[else]
+	    getrows
+	[then]
+    [else]
+	getrows
+    [then]
 [then]
+\ [then]
 $>
 
 <body>
@@ -93,7 +135,8 @@ Hour <input type="number" name="hour" min="0" max="60" step="1" value="0"><br>
     url-args $@ s" testt" search swap drop swap drop
     [if]
 	url-args $@ type s" <br>" type 
-	year-$url$ $@ type s"  " type month-$url$ $@ type s"  " type day-$url$ $@ type s"  " type hour-$url$ $@ type s"  " type datecheck .  
+	year-$url$ $@ type s"  " type month-$url$ $@ type s"  " type day-$url$ $@ type s"  " type hour-$url$ $@ type s"  " type
+	datecheck .  s"  " type selectedrow . s"  " type test$ $@ type  
     [then]
 $>
 </body>
