@@ -112,12 +112,15 @@ $>
 <h1><p> Total data Points: <$ totaldata rvdataerror false = and [if] d. [else] notvalidmsg 2drop [then] $> </p></h1>
 <h1><p> Last data point time was: <$ lasttime rvdataerror false = and [if] type [else] notvalidmsg 2drop [then] $> </p></h>
 <form action="data-table.shtml" method="get"><input type="submit" value="Last Data Points List"></form>
-<h1><p> Raw data: <$ totaldata [if] getrawx [if] notvalidmsg 2drop [else]  type [then] [else] notvalidmsg 2drop [then] $> </p></h1>
-<h1><p> Total errors <$ totalerrors [if]  d. [else] notvalidmsg 2drop [then] $> 
-<form action="errors-table.shtml" method="get"><input type="submit" value="Last errors"></form></p></h1>
-
 <form action="thp-day-chart.shtml" method="get"><input type="submit" value="THP Day charts"></form>
 <form action="thp-month-chart.shtml" method="get"><input type="submit" value="THP Month charts"></form>
 <form action="thp-fifty-chart.shtml" method="get"><input type="submit" value="View 50 THP data points on a chart"></form>
+
+
+<h1><p> Raw data: <$ totaldata [if] getrawx [if] notvalidmsg 2drop [else]  type [then] [else] notvalidmsg 2drop [then] $> </p></h1>
+<h1><p> Total errors <$ totalerrors [if]  d. [else] notvalidmsg 2drop [then] $> </p></h1> 
+<form action="errors-table.shtml" method="get"><input type="submit" value="Last errors"></form>
+
+
 </body>
 </html>
