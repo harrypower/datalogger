@@ -88,7 +88,7 @@ s" " dbrecordseparator
 
 : getlastdate ( -- )
     s" ," dbfieldseparator
-    s" select datetime(dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
+    s" select dtime from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
     sendsqlite3cmd drop dbret$ 1 - datenow$ $! ;
 
 : checkdateinDB ( -- nflag )  \ checks the date string in selectymd$ variable to see if there are at least 2 entrys in db
