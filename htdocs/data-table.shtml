@@ -22,6 +22,7 @@ variable selectymdh$ selectymdh$ $init
 variable alldata$
 variable test$ test$ $init
 false value datecheck
+false value numbercheck
 false value selectedrow
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
@@ -96,7 +97,7 @@ url-args $@ swap drop 0 =
     year-$url$ $@ s>number? -rot 2drop 
     month-$url$ $@ s>number? -rot 2drop and
     day-$url$ $@ s>number? -rot 2drop and
-    hour-$url$ $@ s>number? -rot 2drop and true =
+    hour-$url$ $@ s>number? -rot 2drop and dup to numbercheck true =
     [if]
 	year-$url$ $@ selectymdh$ $! s" -" selectymdh$ $+!
 	month-$url$ $@ add0$ selectymdh$ $+! s" -" selectymdh$ $+!
@@ -130,14 +131,24 @@ Day <input type="number" name="day" min="1" max="31" step="1" value="1"><br>
 Hour <input type="number" name="hour" min="0" max="60" step="1" value="0"><br>
 <input type="submit" value="Display 100 data points starting at this selected date & time">
 </form>
+
+    
     
 <$
-    url-args $@ s" testt" search swap drop swap drop
+    url-args $@ swap drop 0 >
     [if]
-	url-args $@ type s" <br>" type 
-	year-$url$ $@ type s"  " type month-$url$ $@ type s"  " type day-$url$ $@ type s"  " type hour-$url$ $@ type s"  " type
-	datecheck .  s"  " type selectedrow . s"  " type test$ $@ type  
+	url-args $@ s" testt" search swap drop swap drop
+	[if]
+	    url-args $@ type s" <br>" type 
+	    year-$url$ $@ type s"  " type month-$url$ $@ type s"  " type day-$url$ $@ type s"  " type hour-$url$ $@ type s"  " type
+	    datecheck .  s"  " type selectedrow . s"  " type test$ $@ type  
+	[then]
+	datecheck numbercheck and false =
+	[if]
+	    s" <h3>The date time you entered is not in the database!</h3>" type 
+	[then]
     [then]
+	
 $>
 </body>
 </html>
