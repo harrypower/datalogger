@@ -88,7 +88,7 @@ s" " dbrecordseparator
 
 : getlastdate ( -- )
     s" ," dbfieldseparator
-    s" select strftime('%Y-%m',dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
+    s" select strftime('%Y-%m-%d%H',dtime,'unixepoch','localtime') from thpdata limit 1 offset ((select max(rowid) from thpdata) -1);" dbcmds
     sendsqlite3cmd drop dbret$ 1 - datenow$ $! ;
 
 : isnull? ( caddr u -- caddr1 u1 ) \ look for "NULL," in the string and if not found return string but if found return ","
@@ -108,7 +108,7 @@ s" " dbrecordseparator
     1000 mkretbuff
     s" select strftime('%d',dtime,'unixepoch','localtime'),min(DTHtemperature),max(DTHtemperature),min(DTHhumd),max(DTHhumd)," presql$ $!
     s" min(BMPpressure),max(BMPpressure) from thpdata where " presql$ $+!
-    s" (strftime('%s',dtime,'unixepoch','utc') > strftime('%s','now','-31 day','utc')) " presql$ $+!
+    s" (strftime('%Y%m',dtime,'unixepoch','localtime') = strftime('%Y%m','now','localtime')) " presql$ $+!
     s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
     dbret$ alldata$ $! ;
@@ -119,7 +119,7 @@ s" " dbrecordseparator
     1000 mkretbuff
     s" select strftime('%d',dtime,'unixepoch','localtime'),min(DTHtemperature),max(DTHtemperature),min(DTHhumd),max(DTHhumd)," presql$ $!
     s" min(BMPpressure),max(BMPpressure) from thpdata where " presql$ $+!
-    s" (strftime('%Y%m',dtime,'unixepoch','utc') = '" presql$ $+!
+    s" (strftime('%Y%m',dtime,'unixepoch','localtime') = '" presql$ $+!
     selectyear$ $@ presql$ $+! selectmonth$ $@ presql$ $+! s" ') " presql$ $+!
     s" group by strftime('%Y%m%d',dtime,'unixepoch','localtime') order by dtime ; " presql$ $+!
     presql$ $@ dbcmds sendsqlite3cmd drop
@@ -129,7 +129,7 @@ s" " dbrecordseparator
     s" ," dbfieldseparator
     s" " dbrecordseparator
     200 mkretbuff
-    s" select row from thpdata where ( strftime('%Y%m',dtime,'unixepoch','utc') = " presql$ $!
+    s" select row from thpdata where ( strftime('%Y%m',dtime,'unixepoch','localtime') = " presql$ $!
     s" '" presql$ $+! selectyear$ $@ presql$ $+! selectmonth$ $@ presql$ $+! s" '" presql$ $+!
     s" ) limit 1 ;" presql$ $+! 
     presql$ $@ dbcmds sendsqlite3cmd drop dbret$ 
@@ -386,6 +386,8 @@ $>
 <$ url-args $@ s" testt" search swap drop swap drop 
 [if]
     s" <h3>datecheck: " type datecheck . s" </h3><br>"
+    s" <h3>Nowdate: " type getnowdate datenow$ $@ type s" </h3><br>" type
+    s" <h3>Lastdate: " type getlastdate datenow$ $@ type s" </h3><br>" type
 [else]
     url-args $@ swap drop 0 >
     [if]
