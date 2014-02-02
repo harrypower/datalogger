@@ -117,8 +117,7 @@ $>
 <form action="thp-fifty-chart.shtml" method="get"><input type="submit" value="View 50 THP data points on a chart"></form>
 
 
-<h1><p> Raw data: <$ totaldata [if] getrawx [if] notvalidmsg 2drop [else]  type [then] [else] notvalidmsg 2drop [then] $> </p></h1>
-<h1><p> Total errors <$ totalerrors [if]  d. [else] notvalidmsg 2drop [then] $> </p></h1> 
+<h1><p> Last Raw data point: <$ totaldata [if] getrawx [if] notvalidmsg 2drop [else]  type [then] [else] notvalidmsg 2drop [then] $> </p></h1>
 <form action="errors-table.shtml" method="get"><input type="submit" value="Last errors"></form>
 
 
