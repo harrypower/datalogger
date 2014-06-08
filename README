@@ -45,5 +45,7 @@ When the pi starts up it will serve index.html !
 -The database is stored in the collection directory and is in a file called sensordb.data.  This dbfile can be backup up with the program in that directory called usbcopydb.fs .  This program could be set up to run in a cron job as root with the following:
         $ sudo crontab -e
         Then enter this line at the bottom of the text that is in the editor:
-        0 * * * * /home/pi/git/datalogger/collection/usbcopydb.fs 
+        0 * * * * /home/pi/git/datalogger/collection/usbcopydb.fs
+        A directory needs to be made with the following:
+	$ sudo mkdir /mnt/usb0 
         This will set up a backup to a usb stick once per hour. The backup will be called sensordb.yearmonthday (year month and day replaced with the numbers for those values).  Realize this will replace that backup file once an hour only if the file in collection directory is newer then the backup file.  You can change the cron job to anything you want or even change the usbcopydb.fs program to work any way you want!
