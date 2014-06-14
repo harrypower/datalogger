@@ -112,3 +112,4 @@ junk$ $init
 	then
     then ;
 
+check&send bye
