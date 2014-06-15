@@ -112,4 +112,23 @@ junk$ $init
 	then
     then ;
 
-check&send bye
+: testsend ( -- ) \ used to send data via email to test system
+    lastdatatime false =
+    if
+	drop
+	s\" Could not get last data from sqlite3! \n" msg-content$ $!
+	get-data-msg-content
+	get-error-msg-content
+	make-msg
+	send-smtp
+    else
+	drop 
+	msg-content$ $init
+	get-data-msg-content
+	get-error-msg-content
+	make-msg
+	send-smtp
+    then ;
+
+testsend
+\ check&send bye
