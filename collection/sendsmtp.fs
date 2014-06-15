@@ -7,15 +7,18 @@ include ../Gforth-Tools/sqlite3_gforth_lib.fs
 
 variable junk$
 variable msg-smtp$
-s" msg.txt" msg-smtp$  $!  \ the file name for r the smtp send  message
 variable msg-content$ msg-content$ $init
 0 value msg-hnd
 variable datalogger_path$
+variable project_path$
+
 1200 constant thresholdtime \ time in seconds used to detect if email should be sent or not!
 
-s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
-s" /collection/sensordb.data" datalogger_path$ $@ junk$ $! junk$ $+!
-junk$ $@ dbname
+s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file project_path$ $!
+s" /collection/sensordb.data" project_path$ $@ datalogger_path$ $! datalogger_path$ $+!
+s" /collection/msg.txt" project_path$ $@ msg-smtp$ $! msg-smtp$ $+!
+
+datalogger_path$ $@ dbname
 junk$ $init
 
 : filetest ( caddr u -- nflag )  \ looks for the full path and file name in string and returns true if found
@@ -130,5 +133,5 @@ junk$ $init
 	send-smtp
     then ;
 
-testsend
+testsend bye
 \ check&send bye
