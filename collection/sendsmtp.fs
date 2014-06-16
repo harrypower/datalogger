@@ -14,7 +14,7 @@ variable msg-content$ msg-content$ $init
 variable datalogger_path$
 variable project_path$
 
-1200 constant thresholdtime \ time in seconds used to detect if email should be sent or not!
+10 constant thresholdtime \ time in seconds used to detect if email should be sent or not!
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file project_path$ $!
 s" /collection/sensordb.data" project_path$ $@ datalogger_path$ $! datalogger_path$ $+!
@@ -51,7 +51,7 @@ junk$ $init
     msg-hnd close-file throw ;
 
 : send-smtp ( -- )
-    s" ssmtp philipkingsmith@gmail.com < msg.txt" system ;
+    s" sudo ssmtp philipkingsmith@gmail.com < msg.txt" system ;
 
 : lastdatatime ( -- nseconds nerror ) \ nseconds last raw data recieved in seconds.
     \ nerror is true if nseconds is valid.
@@ -135,5 +135,5 @@ junk$ $init
 	send-smtp
     then ;
 
-testsend bye
-\ check&send bye
+\ testsend bye
+ check&send bye
