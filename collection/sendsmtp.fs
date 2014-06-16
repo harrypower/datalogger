@@ -1,5 +1,7 @@
 #! /usr/bin/gforth
 
+warnings off
+
 \ This code will send a email if some sensor issue is detected
 include ../string.fs
 include script.fs
