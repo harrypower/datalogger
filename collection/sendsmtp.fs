@@ -35,7 +35,7 @@ variable msg-content$ msg-content$ $init
 variable datalogger_path$
 variable project_path$
 
-10 constant thresholdtime \ time in seconds used to detect if email should be sent or not!
+1200 constant thresholdtime \ time in seconds used to detect if email should be sent or not!
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file project_path$ $!
 s" /collection/sensordb.data" project_path$ $@ datalogger_path$ $! datalogger_path$ $+!
