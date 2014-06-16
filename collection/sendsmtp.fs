@@ -1,8 +1,29 @@
 #! /usr/bin/gforth
 
+\ This Gforth code is a Raspberry Pi smtp email message sending code
+\    Copyright (C) 2014  Philip K. Smith
+
+\    This program is free software: you can redistribute it and/or modify
+\    it under the terms of the GNU General Public License as published by
+\    the Free Software Foundation, either version 3 of the License, or
+\    (at your option) any later version.
+
+\    This program is distributed in the hope that it will be useful,
+\    but WITHOUT ANY WARRANTY; without even the implied warranty of
+\    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+\    GNU General Public License for more details.
+
+\    You should have received a copy of the GNU General Public License
+\    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\
+\ This code detects errors with the data logging software and will
+\ send an email if a problem is found.  The email contains info about 
+\ the possible problem.  Note the ssmtp is used to send the email so
+\ this smtp service needs to be setup used this code.  The code is 
+\ run via a cron job that is also set up externally.
+
 warnings off
 
-\ This code will send a email if some sensor issue is detected
 include ../string.fs
 include script.fs
 include ../Gforth-Tools/sqlite3_gforth_lib.fs

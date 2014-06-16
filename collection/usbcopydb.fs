@@ -1,5 +1,27 @@
 #! /usr/bin/gforth
 
+\ This Gforth code is a Raspberry Pi usb drive mount and backup for datalogging
+\    Copyright (C) 2014  Philip K. Smith
+
+\    This program is free software: you can redistribute it and/or modify
+\    it under the terms of the GNU General Public License as published by
+\    the Free Software Foundation, either version 3 of the License, or
+\    (at your option) any later version.
+
+\    This program is distributed in the hope that it will be useful,
+\    but WITHOUT ANY WARRANTY; without even the implied warranty of
+\    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+\    GNU General Public License for more details.
+
+\    You should have received a copy of the GNU General Public License
+\    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\
+\  This code is run via an external setup cron job.
+\  The code will simply mount a usb drive it found and not already mounted at /mnt/usb0.
+\  Then the code will backup the current sensor.data file with a datetime stamp on the file name.
+\  Note once the drive is mounted it will stay mounted but there is a word that can be uncommented
+\  to do the unmounting if needed.
+
 warnings off
 include ../string.fs
 include script.fs
