@@ -37,9 +37,9 @@ junk$ $init
 : make-msg ( -- ) \ this will make a file called msg.txt 
     msg-smtp$ $@ filetest false =
     if
-	msg-smtp$ $@ w/o create-file throw to msg-hnd
+	msg-smtp$ $@ r/w create-file throw to msg-hnd
     else
-	msg-smtp$ $@ w/o open-file throw to msg-hnd
+	msg-smtp$ $@ r/w open-file throw to msg-hnd
     then
     s" TO: philipkingsmith@gmail.com" msg-hnd write-line throw
     s" From: thpserver@home.com" msg-hnd write-line throw
@@ -51,7 +51,10 @@ junk$ $init
     msg-hnd close-file throw ;
 
 : send-smtp ( -- )
-    s" sudo ssmtp philipkingsmith@gmail.com < msg.txt" system ;
+    s" sudo ssmtp philipkingsmith@gmail.com < " junk$ $!
+    msg-smtp$ $@ junk$ $+!
+    junk$ $@
+    system ;
 
 : lastdatatime ( -- nseconds nerror ) \ nseconds last raw data recieved in seconds.
     \ nerror is true if nseconds is valid.
@@ -73,7 +76,7 @@ junk$ $init
 
 : get-data-msg-content ( -- ) \ collect data from database for sending to email
     s" ," dbfieldseparator
-    s\" \n" dbrecordseparator
+    s\"  \n" dbrecordseparator
     s" select row,datetime(dtime,'unixepoch','localtime'),age,DTHtemperature,DTHhumd,BMPtemperature,BMPpressure from thpdata limit 1 offset ((select max(row) from thpdata) -1) ;" dbcmds
     sendsqlite3cmd false =
     if
@@ -86,7 +89,7 @@ junk$ $init
 
 : get-error-msg-content ( -- ) \ collect data from database for sending to email
     s" ," dbfieldseparator
-    s\" \n" dbrecordseparator
+    s\"  \n" dbrecordseparator
     s" select row,datetime(dtime,'unixepoch','localtime'),error from errors limit 3 offset ((select max(row) from errors) -3) ;" dbcmds
     sendsqlite3cmd false =
     if
