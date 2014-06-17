@@ -160,4 +160,4 @@ junk$ $init
     then ;
 
 \ testsend bye
- check&send bye
+check&send bye
