@@ -19,7 +19,7 @@
 \ This code implements data collection from an mbed sensor on the same network.
 \ A socket is used to talk to this sensor and the data is stored in a sqlite3 database.
 
-\ warnings off
+warnings off
 
 next-exception @ value errorListStart
 include ../string.fs
