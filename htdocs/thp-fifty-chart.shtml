@@ -8,8 +8,8 @@
 
 <$
  
-include ../string.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 decimal
 
 variable datalogger_path$
@@ -135,35 +135,35 @@ s" " dbrecordseparator
     dbret$ alldata$ $! ;
 
 : getdaylablesfromall ( -- )
-    lablesday$ $init
+    s" " lablesday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * $pastxcomma true =  if s\" \"" lablesday$ $+! lablesday$ $+! s\" \"," lablesday$ $+! else 2drop then
     loop
-    lablesday$ $@ 1 - lablesday$ $init lablesday$ $! ;
+    lablesday$ lablesday$ $@len 1 - 1 $del  ;
 \ note just found a bug in strings.fs package.  i need to $init the variable before putting the string back into itself
 \ or use another variable temporarily then copy back to the original variable.
 \ I think this has been fixed in new version of strings.fs
 
 : gettempfromall ( -- )
-    tempday$ $init
+    s" " tempday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * 1 + $pastxcomma true = if decimalAdd tempday$ $+! s" ," tempday$ $+! else 2drop then
     loop
-    tempday$ $@ 1 - tempday$ $init tempday$ $! ;
+    tempday$ tempday$ $@len 1 - 1 $del  ;
 
 : gethumdfromall ( -- )
-    humdday$ $init
+    s" " humdday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * 2 + $pastxcomma true = if decimalAdd humdday$ $+! s" ," humdday$ $+! else 2drop then
     loop
-    humdday$ $@ 1 - humdday$ $init humdday$ $! ;
+    humdday$ humdday$ $@len 1 - 1 $del  ;
 
 : getpresfromall ( -- )
-    presday$ $init
+    s" " presday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * 3 + $pastxcomma true = if presday$ $+! s" ," presday$ $+! else 2drop then
     loop
-    presday$ $@ 1 - presday$ $init presday$ $! ;
+    presday$ presday$ $@len 1 - 1 $del  ;
 
 url-args $@ swap drop 0 =
 [if]
