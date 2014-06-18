@@ -6,21 +6,21 @@
 </head>
 
 <$
-include ../string.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 decimal
 
 variable datalogger_path$
 variable dbpath$
 variable junks$
 variable presql$
-variable year-$url$ year-$url$ $init
-variable month-$url$ month-$url$ $init
-variable day-$url$ day-$url$ $init
-variable hour-$url$ hour-$url$ $init
-variable selectymdh$ selectymdh$ $init
+variable year-$url$ s" " year-$url$ $!
+variable month-$url$ s" " month-$url$ $!
+variable day-$url$ s" " day-$url$ $!
+variable hour-$url$ s" " hour-$url$ $! 
+variable selectymdh$ s" " selectymdh$ $!
 variable alldata$
-variable test$ test$ $init
+variable test$ s" " test$ $!
 false value datecheck
 false value numbercheck
 false value selectedrow

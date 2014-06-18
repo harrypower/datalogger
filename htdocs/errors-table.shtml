@@ -5,8 +5,8 @@
 <title>Errors list</title>
 </head>
 <$
-include ../string.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 decimal
 
 variable datalogger_path$
