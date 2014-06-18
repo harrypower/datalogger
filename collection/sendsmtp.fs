@@ -24,13 +24,13 @@
 
 warnings off
 
-include ../string.fs
-include script.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require script.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 
 variable junk$
 variable msg-smtp$
-variable msg-content$ msg-content$ $init
+variable msg-content$ s" " msg-content$ $!
 0 value msg-hnd
 variable datalogger_path$
 variable project_path$
@@ -42,7 +42,6 @@ s" /collection/sensordb.data" project_path$ $@ datalogger_path$ $! datalogger_pa
 s" /collection/msg.txt" project_path$ $@ msg-smtp$ $! msg-smtp$ $+!
 
 datalogger_path$ $@ dbname
-junk$ $init
 
 : filetest ( caddr u -- nflag )  \ looks for the full path and file name in string and returns true if found
     s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw 1 -  s" yes" compare  
@@ -133,7 +132,7 @@ junk$ $init
     else
 	thresholdtime >
 	if
-	    msg-content$ $init
+	    s" " msg-content$  $!
 	    get-data-msg-content
 	    get-error-msg-content
 	    make-msg
@@ -152,7 +151,7 @@ junk$ $init
 	send-smtp
     else
 	drop 
-	msg-content$ $init
+	s" " msg-content$ $!
 	get-data-msg-content
 	get-error-msg-content
 	make-msg

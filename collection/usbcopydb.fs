@@ -23,8 +23,8 @@
 \  to do the unmounting if needed.
 
 warnings off
-include ../string.fs
-include script.fs
+require string.fs
+require script.fs
 
 variable junk$
 variable mount_name$
