@@ -158,5 +158,5 @@ datalogger_path$ $@ dbname
 	send-smtp
     then ;
 
-\ testsend bye
-check&send bye
+testsend bye
+\ check&send bye

@@ -5,12 +5,13 @@
 <title>Logged THP info.</title>
 </head>
 <$
-include ../string.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
+
 decimal
 
 true value rvdataerror
-variable rvdata$ rvdata$ $init
+variable rvdata$ s" " rvdata$ $!
 variable datalogger_path$ 
 variable junks$
 
