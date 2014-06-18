@@ -8,8 +8,8 @@
 
 <$
  
-include ../string.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 decimal
 
 variable datalogger_path$
@@ -136,56 +136,56 @@ s" " dbrecordseparator
     0 #pastxcomma swap drop swap drop dup to datecheck ;
 
 : getdaylablesfromall ( -- )
-    lablesday$ $init
+    s" " lablesday$ $!
     27 0 ?do
 	alldata$ $@ i 7 * $pastxcomma true =  if lablesday$ $+! s" ," lablesday$ $+! else 2drop then
     loop
-    lablesday$ $@ 1 - lablesday$ $init lablesday$ $! ;
+    lablesday$ lablesday$ $@len 1 - 1 $del ;
 \ note just found a bug in strings.fs package.  i need to $init the variable before putting the string back into itself
 \ or use another variable temporarily then copy back to the original variable.
 \ I think this has been fixed in new version of strings.fs
 
 : gettempminfromall ( -- )
-    minday$ $init
+    s" " minday$ $!
     32 0 ?do
 	alldata$ $@ i 7 * 1 + $pastxcomma true = if decimalAdd minday$ $+! s" ," minday$ $+! else 2drop then
     loop
-    minday$ $@ 1 - minday$ $init minday$ $! ;
+    minday$ minday$ $@len 1 - 1 $del ;
 
 : gettempmaxfromall ( -- )
-    maxday$ $init
+    s" " maxday$ $!
     32 0 ?do
 	alldata$ $@ i 7 * 2 + $pastxcomma true = if decimalAdd maxday$ $+! s" ," maxday$ $+! else 2drop then
     loop
-    maxday$ $@ 1 - maxday$ $init maxday$ $! ;
+    maxday$ maxday$ $@len 1 - 1 $del ;
 
 : gethumdminfromall ( -- )
-    minhumdday$ $init
+    s" " minhumdday$ $!
     32 0 ?do
 	alldata$ $@ i 7 * 3 + $pastxcomma true = if decimalAdd minhumdday$ $+! s" ," minhumdday$ $+! else 2drop then
     loop
-    minhumdday$ $@ 1 - minhumdday$ $init minhumdday$ $! ;
+    minhumdday$ minhumdday$ $@len 1 - 1 $del ;
 
 : gethumdmaxfromall ( -- )
-    maxhumdday$ $init
+    s" " maxhumdday$ $!
      32 0 ?do
 	alldata$ $@ i 7 * 4 + $pastxcomma true = if decimalAdd maxhumdday$ $+! s" ," maxhumdday$ $+! else 2drop then
     loop
-    maxhumdday$ $@ 1 - maxhumdday$ $init maxhumdday$ $! ;
+    maxhumdday$ maxhumdday$ $@len 1 - 1 $del ;
 
 : getpresminfromall ( -- )
-    minpresday$ $init
+    s" " minpresday$ $!
     32 0 ?do
 	alldata$ $@ i 7 * 5 + $pastxcomma true = if minpresday$ $+! s" ," minpresday$ $+! else 2drop then
     loop
-    minpresday$ $@ 1 - minpresday$ $init minpresday$ $! ;
+    minpresday$ minpresday$ $@len 1 - 1 $del ;
 
 : getpresmaxfromall ( -- )
-    maxpresday$ $init
+    s" " maxpresday$ $!
     32 0 ?do
 	alldata$ $@ i 7 * 6 + $pastxcomma true = if maxpresday$ $+! s" ," maxpresday$ $+! else 2drop then
     loop
-    maxpresday$ $@ 1 - maxpresday$ $init maxpresday$ $! ;
+    maxpresday$ maxpresday$ $@len 1 - 1 $del ;
 
 url-args $@ swap drop 0 =
 [if]
