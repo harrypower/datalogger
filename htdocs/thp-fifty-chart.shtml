@@ -17,9 +17,9 @@ variable dbpath$
 variable junks$
 variable presql$    s" " presql$ $! 
 variable postsql$   s" " postsql$ $!
-variable lablesnow$ s" " labelsnow$ $!
+variable lablesnow$ s" " lablesnow$ $!
 variable datanow$   s" " datanow$ $!
-variable lablesday$ s" " labelsday$ $!
+variable lablesday$ s" " lablesday$ $!
 variable tempday$   s" " tempday$ $!
 variable humdday$   s" " humdday$ $!
 variable presday$   s" " presday$ $!
