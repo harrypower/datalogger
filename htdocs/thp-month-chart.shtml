@@ -15,24 +15,24 @@ decimal
 variable datalogger_path$
 variable dbpath$
 variable junks$
-variable presql$
-variable postsql$
-variable lablesnow$
-variable datanow$
-variable lablesday$
-variable minday$
-variable maxday$
-variable minhumdday$
-variable maxhumdday$
-variable minpresday$
-variable maxpresday$
-variable datenow$
-variable alldata$
+variable presql$     s" " presql$ $!
+variable postsql$    s" " postsql$ $!
+variable lablesnow$  s" " lablesnow$ $!
+variable datanow$    s" " datanow$ $!
+variable lablesday$  s" " lablesday$ $!
+variable minday$     s" " minday$ $!
+variable maxday$     s" " maxday$ $!
+variable minhumdday$ s" " minhumdday$ $!
+variable maxhumdday$ s" " maxhumdday$ $!
+variable minpresday$ s" " minpresday$ $!
+variable maxpresday$ s" " maxpresday$ $!
+variable datenow$    s" " datenow$ $!
+variable alldata$    s" " alldata$ $!
 
 false value datecheck
-variable selectyear$
-variable selectmonth$
-variable selectym$
+variable selectyear$  s" " selectyear$ $!
+variable selectmonth$ s" " selectmonth$ $!
+variable selectym$    s" " selectym$ $!
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
