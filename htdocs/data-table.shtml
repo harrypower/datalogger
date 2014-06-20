@@ -19,7 +19,7 @@ variable month-$url$ s" " month-$url$ $!
 variable day-$url$ s" " day-$url$ $!
 variable hour-$url$ s" " hour-$url$ $! 
 variable selectymdh$ s" " selectymdh$ $!
-variable alldata$
+variable alldata$ s" " alldata$ $!
 variable test$ s" " test$ $!
 false value datecheck
 false value numbercheck
