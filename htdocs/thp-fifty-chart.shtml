@@ -15,24 +15,24 @@ decimal
 variable datalogger_path$
 variable dbpath$
 variable junks$
-variable presql$    s" " presql$ $! 
-variable postsql$   s" " postsql$ $!
-variable lablesnow$ s" " lablesnow$ $!
-variable datanow$   s" " datanow$ $!
-variable lablesday$ s" " lablesday$ $!
-variable tempday$   s" " tempday$ $!
-variable humdday$   s" " humdday$ $!
-variable presday$   s" " presday$ $!
-variable datenow$   s" " datenow$ $!
-variable alldata$   s" " alldata$ $!
+variable presql$    presql$     off s" " presql$ $! 
+variable postsql$   postsql$    off s" " postsql$ $!
+variable lablesnow$ lablesnow$  off s" " lablesnow$ $!
+variable datanow$   datanow$    off s" " datanow$ $!
+variable lablesday$ lablesday$  off s" " lablesday$ $!
+variable tempday$   tempday$    off s" " tempday$ $!
+variable humdday$   humdday$    off s" " humdday$ $!
+variable presday$   presday$    off s" " presday$ $!
+variable datenow$   datenow$    off s" " datenow$ $!
+variable alldata$   alldata$    off s" " alldata$ $!
 
 false value datecheck
 0 value selectedrow
-variable selectyear$  s" " selectyear$ $!
-variable selectday$   s" " selectday$ $!
-variable selectmonth$ s" " selectmonth$ $!
-variable selecthour$  s" " selecthour$ $!
-variable selectymd$   s" " selectymd$ $!
+variable selectyear$  selectyear$  off s" " selectyear$ $!
+variable selectday$   selectday$   off s" " selectday$ $!
+variable selectmonth$ selectmonth$ off s" " selectmonth$ $!
+variable selecthour$  selecthour$  off s" " selecthour$ $!
+variable selectymd$   selectymd$   off s" " selectymd$ $!
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
@@ -135,7 +135,7 @@ s" " dbrecordseparator
     dbret$ alldata$ $! ;
 
 : getdaylablesfromall ( -- )
-    s" " lablesday$ $!
+    lablesday$ off s" " lablesday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * $pastxcomma true =  if s\" \"" lablesday$ $+! lablesday$ $+! s\" \"," lablesday$ $+! else 2drop then
     loop
@@ -145,21 +145,21 @@ s" " dbrecordseparator
 \ I think this has been fixed in new version of strings.fs
 
 : gettempfromall ( -- )
-    s" " tempday$ $!
+    tempday$ off s" " tempday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * 1 + $pastxcomma true = if decimalAdd tempday$ $+! s" ," tempday$ $+! else 2drop then
     loop
     tempday$ tempday$ $@len 1 - 1 $del  ;
 
 : gethumdfromall ( -- )
-    s" " humdday$ $!
+    humdday$ off s" " humdday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * 2 + $pastxcomma true = if decimalAdd humdday$ $+! s" ," humdday$ $+! else 2drop then
     loop
     humdday$ humdday$ $@len 1 - 1 $del  ;
 
 : getpresfromall ( -- )
-    s" " presday$ $!
+    presday$ off s" " presday$ $!
     51 0 ?do
 	alldata$ $@ i 4 * 3 + $pastxcomma true = if presday$ $+! s" ," presday$ $+! else 2drop then
     loop
