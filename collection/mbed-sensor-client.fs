@@ -23,7 +23,7 @@ warnings off
 
 next-exception @ value errorListStart
 require string.fs
-require /unix/socket.fs
+require unix/socket.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 
 decimal 
