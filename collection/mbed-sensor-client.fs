@@ -22,9 +22,9 @@
 warnings off
 
 next-exception @ value errorListStart
-include ../string.fs
-include ../socket.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require /unix/socket.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 
 decimal 
 4446 value mbed-port#
@@ -33,11 +33,11 @@ decimal
 
 0 value buffer
 here to buffer 500 allot
-variable buffer2$ buffer2$ $init
+variable buffer2$ s" " buffer2$ $!
 1000 value buff2max 
-variable junk$ junk$ $init
-variable temp$ temp$ $init
-variable path$ path$ $init
+variable junk$ s" " junk$ $!
+variable temp$ s" " temp$ $!
+variable path$ s" " path$ $!
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!
 
@@ -122,7 +122,7 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
 	open-socket { socketid }
 	s\" GET /val \r\n\r\n" socketid write-socket
 	buffer 500 erase
-	buffer2$ $init
+	s" " buffer2$ $!
 	utime
 	begin 
 	    2dup
@@ -209,8 +209,7 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
     s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT);" dbcmds
     sendsqlite3cmd throw
     s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT);" dbcmds
-    sendsqlite3cmd throw
-;
+    sendsqlite3cmd throw ;
 
 : !error ( n -- nerror ) \ nerror is the returned error from sendsqlite3cmd false for ok anything else is an error
     mystrings% mbed-dbname$ $@ dbname
@@ -341,8 +340,7 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
 	    now 1+ to now
 	    now end >=
 	until
-    then
-;
+    then ;
 
 : listerrors ( -- )
     mystrings% mbed-dbname$ $@ dbname
@@ -376,9 +374,7 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
 	    now 1+ to now
 	    now end >=
 	until
-    then
-    
-;
+    then ;
 
 : listdbdata ( -- )
     mystrings% mbed-dbname$ $@ dbname
