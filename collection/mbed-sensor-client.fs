@@ -31,8 +31,8 @@ decimal
 2000000 value mbed-timeout#
 60001 value mbed-readtime
 
-0 value buffer
-here to buffer 500 allot
+0 value abuffer
+here to abuffer 500 allot
 variable buffer2$ s" " buffer2$ $!
 1000 value buff2max 
 variable junk$ s" " junk$ $!
@@ -121,12 +121,12 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
     try
 	open-socket { socketid }
 	s\" GET /val \r\n\r\n" socketid write-socket
-	buffer 500 erase
+	abuffer 500 erase
 	s" " buffer2$ $!
 	utime
 	begin 
 	    2dup
-	    socketid buffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
+	    socketid abuffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
 	    buffer2$ $+! 
 	    utime 2swap d- d>s mbed-timeout# >
 	    if
