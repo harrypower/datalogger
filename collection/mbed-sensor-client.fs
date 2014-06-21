@@ -19,7 +19,7 @@
 \ This code implements data collection from an mbed sensor on the same network.
 \ A socket is used to talk to this sensor and the data is stored in a sqlite3 database.
 
-warnings off
+\ warnings off
 
 next-exception @ value errorListStart
 require string.fs
@@ -35,9 +35,9 @@ decimal
 here to abuffer 500 allot
 variable buffer2$ s" " buffer2$ $!
 1000 value buff2max 
-variable junk$ s" " junk$ $!
-variable temp$ s" " temp$ $!
-variable path$ s" " path$ $!
+variable junk$ junk$ off s" " junk$ $!
+variable temp$ temp$ off s" " temp$ $!
+variable path$ path$ off s" " path$ $!
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!
 
@@ -122,7 +122,7 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
 	open-socket { socketid }
 	s\" GET /val \r\n\r\n" socketid write-socket
 	abuffer 500 erase
-	s" " buffer2$ $!
+	buffer2$ off s" " buffer2$ $!
 	utime
 	begin 
 	    2dup
