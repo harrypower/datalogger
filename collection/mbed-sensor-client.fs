@@ -124,7 +124,7 @@ path$ $@ junk$ $! mystrings% mbed-dbname$ $@ junk$ $+! junk$ $@ mystrings% mbed-
 	open-socket { socketid }
 	s\" GET /val \r\n\r\n" socketid write-socket
 	abuffer 500 erase
-	buffer2$ off s" " buffer2$ $!
+	buffer2$ $off s" " buffer2$ $!
 	utime
 	begin 
 	    2dup
