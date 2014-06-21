@@ -11,7 +11,7 @@ require ../Gforth-Tools/sqlite3_gforth_lib.fs
 decimal
 
 true value rvdataerror
-variable rvdata$ s" " rvdata$ $!
+variable rvdata$ rvdata$ off s" " rvdata$ $!
 variable datalogger_path$ 
 variable junks$
 

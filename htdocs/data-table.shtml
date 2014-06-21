@@ -13,14 +13,14 @@ decimal
 variable datalogger_path$
 variable dbpath$
 variable junks$
-variable presql$
-variable year-$url$ s" " year-$url$ $!
-variable month-$url$ s" " month-$url$ $!
-variable day-$url$ s" " day-$url$ $!
-variable hour-$url$ s" " hour-$url$ $! 
-variable selectymdh$ s" " selectymdh$ $!
-variable alldata$ s" " alldata$ $!
-variable test$ s" " test$ $!
+variable presql$     presql$     off s" " presql$ $!
+variable year-$url$  year-$url$  off s" " year-$url$ $!
+variable month-$url$ month-$url$ off s" " month-$url$ $!
+variable day-$url$   day-$url$   off s" " day-$url$ $!
+variable hour-$url$  hour-$url$  off s" " hour-$url$ $! 
+variable selectymdh$ selectymdh$ off s" " selectymdh$ $!
+variable alldata$    alldata$    off s" " alldata$ $!
+variable test$       test$       off s" " test$ $!
 false value datecheck
 false value numbercheck
 false value selectedrow

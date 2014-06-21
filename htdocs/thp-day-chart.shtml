@@ -15,24 +15,24 @@ decimal
 variable datalogger_path$
 variable dbpath$
 variable junks$
-variable presql$ s" " presql$ $!
-variable postsql$ s" " postsql$ $!
-variable lablesnow$ s" " lablesnow$ $!
-variable lablesday$ s" " lablesday$ $!
-variable minday$ s" " minday$ $!
-variable maxday$ s" " maxday$ $!
-variable minhumdday$ s" " minhumdday$ $!
-variable maxhumdday$ s" " maxhumdday$ $!
-variable minpresday$ s" " minpresday$ $!
-variable maxpresday$ s" " maxpresday$ $!
-variable datenow$ s" " datenow$ $!
-variable alldata$ s" " alldata$ $!
+variable presql$      presql$      off s" " presql$ $!
+variable postsql$     postsql$     off s" " postsql$ $!
+variable lablesnow$   lablesnow$   off s" " lablesnow$ $!
+variable lablesday$   lablesday$   off s" " lablesday$ $!
+variable minday$      minday$      off s" " minday$ $!
+variable maxday$      maxday$      off s" " maxday$ $!
+variable minhumdday$  minhumdday$  off s" " minhumdday$ $!
+variable maxhumdday$  maxhumdday$  off s" " maxhumdday$ $!
+variable minpresday$  minpresday$  off s" " minpresday$ $!
+variable maxpresday$  maxpresday$  off s" " maxpresday$ $!
+variable datenow$     datenow$     off s" " datenow$ $!
+variable alldata$     alldata$     off s" " alldata$ $!
 
 false value datecheck
-variable selectyear$ s" " selectyear$ $!
-variable selectday$ s" " selectday$ $!
-variable selectmonth$ s" " selectmonth$ $!
-variable selectymd$ s" " selectymd$
+variable selectyear$  selectyear$  off s" " selectyear$ $!
+variable selectday$   selectday$   off s" " selectday$ $!
+variable selectmonth$ selectmonth$ off s" " selectmonth$ $!
+variable selectymd$   selectymd$    off s" " selectymd$
 
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
 s" /collection/sensordb.data" datalogger_path$ $@ junks$ $! junks$ $+!
@@ -136,7 +136,7 @@ s" " dbrecordseparator
     dbret$ alldata$ $! ;
 
 : getdaylablesfromall ( -- )
-    s" " lablesday$ $!
+    lablesday$ off s" " lablesday$ $!
     27 0 ?do
 	alldata$ $@ i 7 * $pastxcomma true =  if lablesday$ $+! s" ," lablesday$ $+! else 2drop then
     loop
@@ -146,42 +146,42 @@ s" " dbrecordseparator
 \ I think this has been fixed in new version of strings.fs
 
 : gettempminfromall ( -- )
-    s" " minday$ $! 
+    minday$ off s" " minday$ $! 
     27 0 ?do
 	alldata$ $@ i 7 * 1 + $pastxcomma true = if decimalAdd minday$ $+! s" ," minday$ $+! else 2drop then
     loop
     minday$ minday$ $@len 1 - 1 $del ;
 
 : gettempmaxfromall ( -- )
-    s" " maxday$ $! 
+    maxday$ off s" " maxday$ $! 
     27 0 ?do
 	alldata$ $@ i 7 * 2 + $pastxcomma true = if decimalAdd maxday$ $+! s" ," maxday$ $+! else 2drop then
     loop
     maxday$ maxday$ $@len 1 - 1 $del ;
 
 : gethumdminfromall ( -- )
-    s" " minhumdday$ $!
+    minhumdday$ off s" " minhumdday$ $!
     27 0 ?do
 	alldata$ $@ i 7 * 3 + $pastxcomma true = if decimalAdd minhumdday$ $+! s" ," minhumdday$ $+! else 2drop then
     loop
     minhumdday$ minhumdday$ $@len 1 - 1 $del ;
 
 : gethumdmaxfromall ( -- )
-    s" " maxhumdday$ $!
-     27 0 ?do
+    maxhumdday$ off s" " maxhumdday$ $!
+    27 0 ?do
 	alldata$ $@ i 7 * 4 + $pastxcomma true = if decimalAdd maxhumdday$ $+! s" ," maxhumdday$ $+! else 2drop then
     loop
     maxhumdday$ maxhumdday$ $@len 1 - 1 $del ;
 
 : getpresminfromall ( -- )
-    s" " minpresday$ $! 
+    minpresday$ off s" " minpresday$ $! 
     27 0 ?do
 	alldata$ $@ i 7 * 5 + $pastxcomma true = if minpresday$ $+! s" ," minpresday$ $+! else 2drop then
     loop
     minpresday$ minpresday$ $@len 1 - 1 $del ;
 
 : getpresmaxfromall ( -- )
-    s" " maxpresday$ $!
+    maxpresday$ off s" " maxpresday$ $!
     27 0 ?do
 	alldata$ $@ i 7 * 6 + $pastxcomma true = if maxpresday$ $+! s" ," maxpresday$ $+! else 2drop then
     loop
