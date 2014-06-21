@@ -29,8 +29,8 @@ require script.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 
 variable junk$
-variable msg-smtp$
-variable msg-content$ s" " msg-content$ $!
+variable msg-smtp$ msg-smtp$ off s" " msg-smtp$ $!
+variable msg-content$ msg-smtp$ off s" " msg-content$ $!
 0 value msg-hnd
 variable datalogger_path$
 variable project_path$
@@ -132,7 +132,7 @@ datalogger_path$ $@ dbname
     else
 	thresholdtime >
 	if
-	    s" " msg-content$  $!
+	    msg-content$ off s" " msg-content$  $!
 	    get-data-msg-content
 	    get-error-msg-content
 	    make-msg
@@ -151,7 +151,7 @@ datalogger_path$ $@ dbname
 	send-smtp
     else
 	drop 
-	s" " msg-content$ $!
+	msg-content$ off s" " msg-content$ $!
 	get-data-msg-content
 	get-error-msg-content
 	make-msg
