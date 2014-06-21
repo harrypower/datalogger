@@ -23,7 +23,9 @@
 
 next-exception @ value errorListStart
 require string.fs
-require unix/socket.fs
+require ../socket.fs  \ note this is the socket.fs included in this git rep 
+\ this socket.fs is a version for gforth but it is not compatable with version 0.7.0 that comes with apt-get install gforth 
+\ this socket.fs works in this code and the version 0.7.0 unix/socket.fs does not work with this code
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 
 decimal 
@@ -33,7 +35,7 @@ decimal
 
 0 value abuffer
 here to abuffer 500 allot
-variable buffer2$ s" " buffer2$ $!
+variable buffer2$ buffer2$ off s" " buffer2$ $!
 1000 value buff2max 
 variable junk$ junk$ off s" " junk$ $!
 variable temp$ temp$ off s" " temp$ $!
