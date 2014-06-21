@@ -2,9 +2,9 @@
 <head>
 <title>Test data download</title>
 <$
-include ../string.fs
-include ../collection/script.fs
-include ../Gforth-Tools/sqlite3_gforth_lib.fs
+require string.fs
+require ../collection/script.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 decimal
 
 variable datalogger_path$
