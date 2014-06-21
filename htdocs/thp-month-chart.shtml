@@ -22,8 +22,8 @@ variable datanow$    datanow$     off s" " datanow$ $!
 variable lablesday$  lablesday$   off s" " lablesday$ $!
 variable minday$     minday$      off s" " minday$ $!
 variable maxday$     maxday$      off s" " maxday$ $!
-variable minhumdday$ minhumday$   off s" " minhumdday$ $!
-variable maxhumdday$ maxhumday$   off s" " maxhumdday$ $!
+variable minhumdday$ minhumdday$  off s" " minhumdday$ $!
+variable maxhumdday$ maxhumdday$  off s" " maxhumdday$ $!
 variable minpresday$ minpresday$  off s" " minpresday$ $!
 variable maxpresday$ maxpresday$  off s" " maxpresday$ $!
 variable datenow$    datenow$     off s" " datenow$ $!
