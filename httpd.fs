@@ -267,5 +267,5 @@ script? [IF]  :noname &100 httpd bye ; is bootmessage  [THEN]
 
 \ provide transparent proxying
 
-include ./proxy.fs
+\ include ./proxy.fs
 

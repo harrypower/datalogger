@@ -1,0 +1,11 @@
+sudo rm /root/.gforth/libcc-named/.libs/socket.a
+sudo rm /root/.gforth/libcc-named/.libs/socket.la
+sudo rm /root/.gforth/libcc-named/.libs/socket.lai
+sudo rm /root/.gforth/libcc-named/.libs/socket.o
+sudo rm /root/.gforth/libcc-named/.libs/socket.so
+sudo rm /root/.gforth/libcc-named/.libs/socket.so.0
+sudo rm /root/.gforth/libcc-named/.libs/socket.so.0.0.0
+sudo rm /root/.gforth/libcc-named/socket.c
+sudo rm /root/.gforth/libcc-named/socket.la
+sudo rm /root/.gforth/libcc-named/socket.lo
+sudo rm /root/.gforth/libcc-named/socket.o
