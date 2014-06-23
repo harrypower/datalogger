@@ -1,20 +1,51 @@
-#! /usr/bin/gforth
+#! /usr/local/bin/gforth
 
 require string.fs
-require ./collection/script.fs
+\ require script.fs
 
- warnings off 
+\ warnings off
 
-s" sudo mkdir /var/lib/datalogger-gforth" system 
-s" pwd > /var/lib/datalogger-gforth/datalogger_home_path" system $? 
+variable datalogger_path$ s" /var/lib/datalogger-gforth" datalogger_path$ $!
+variable datalogger_home$ s" /datalogger_home_path" datalogger_home$ $!
+variable junk$
+0 value fid
+
+: configure-path ( -- )
+    datalogger_path$ $@ file-status swap drop false <>
+    if
+	s" sudo mkdir " junk$ $! datalogger_path$ $@ junk$ $+! junk$ $@ system $? false <>
+	if
+	    s" Could not make path to store where project is installed!" type cr
+	else
+	    s" Path created to store this projects location!" type cr
+	then
+    then
+    datalogger_path$ $@ file-status swap drop false =
+    if
+	s" pwd > " junk$ $! datalogger_path$ $@ junk$ $+! datalogger_home$ $@ junk$ $+! junk$ $@ system $?
+	if
+	    s" Project path could not configure corretly!  Use sudo to run this code like this: sudo ./configure" type cr
+	else
+	    datalogger_path$ $@ junk$ $! datalogger_home$ junk$ $+! junk$ $@ r/w open-file throw
+	    to fid fid file-size throw
+	    1 s>d d- fid resize-file throw
+	    fid close-file throw
+	    s" Project path now configured!" type cr
+	then
+    else
+	s" Project path could not configure corretly!  Use sudo to run this code like this: sudo ./configure" type cr
+    then ;
+
+\ s" sudo mkdir /var/lib/datalogger-gforth" system $?
+\ s" pwd > /var/lib/datalogger-gforth/datalogger_home_path" system $? 
   
-[if] ." Datalogger configuring had some error! This code needs to be run with sudo like this: sudo ./configure" cr
-[else] ." Datalogger path is now configured!" cr [then]
+\ [if] ." Datalogger configuring had some error! This code needs to be run with sudo like this: sudo ./configure" cr
+\ [else] ." Datalogger path is now configured!" cr [then]
 
-s" /var/lib/datalogger-gforth/datalogger_home_path" r/w open-file throw
-dup file-size throw 1 s>d d-
-rot dup 2tuck drop resize-file throw
-close-file throw drop
+\ s" /var/lib/datalogger-gforth/datalogger_home_path" r/w open-file throw
+\ dup file-size throw 1 s>d d-
+\ rot dup 2tuck drop resize-file throw
+\ close-file throw drop
 
 \ variable junk$ 
 \ s" nohup " junk$ $! s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file 2dup junk$ $+!
@@ -22,7 +53,7 @@ close-file throw drop
 \ junk$ $@ type
 \ not sure what to do yet... this string junk$ contains now is the command to put into /etc/rc.local to start up logging from system boot!
 
-bye
+configure-path bye
 
  
  
