@@ -265,7 +265,5 @@ script? [IF]  :noname &100 httpd bye ; is bootmessage  [THEN]
 : <!DOCTYPE  ." <!DOCTYPE " ;
 : html>  ." html>" cr ;
 
-\ provide transparent proxying
 
-\ include ./proxy.fs
 
