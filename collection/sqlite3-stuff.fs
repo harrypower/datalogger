@@ -26,7 +26,6 @@
 require string.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 require gforth-misc-tools.fs
-require ffl/scl.fs
 
 decimal
 
@@ -89,8 +88,7 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
 	else
 	    cdlt-er throw \ did not find table or data id
 	then
-    then
-;
+    then ;
 
 : create-data-list-table ( caddr u -- cdata_list_id u nflag ) \ takes a string containing table id and data id's
     \ parses these id's and creates a table in the database then returns the table as a string on the stack
