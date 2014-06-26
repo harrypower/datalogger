@@ -26,6 +26,7 @@
 require string.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 require gforth-misc-tools.fs
+require ffl/scl.fs
 
 decimal
 
@@ -38,7 +39,7 @@ path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the
 \ These are the enumerated errors this code can produce
 next-exception @ value sqlite-errorListStart  \ this allows enumeration of errors for this code
 
-s" stub message"                            exception constant stubb-er
+s" table-id or data-id not present in create-data-list-table!"                   exception constant cdlt-er
 
 next-exception @ value sqlite-errorListEnd
 
@@ -46,9 +47,8 @@ next-exception @ value sqlite-errorListEnd
     initsqlall
     db-path$ $@ dbname ;
 
-: dberrorthrow ( nerror -- nflag ) \ locked database type errors and buffer overflow error will cause a wait and a resend
+: dberrorthrow ( nerror -- ) \ locked database type errors and buffer overflow error will cause a wait and a resend
     \ if a resend sqlite3 cmd fails then that error is thrown
-    \ nflag returns false if nerror is false because this means no errors
     \ all other errors will throw that are behond the scope of recovery in this code!
     case
 	5     of sqlite3-resend-time ms sendsqlite3cmd dup throw  endof \ database is locked now
@@ -58,11 +58,75 @@ next-exception @ value sqlite-errorListEnd
 	dup throw
     endcase ;
 
-: create-device-table ( -- )
+: create-device-table ( -- ) \ used to create a device that is logged 
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INT PRIMARY KEY AUTOINCREMENT,dt_added INT,ip TEXT,port TEXT,method TEXT,data_list_id TEXT);"
     dbcmds
     sendsqlite3cmd dberrorthrow ;
+
+variable data-table-id$ data-table-id$ off s" " data-table-id$ $!
+variable data-id$       data-id$       off s" " data-id$       $!
+variable data-junk$     data-junk$     off s" " data-junk$     $!
+
+: [create-data-id] ( caddr u -- ) \ called by create-data-list-table only
+    58 $split 
+    58 $split 2drop 2swap 2dup data-id$ $!
+    temp$ $+! s"  " temp$ $+! temp$ $+! s" ," temp$ $+! ;
+
+: [create-table-id] ( caddr u -- ) \ called by create-data-list-table only
+    58 $split 2drop 2dup data-table-id$ $! 
+    temp$ $+! s" (row INT PRIMARY KEY AUTOINCREMENT," temp$ $+! ;
+
+: [create-data-list-table] ( caddr u -- ) \ called by create-data-list-table only
+    58 $split 2swap 
+    s" table-id" search true =
+    if
+	2drop [create-table-id] 
+    else
+	s" data-id" search true =
+	if
+	    2drop [create-data-id]
+	else
+	    cdlt-er throw \ did not find table or data id
+	then
+    then
+;
+
+: create-data-list-table ( caddr u -- cdata_list_id u nflag ) \ takes a string containing table id and data id's
+    \ parses these id's and creates a table in the database then returns the table as a string on the stack
+    \ If no table id is found or data id's are not present the table will not be created in database
+    \ If no table id is found or data id's then the string returned is empty and u is 0
+    \ Note this table in the database must be created before the table id can be used in create-device-table word
+    try
+	dup 0 =
+	if
+	    true throw
+	else
+	    data-junk$ $!
+	    setupsqlite3
+	    data-table-id$ off s" " data-table-id$ $!
+	    data-id$ off s" " data-id$ $!
+	    s" CREATE TABLE IF NOT EXISTS " temp$ $!
+	    data-junk$ 32 ['] [create-data-list-table] $iter
+	    temp$ temp$ $@len 1 - 1 $del s" );" temp$ $+! 
+	    \ temp$ $@ dbcmds
+	    \ sendqlite3cmd dberrorthrow
+	    data-table-id$ $@len 0 =
+	    if
+		true throw
+	    else
+		data-id$ $@len 0 =
+		if
+		    true throw
+		else
+		    data-table-id$ $@
+		    false
+		then
+	    then
+	then
+    restore  
+    endtry ;
+
 
 
     
