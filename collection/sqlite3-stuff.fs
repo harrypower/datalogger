@@ -31,6 +31,7 @@ decimal
 
 variable db-path$ 
 variable temp$
+1   constant device-version
 100 constant sqlite3-resend-time    \ system will wait for this time in ms if a locked database is found befor resending cmds
 
 path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the name of the database
@@ -39,7 +40,6 @@ path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the
 next-exception @ value sqlite-errorListStart  \ this allows enumeration of errors for this code
 
 s" table-id or data-id not present in create-data-list-table!"                   exception constant cdlt-er
-
 next-exception @ value sqlite-errorListEnd
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -59,7 +59,7 @@ next-exception @ value sqlite-errorListEnd
 
 : create-device-table ( -- ) \ used to create a device that is logged 
     setupsqlite3
-    s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INT,ip TEXT,port TEXT,method TEXT,data_list_id TEXT);"
+    s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER,ip TEXT,port TEXT,method TEXT,parse_char TEXT,version INTEGER,data_list_id TEXT);"
     dbcmds
     sendsqlite3cmd dberrorthrow ;
 

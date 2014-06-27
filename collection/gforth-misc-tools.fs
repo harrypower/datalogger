@@ -16,6 +16,7 @@
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require string.fs
+require ../Gforth-Tools/sqlite3_gforth_lib.fs
 
 \ note pad will get clobered with some of the following words
 
@@ -24,15 +25,20 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 
 
 : error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
-    >stderr Errlink   \ tested with gforth ver 0.7.0 and 0.7.3  
-    begin             \ if the nerror does not exist then a null string is returned!
-	@ dup
-    while
-	    2dup cell+ @ =
-	    if
-		2 cells + count rot drop exit
-	    then
-    repeat ;
+    >r sqlmessg error-cell @ 0 <> r@ 1 >= r@ 101 <= and and r> swap 
+    if
+	dberrmsg drop \ test for a sqlite3 error and return sqlite3 string if the error is from sqlite3
+    else
+	>stderr Errlink   \ tested with gforth ver 0.7.0 and 0.7.3  
+	begin             \ if the nerror does not exist then a null string is returned!
+	    @ dup
+	while
+		2dup cell+ @ =
+		if
+		    2 cells + count rot drop exit
+		then
+	repeat
+    then ;
 
 : dto$ ( d -- caddr u )  \ convert double signed to a string
     swap over dabs <<# #s rot sign #> #>> ;
