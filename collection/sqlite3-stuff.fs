@@ -59,10 +59,20 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	dup throw
     endcase ;
 
-: create-device-table ( -- ) \ used to create a device that is logged 
+: create-device-table ( -- ) \ used to create a device that is logged
+    \ table is called devices
+    \ row is primary key and is autoincrmented
+    \ dt_added is the date time stamp device was added
+    \ ip address of the device
+    \ port number of the device
+    \ method would contain the string to send socket device to get data from device eg "val"
+    \ parse_char is the string that separates data from each other ex ","
+    \ data_list_id is the name of the table that contains the logged data for this registered device
+    \ read_device is 0 or 1.  0 means device is not read anymore. 1 means device is read from still
+    \ store_data is 0 or 1. 0 means data_list_id table is not to be writen to anymore. 1 means data_list_id table is to be writen to still when device is read from
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
-    s" ip TEXT,port TEXT,method TEXT,parse_char TEXT,version INTEGER,data_list_id TEXT," temp$ $+!
+    s" ip TEXT,port TEXT,method TEXT,parse_char TEXT,data_list_id TEXT," temp$ $+!
     s" read_device INTEGER,store_data INTEGER );" temp$ $+!
     dbcmds
     sendsqlite3cmd dberrorthrow ;
