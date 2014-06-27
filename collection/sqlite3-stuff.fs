@@ -104,12 +104,19 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
 	then
     then ;
 
-: create-data-list-table ( caddr u -- cdata_list_id u nflag ) \ takes a string containing table id and data id's
+: create-data-list-table ( caddr u -- cdata_table u nflag ) \ takes a string containing table id and data id's
     \ parses these id's and creates a table in the database then returns the table id as a string on the stack
     \ If no table id is found or data id's are not present the table will not be created in database
     \ If no table id is found or data id's then the string returned is undefined and nflag is not false
     \ nflag is false if table id and data id's are found and table created in database
     \ Note this table in the database must be created before the data_table can be used in create-device-table word
+    \ eg string for this code could be as follows:
+    \ "table-id:mbed1: data-id:temperature:int: data-id:humidity:int: "
+    \ table-id: must be the first itme in the string.
+    \ there can be many data-id: 's  and they contain an id or sensor value name and the type of data stored in database.
+    \ At this time the only type of data that is working is int or INTEGER
+    \ Each entry needs to have white space around the entry but first and last entry do not need this.
+    \ Each entry needs the elements in the entry separated by : with no spaces in the entry itself
     try
 	dup 0 =
 	if
