@@ -59,7 +59,7 @@ next-exception @ value sqlite-errorListEnd
 
 : create-device-table ( -- ) \ used to create a device that is logged 
     setupsqlite3
-    s" CREATE TABLE IF NOT EXISTS devices(row INT PRIMARY KEY AUTOINCREMENT,dt_added INT,ip TEXT,port TEXT,method TEXT,data_list_id TEXT);"
+    s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INT,ip TEXT,port TEXT,method TEXT,data_list_id TEXT);"
     dbcmds
     sendsqlite3cmd dberrorthrow ;
 
@@ -74,7 +74,7 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
 
 : [create-table-id] ( caddr u -- ) \ called by create-data-list-table only
     58 $split 2drop 2dup data-table-id$ $! 
-    temp$ $+! s" (row INT PRIMARY KEY AUTOINCREMENT," temp$ $+! ;
+    temp$ $+! s" (row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER," temp$ $+! ;
 
 : [create-data-list-table] ( caddr u -- ) \ called by create-data-list-table only
     58 $split 2swap 
@@ -91,14 +91,15 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
     then ;
 
 : create-data-list-table ( caddr u -- cdata_list_id u nflag ) \ takes a string containing table id and data id's
-    \ parses these id's and creates a table in the database then returns the table as a string on the stack
+    \ parses these id's and creates a table in the database then returns the table id as a string on the stack
     \ If no table id is found or data id's are not present the table will not be created in database
-    \ If no table id is found or data id's then the string returned is empty and u is 0
+    \ If no table id is found or data id's then the string returned is undefined and nflag is not false
+    \ nflag is false if table id and data id's are found and table created in database
     \ Note this table in the database must be created before the table id can be used in create-device-table word
     try
 	dup 0 =
 	if
-	    true throw
+	    cdlt-er throw
 	else
 	    data-junk$ $!
 	    setupsqlite3
@@ -107,15 +108,15 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
 	    s" CREATE TABLE IF NOT EXISTS " temp$ $!
 	    data-junk$ 32 ['] [create-data-list-table] $iter
 	    temp$ temp$ $@len 1 - 1 $del s" );" temp$ $+! 
-	    \ temp$ $@ dbcmds
-	    \ sendqlite3cmd dberrorthrow
+	    temp$ $@ dbcmds
+	    sendsqlite3cmd dberrorthrow
 	    data-table-id$ $@len 0 =
 	    if
-		true throw
+		cdlt-er throw
 	    else
 		data-id$ $@len 0 =
 		if
-		    true throw
+		    cdlt-er throw
 		else
 		    data-table-id$ $@
 		    false
