@@ -67,12 +67,12 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ port number of the device
     \ method would contain the string to send socket device to get data from device eg "val"
     \ parse_char is the string that separates data from each other ex ","
-    \ data_list_id is the name of the table that contains the logged data for this registered device
+    \ data_table is the name of the table that contains the logged data for this registered device
     \ read_device is 0 or 1.  0 means device is not read anymore. 1 means device is read from still
     \ store_data is 0 or 1. 0 means data_list_id table is not to be writen to anymore. 1 means data_list_id table is to be writen to still when device is read from
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
-    s" ip TEXT,port TEXT,method TEXT,parse_char TEXT,data_list_id TEXT," temp$ $+!
+    s" ip TEXT,port TEXT,method TEXT,parse_char TEXT,data_table TEXT," temp$ $+!
     s" read_device INTEGER,store_data INTEGER );" temp$ $+!
     dbcmds
     sendsqlite3cmd dberrorthrow ;
@@ -109,7 +109,7 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
     \ If no table id is found or data id's are not present the table will not be created in database
     \ If no table id is found or data id's then the string returned is undefined and nflag is not false
     \ nflag is false if table id and data id's are found and table created in database
-    \ Note this table in the database must be created before the table id can be used in create-device-table word
+    \ Note this table in the database must be created before the data_table can be used in create-device-table word
     try
 	dup 0 =
 	if
