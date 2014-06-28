@@ -32,7 +32,7 @@ decimal
 variable db-path$ 
 variable temp$
 
-100 constant sqlite3-resend-time    \ system will wait for this time in ms if a locked database is found befor resending cmds
+100 constant sqlite3-resend-time    \ this codes sqlite3 routines will wait for this time in ms if a locked database is found befor resending cmds
 
 path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the name of the database
 
@@ -99,7 +99,7 @@ struct
 end-struct device%
 
 create new-device
-device% %allot device% %size erase
+device% %size allot new-device device% %size erase
 variable parse-junk$
 
 : parse-ip          ( caddr u addr -- ) ip$ $! ;
@@ -107,7 +107,29 @@ variable parse-junk$
 : parse-method      ( caddr u addr -- ) method$ $! ;
 : parse-parse_char  ( caddr u addr -- ) parse_char$ $! ;
 : parse-data_table  ( caddr u addr -- ) data_table$ $! ;
-: parse-data_id     ( caddr u addr -- ) . . . ; \ finish this one yet!***** note need to manage a link list here for other data-id's
+: [parse-data]      ( -- addr )
+    new-device ndata-id next-node @
+    begin
+	dup @ dup if swap drop false then
+    until ;
+: parse-data_id     ( caddr u addr -- )
+    ndata-id next-node @ 0 =
+    if
+	data-node% %allot new-device ndata-id next-node dup ! data-node% %size erase
+	new-device ndata-id
+    else
+	[parse-data]
+    then
+    data-id$ $! ;
+: parse-data_type   ( caddr u addr -- ) \ data_type$ is stored when next-node is zero because parse-data_id makes the next node
+    \ This means data_type must precede data_id in the registration string
+    ndata-id next-node @ 0 =
+    if
+	new-device ndata-id 
+    else
+	[parse-data]
+    then
+    data-type$ $! ;
 
 : [parse-new-device] ( caddr u -- )
     parse-junk$ $! parse-junk$ $@
@@ -125,7 +147,7 @@ variable parse-junk$
 	    parse-new-er throw
 	else
 	    temp$ $!
-	    new-device device% %size erase
+	    new-device device% %size erase  \ note every time a this code runs to parse a new device there will be small memory leak
 	    new-device ip$ init$
 	    new-device port$ init$
 	    new-device method$ init$
@@ -140,13 +162,13 @@ variable parse-junk$
     restore dup if swap drop swap drop then 
     endtry ;
 
-variable data-table-id$ data-table-id$ off s" " data-table-id$ $!
-variable data-id$       data-id$       off s" " data-id$       $!
-variable data-junk$     data-junk$     off s" " data-junk$     $!
+variable data-table-id$ data-table-id$ init$ 
+variable data-ids$      data-ids$      init$
+variable data-junk$     data-junk$     init$
 
 : [create-data-id] ( caddr u -- ) \ called by create-data-list-table only
     58 $split 
-    58 $split 2drop 2swap 2dup data-id$ $!
+    58 $split 2drop 2swap 2dup data-ids$ $!
     temp$ $+! s"  " temp$ $+! temp$ $+! s" ," temp$ $+! ;
 
 : [create-table-id] ( caddr u -- ) \ called by create-data-list-table only
@@ -189,7 +211,7 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
 	    data-junk$ $!
 	    setupsqlite3
 	    data-table-id$ off s" " data-table-id$ $! \ just ensure these strings are empty
-	    data-id$ off s" " data-id$ $!
+	    data-ids$ off s" " data-ids$ $!
 	    s" CREATE TABLE IF NOT EXISTS " temp$ $!
 	    data-junk$ 32 ['] [create-data-list-table] $iter
 	    temp$ temp$ $@len 1 - 1 $del s" );" temp$ $+! 
@@ -199,7 +221,7 @@ variable data-junk$     data-junk$     off s" " data-junk$     $!
 	    if
 		cdlt-er throw
 	    else
-		data-id$ $@len 0 =
+		data-ids$ $@len 0 =
 		if
 		    cdlt-er throw
 		else
