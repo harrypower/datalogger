@@ -83,7 +83,6 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 struct
     cell% field next-node \ 0 indicates no more nodes
     cell% field data-id$
-    cell% field data-type$
 end-struct data-node%
 
 struct
@@ -95,41 +94,45 @@ struct
     cell% field data_table$
     cell% field read_device
     cell% field store_data
-    data-node% field ndata-id
+    cell% field data-node
 end-struct device%
 
 create new-device
 device% %size allot new-device device% %size erase
 variable parse-junk$
 
+: viewdata
+    new-device dt_added @ . cr
+    new-device ip$ $@ type cr
+    new-device port$ $@ type cr
+    new-device method$ $@ type cr
+    new-device parse_char$ $@ type cr
+    new-device data_table$ $@ type cr
+    new-device read_device @ . cr
+    new-device store_data @ . cr
+    new-device data-node @ . cr ;
+: viewdatanode dup data-id$ $@ type next-node @ .s ;
+
 : parse-ip          ( caddr u addr -- ) ip$ $! ;
 : parse-port        ( caddr u addr -- ) port$ $! ;
 : parse-method      ( caddr u addr -- ) method$ $! ;
 : parse-parse_char  ( caddr u addr -- ) parse_char$ $! ;
 : parse-data_table  ( caddr u addr -- ) data_table$ $! ;
-: [parse-data]      ( -- addr )
-    new-device ndata-id next-node @
-    begin
-	dup @ dup if swap drop false then
-    until ;
+: make-data-node    ( caddr -- ) data-node% %allot dup data-node% %size erase swap ! ;
 : parse-data_id     ( caddr u addr -- )
-    ndata-id next-node @ 0 =
+    data-node @ 0 =
     if
-	data-node% %allot new-device ndata-id next-node dup ! data-node% %size erase
-	new-device ndata-id
+	new-device data-node make-data-node \ make and store first node address at data-node
+	new-device data-node @ 
     else
-	[parse-data]
+	new-device data-node @  
+	begin
+	    dup next-node @ dup if swap drop false else drop true then  
+	until
+	dup next-node make-data-node
+	next-node @
     then
     data-id$ $! ;
-: parse-data_type   ( caddr u addr -- ) \ data_type$ is stored when next-node is zero because parse-data_id makes the next node
-    \ This means data_type must precede data_id in the registration string
-    ndata-id next-node @ 0 =
-    if
-	new-device ndata-id 
-    else
-	[parse-data]
-    then
-    data-type$ $! ;
 
 : [parse-new-device] { caddr u -- }
     caddr u
@@ -153,8 +156,6 @@ variable parse-junk$
 	    new-device method$ init$
 	    new-device parse_char$ init$
 	    new-device data_table$ init$
-	    new-device ndata-id data-id$ init$
-	    new-device ndata-id data-type$ init$
 	    temp$ 38 ['] [parse-new-device] $iter
 	    \ finish seting up structure after parsing is done and test to ensure parsing was complete
 	then
