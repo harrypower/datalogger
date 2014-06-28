@@ -131,11 +131,11 @@ variable parse-junk$
     then
     data-type$ $! ;
 
-: [parse-new-device] ( caddr u -- )
-    parse-junk$ $! parse-junk$ $@
+: [parse-new-device] { caddr u -- }
+    caddr u
     s" =" search true =
     if
-	dup parse-junk$ $@ rot - 2swap 1 /string 2swap new-device -rot s" parse-" parse-junk$ $! parse-junk$ $+! parse-junk$ $@ find-name name>int execute
+	dup caddr u rot - 2swap 1 /string 2swap new-device -rot s" parse-" parse-junk$ $! parse-junk$ $+! parse-junk$ $@ find-name name>int execute
     else
 	parse-new-er throw
     then ;
