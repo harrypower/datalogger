@@ -42,7 +42,7 @@ next-exception @ constant sqlite-errorListStart  \ this is start of enumeration 
 s" Registration string not present in create-datalogging-table!"                 exception constant dltable-name-er
 s" Registration string empty in parse-new-device"                                exception constant parse-new-er
 
-next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of erros for this code
+next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
     initsqlall
