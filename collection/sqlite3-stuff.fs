@@ -39,8 +39,7 @@ path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the
 \ These are the enumerated errors this code can produce
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code
 
-s" table-id or data-id not present in create-data-list-table!"                   exception constant cdlt-er
-s" Registration string not present in register-device!"                          exception constant reg-er
+s" Registration string not present in create-datalogging-table!"                 exception constant dltable-name-er
 s" Registration string empty in parse-new-device"                                exception constant parse-new-er
 
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of erros for this code
@@ -69,12 +68,12 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ method would contain the string to send socket device to get data from device eg "val"
     \ parse_char is the string that separates data from each other ex ","
     \ data_table is the name of the table that contains the logged data for this registered device
-    \ read_device is 0 or 1.  0 means device is not read anymore. 1 means device is read from still
-    \ store_data is 0 or 1. 0 means data_list_id table is not to be writen to anymore. 1 means data_list_id table is to be writen to still when device is read from
+    \ read_device is yes or no.  no means device is not read anymore. yes means device is read from still.
+    \ store_data is yes or no. no means data_list_id table is not to be writen to anymore. yes means data_list_id table is to be writen to still when device is read from.
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
     s" ip TEXT,port TEXT,method TEXT,parse_char TEXT,data_table TEXT," temp$ $+!
-    s" read_device INTEGER,store_data INTEGER );" temp$ $+!
+    s" read_device TEXT,store_data TEXT );" temp$ $+!
     dbcmds
     sendsqlite3cmd dberrorthrow ;
 
@@ -86,14 +85,14 @@ struct
 end-struct data-node%
 
 struct
-    cell% field dt_added
+    cell% field dt_added$
     cell% field ip$
     cell% field port$
     cell% field method$
     cell% field parse_char$
     cell% field data_table$
-    cell% field read_device
-    cell% field store_data
+    cell% field read_device$
+    cell% field store_data$
     cell% field data-node
 end-struct device%
 
@@ -101,17 +100,17 @@ create new-device
 device% %size allot new-device device% %size erase
 variable parse-junk$
 
-: viewdata
-    new-device dt_added @ . cr
+: view-new-device-data
+    new-device dt_added$ $@ type cr
     new-device ip$ $@ type cr
     new-device port$ $@ type cr
     new-device method$ $@ type cr
     new-device parse_char$ $@ type cr
     new-device data_table$ $@ type cr
-    new-device read_device @ . cr
-    new-device store_data @ . cr
+    new-device read_device$ $@ type cr
+    new-device store_data$ $@ type cr
     new-device data-node @ . cr ;
-: viewdatanode dup data-id$ $@ type next-node @ .s ;
+: view-new-data-node dup data-id$ $@ type next-node @ .s ;
 
 : parse-ip          ( caddr u addr -- ) ip$ $! ;
 : parse-port        ( caddr u addr -- ) port$ $! ;
@@ -151,88 +150,39 @@ variable parse-junk$
 	else
 	    temp$ $!
 	    new-device device% %size erase  \ note every time a this code runs to parse a new device there will be small memory leak
+	    new-device dt_added$ init$
 	    new-device ip$ init$
 	    new-device port$ init$
 	    new-device method$ init$
 	    new-device parse_char$ init$
 	    new-device data_table$ init$
 	    temp$ 38 ['] [parse-new-device] $iter
-	    \ finish seting up structure after parsing is done and test to ensure parsing was complete
+	    datetime$ 1 - new-device dt_added$ $!
+	    s" yes" new-device store_data$ $!
+	    s" yes" new-device read_device$ $!
 	then
 	false
     restore dup if swap drop swap drop then 
     endtry ;
 
-variable data-table-id$ data-table-id$ init$ 
-variable data-ids$      data-ids$      init$
-variable data-junk$     data-junk$     init$
+: make-data-node-string ( -- caddr u )
+    s" not done" \ finish this to parse the data id's from the structure 
+;
 
-: [create-data-id] ( caddr u -- ) \ called by create-data-list-table only
-    58 $split 
-    58 $split 2drop 2swap 2dup data-ids$ $!
-    temp$ $+! s"  " temp$ $+! temp$ $+! s" ," temp$ $+! ;
-
-: [create-table-id] ( caddr u -- ) \ called by create-data-list-table only
-    58 $split 2drop 2dup data-table-id$ $! 
-    temp$ $+! s" (row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER," temp$ $+! ;
-
-: [create-data-list-table] ( caddr u -- ) \ called by create-data-list-table only
-    58 $split 2swap 
-    s" table-id" search true =
-    if
-	2drop [create-table-id] 
-    else
-	s" data-id" search true =
-	if
-	    2drop [create-data-id]
-	else
-	    cdlt-er throw \ did not find table or data id
-	then
-    then ;
-
-: create-data-list-table ( caddr u -- cdata_table u nflag ) \ takes a string containing table id and data id's
-    \ parses these id's and creates a table in the database then returns the table id as a string on the stack
-    \ If no table id is found or data id's are not present the table will not be created in database
-    \ If no table id is found or data id's then the string returned is undefined and nflag is not false
-    \ nflag is false if table id and data id's are found and table created in database
-    \ Note this table in the database must be created before the data_table can be used in create-device-table word
-    \ eg string for this code could be as follows:
-    \ "table-id:mbed1: data-id:temperature:int: data-id:humidity:int: "
-    \ table-id: must be the first itme in the string.
-    \ there can be many data-id: 's  and they contain an id or sensor value name and the type of data stored in database.
-    \ At this time the only type of data that is working is int or INTEGER
-    \ Each entry needs to have white space around the entry but first and last entry do not need this.
-    \ Each entry needs the elements in the entry separated by : with no spaces in the entry itself
-    \ ":" and " " can not be used in the names of table or data names
+: create-datalogging-table ( -- nflag ) \ nflag will be false is no errors
     try
-	dup 0 =
-	if
-	    cdlt-er throw
-	else
-	    data-junk$ $!
-	    setupsqlite3
-	    data-table-id$ off s" " data-table-id$ $! \ just ensure these strings are empty
-	    data-ids$ off s" " data-ids$ $!
-	    s" CREATE TABLE IF NOT EXISTS " temp$ $!
-	    data-junk$ 32 ['] [create-data-list-table] $iter
-	    temp$ temp$ $@len 1 - 1 $del s" );" temp$ $+! 
-	    temp$ $@ dbcmds
-	    sendsqlite3cmd dberrorthrow
-	    data-table-id$ $@len 0 =   \ if data-table-id$ or data-i$ are empty strings then throw cdlt-err
-	    if
-		cdlt-er throw
-	    else
-		data-ids$ $@len 0 =
-		if
-		    cdlt-er throw
-		else
-		    data-table-id$ $@
-		    false
-		then
-	    then
-	then
-    restore  
+	new-device data_table$ $@len 0 = if dltable-name-er throw then
+	new-device data-node @ 0 = if dltable-name-er throw then
+	\ note database should be checked to see if the data_table$ named does not exist
+	s" CREATE TABLE " temp$ $!
+	new-device data_table$ $@ temp$ $+!
+	s" (row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER," temp$ $+!
+	make-data-node-string temp$ $+!
+	s\" )\;" temp$ $+!
+	false
+    restore 
     endtry ;
+
 
 
 
