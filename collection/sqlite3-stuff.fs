@@ -41,6 +41,7 @@ next-exception @ constant sqlite-errorListStart  \ this is start of enumeration 
 
 s" Registration string not present in create-datalogging-table!"                 exception constant dltable-name-er
 s" Registration string empty in parse-new-device!"                               exception constant parse-new-er
+s" Table already present in database file!"                                      exception constant table-present-er
 
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
@@ -69,10 +70,13 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     restore swap drop swap drop 
     endtry ;
 
-: sqlite-ip-port? ( caddrip u caddrport u -- nflag ) \ search device table for the ip addr and port in the string.  nflag is false if no ip addr and port registered yet
-    
-;
-
+: sqlite-ip? ( caddrip u -- nflag ) \ search device table for the ip addr in the string.  nflag is false if no ip addr registered yet
+    setupsqlite3
+    s" " dbfieldseparator
+    s" " dbrecordseparator
+    s" select case when ip = '" temp$ $! temp$ $+! s" ' then -1 else 0 end from devices ;" temp$ $+! temp$ $@ dbcmds
+    sendsqlite3cmd dberrorthrow
+    dbret$ s>number? false = throw d>s ;
 
 : create-device-table ( -- ) \ This creates the main table used in the database. This table is used to reference all other tables and then data in database.
     \ table is called devices
@@ -198,7 +202,7 @@ variable makedn$
     try
 	setupsqlite3
 	new-device data_table$ $@len 0 = if dltable-name-er throw then
-	new-device data_table$ $@ sqlite-table? false <> if dltable-name-er throw then
+	new-device data_table$ $@ sqlite-table? false <> if table-present-er throw then
 	new-device data-node @ 0 = if dltable-name-er throw then
 	s" CREATE TABLE " temp$ $!
 	new-device data_table$ $@ temp$ $+!
@@ -206,15 +210,31 @@ variable makedn$
 	make-data-node-string 1 - temp$ $+! \ remove the , from the string
 	s" );" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
+	false
     restore 
     endtry ;
 
-: create-device-entry ( -- nflag )
-;
+: create-device-entry ( -- )
+    setupsqlite3
+    s" insert into devices values(NULL," temp$ $! datetime$ temp$ $+!
+    s" '" temp$ $+! new-device ip$ $@ temp$ $+! s" ','" temp$ $+!
+    new-device port$ $@ temp$ $+! s" ','" temp$ $+!
+    new-device method$ $@ temp$ $+! s" ','" temp$ $+!
+    new-device parse_char$ $@ temp$ $+! s" ','" temp$ $+!
+    new-device data_table$ $@ temp$ $+! s" ','" temp$ $+!
+    new-device read_device$ $@ temp$ $+! s" ','" temp$ $+!
+    new-device store_data$ $@ temp$ $+! s" ');" temp$ $+!
+    temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: register-device ( caddr u -- ) \ will register a new device into database device table if there are no conflics
-    parse-new-device throw
-    \ check if ip address and port is already used here
-    create-datalogging-table throw
-    create-device-entry throw ;
-
+: register-device ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
+    try  \ nflag will be false if new device registered and is now in database to be used
+	create-device-table
+	parse-new-device throw
+	new-device ip$ $@ sqlite-ip? throw 
+	create-datalogging-table throw
+	create-device-entry
+	\ possibly check the table for the ip address entered and see if data-table named for ip is also a named table
+	false
+    restore dup if swap drop swap drop then 
+	\ note if an error happens then delete the datalogging table if it did get created
+    endtry ;
