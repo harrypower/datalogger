@@ -40,7 +40,7 @@ path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code
 
 s" Registration string not present in create-datalogging-table!"                 exception constant dltable-name-er
-s" Registration string empty in parse-new-device"                                exception constant parse-new-er
+s" Registration string empty in parse-new-device!"                               exception constant parse-new-er
 
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
@@ -56,8 +56,23 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	6     of sqlite3-resend-time ms sendsqlite3cmd dup throw  endof \ table is locked now
 	sqlerrors retbuffover-err @
 	      of sqlmessg retbuffmaxsize-cell @ 2 * mkretbuff sendsqlite3cmd dup throw  endof \ buffer overflow from sqlite3
+	\ might want to limit this buffer resize to 10k bytes or something like that
 	dup throw
     endcase ;
+
+: sqlite-table? ( caddr u -- nflag ) \ will search db for the string as a table name.  nflag will return false if no table named exists
+    try  \ note this will find the string as a sub name in longer table names as a table so name your tables well!
+	setupsqlite3  
+	s" select name from sqlite_master;" dbcmds
+	sendsqlite3cmd dberrorthrow  \ note if some error happens in file access or sqlite3 access this will look like table is present
+	dbret$ 2swap search
+    restore swap drop swap drop 
+    endtry ;
+
+: sqlite-ip-port? ( caddrip u caddrport u -- nflag ) \ search device table for the ip addr and port in the string.  nflag is false if no ip addr and port registered yet
+    
+;
+
 
 : create-device-table ( -- ) \ This creates the main table used in the database. This table is used to reference all other tables and then data in database.
     \ table is called devices
@@ -73,7 +88,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
     s" ip TEXT,port TEXT,method TEXT,parse_char TEXT,data_table TEXT," temp$ $+!
-    s" read_device TEXT,store_data TEXT );" temp$ $+!
+    s" read_device TEXT,store_data TEXT );" temp$ $+! temp$ $@
     dbcmds
     sendsqlite3cmd dberrorthrow ;
 
@@ -165,26 +180,41 @@ variable parse-junk$
     restore dup if swap drop swap drop then 
     endtry ;
 
+variable makedn$ 
 : make-data-node-string ( -- caddr u )
-    s" not done" \ finish this to parse the data id's from the structure 
-;
+    new-device data-node @ dup 0 <>
+    if
+	makedn$ init$ 
+	begin
+	    dup data-id$ $@ makedn$ $+! s"  INTEGER," makedn$ $+! 
+	    next-node @ dup 0 = 
+	until
+	drop makedn$ $@ 
+    else
+	drop s" " 
+    then ;
 
-: create-datalogging-table ( -- nflag ) \ nflag will be false is no errors
+: create-datalogging-table ( -- nflag ) \ nflag will be false if no errors
     try
+	setupsqlite3
 	new-device data_table$ $@len 0 = if dltable-name-er throw then
+	new-device data_table$ $@ sqlite-table? false <> if dltable-name-er throw then
 	new-device data-node @ 0 = if dltable-name-er throw then
-	\ note database should be checked to see if the data_table$ named does not exist
 	s" CREATE TABLE " temp$ $!
 	new-device data_table$ $@ temp$ $+!
 	s" (row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER," temp$ $+!
-	make-data-node-string temp$ $+!
-	s\" )\;" temp$ $+!
-	false
+	make-data-node-string 1 - temp$ $+! \ remove the , from the string
+	s" );" temp$ $+! temp$ $@ dbcmds
+	sendsqlite3cmd dberrorthrow
     restore 
     endtry ;
 
+: create-device-entry ( -- nflag )
+;
 
+: register-device ( caddr u -- ) \ will register a new device into database device table if there are no conflics
+    parse-new-device throw
+    \ check if ip address and port is already used here
+    create-datalogging-table throw
+    create-device-entry throw ;
 
-
-
-    
