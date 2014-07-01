@@ -40,8 +40,9 @@ path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code
 
 s" Registration string not present in create-datalogging-table!"                 exception constant dltable-name-er
-s" Registration string empty in parse-new-device!"                               exception constant parse-new-er
-s" Table already present in database file!"                                      exception constant table-present-er
+s" Registration string empty or formed incorrectly in parse-new-device-xml!"     exception constant parse-new-er
+s" Table name already present in database file! (change name to register)"       exception constant table-present-er
+s" No data node's present when making table registration!"                       exception constant no-data-node-er
 
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
@@ -169,12 +170,6 @@ variable parse-junk$
 	    parse-new-er throw
 	else
 	    temp$ $!
-	    new-device device% %size erase  \ note every time a this code runs to parse a new device there will be small memory leak
-	    new-device dt_added$ init$
-	    new-device ip$ init$
-	    new-device port$ init$
-	    new-device method$ init$
-	    new-device data_table$ init$
 	    temp$ 60 ['] [parse-new-device-xml] $iter
 	    datetime$ 1 - new-device dt_added$ $!
 	    s" yes" new-device store_data$ $!
@@ -195,7 +190,19 @@ variable parse-junk$
     new-device data-node @ . cr ;
 : view-new-data-node dup data-id$ $@ type dup s"  " type data-type$ $@ type next-node @ .s ;
 
-: make-data-node-string ( -- cadrr u ) ;
+variable makedn$
+: make-data-node-string ( -- cadrr u )
+    new-device data-node @ dup 0 <>
+    if
+	makedn$ init$
+	begin
+	    dup data-id$ $@ makedn$ $+! s"  " makedn$ $+! dup data-type$ $@ makedn$ $+! s" ," makedn$ $+!
+	    next-node @ dup 0 =
+	until
+	drop makedn$ $@
+    else
+	drop no-data-node-er throw
+    then ;
 
 : create-datalogging-table ( -- nflag ) \ nflag will be false if no errors
     try
@@ -224,8 +231,33 @@ variable parse-junk$
     new-device store_data$ $@ temp$ $+! s" ');" temp$ $+!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
+: rm-datatable? ( -- ) \ will determin if a data table was created in database.  If it was it will try to drop the table.
+    try 
+	new-device data_table$ $@ dup 0 =
+	if
+	    2drop false \ no table name no table
+	else
+	    sqlite-table? false =
+	    if
+		false \ no table in database just exit
+	    else
+		\ remove found table as it is not needed due to registartion error
+		setupsqlite3
+		s" drop table " temp$ $! new-device data_table$ $@ temp$ $+! s" ;" temp$ $+! temp$ $@ dbcmds
+		sendsqlite3cmd dberrorthrow  \ note if this throws then the table may still be there after 
+	    then
+	then
+    restore
+    endtry ;
+
 : register-device ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
+	new-device device% %size erase  \ note every time a this code runs to parse a new device there will be small memory leak
+	new-device dt_added$ init$
+	new-device ip$ init$
+	new-device port$ init$
+	new-device method$ init$
+	new-device data_table$ init$
 	create-device-table
 	parse-new-device-xml throw
 	new-device ip$ $@ sqlite-ip? throw 
@@ -233,10 +265,14 @@ variable parse-junk$
 	create-device-entry
 	\ possibly check the table for the ip address entered and see if data-table named for ip is also a named table
 	false
-    restore dup if swap drop swap drop then 
-	\ note if an error happens then delete the datalogging table if it did get created
+    restore dup
+	if
+	    swap drop swap drop \ clean up if an error
+	    rm-datatable? \ clean up datatable from database if it did get created by error
+	then 
     endtry ;
 
 \ make a word to have a localaly version of the device table  and update that table when register-device is used and system restarts
 \ need a word to store data in the database for a give device from the device table
 \ need a word to retreve the device table info to query the device for data to store in the database!
+\ need to make error table word and error storage method and retreval methods from database
