@@ -256,7 +256,7 @@ variable makedn$
 : make-data-node-string ( -- cadrr u )
     new-device data-node @ dup 0 <>
     if
-	makedn$ init$
+	makedn$ $off makedn$ init$ 
 	begin
 	    dup data-id$ $@ makedn$ $+! s"  " makedn$ $+! dup data-type$ $@ makedn$ $+! s" ," makedn$ $+!
 	    next-node @ dup 0 =
@@ -328,10 +328,10 @@ variable makedn$
     restore dup
 	if
 	    swap drop swap drop \ clean up after error
-	    dup table-present-er <>
-	    if \ only delete table if it was not present before trying to create a new one
-		rm-datatable?  
-	    then
+	  \  dup table-present-er <>
+	    \ if \ only delete table if it was not present before trying to create a new one
+	\	 rm-datatable?  
+	 \   then
 	then
     endtry ;
 
