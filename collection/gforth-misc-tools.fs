@@ -54,3 +54,7 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 : datetime$ ( -- caddr u ) \ create the current time value of unixepoch and make into a string with a "," at the end of string
     utime 1000000 fm/mod swap drop
     #to$, ;
+
+: init$ ( addr -- ) >r r@ off s" " r> $! ;  \ this is the same as $init in higher version of gforth.
+\ use this to initalize a string variable before accessing the string in the variable
+

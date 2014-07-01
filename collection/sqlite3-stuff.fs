@@ -96,11 +96,10 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     dbcmds
     sendsqlite3cmd dberrorthrow ;
 
-: init$ ( addr -- ) >r r@ off s" " r> $! ;
-
 struct
     cell% field next-node \ 0 indicates no more nodes
     cell% field data-id$
+    cell% field data-type$
 end-struct data-node%
 
 struct
@@ -119,6 +118,75 @@ create new-device
 device% %size allot new-device device% %size erase
 variable parse-junk$
 
+: pxml-sensor_name ( caddr u addr -- ) data_table$ $! ;
+: pxml-ip          ( caddr u addr -- ) ip$ $! ;
+: pxml-port        ( caddr u addr -- ) port$ $! ;
+: pxml-method      ( caddr u addr -- ) method$ $! ;
+: make-data-node   ( caddr -- ) data-node% %allot dup data-node% %size erase swap ! ;
+: pxml-data_name   ( caddr u addr -- )
+    data-node @ 0 =
+    if
+	new-device data-node make-data-node \ make and store first node address at data-node
+	new-device data-node @
+    else
+	new-device data-node @
+	begin
+	    dup next-node @ dup if swap drop false else drop true then
+	until
+	dup next-node make-data-node
+	next-node @
+    then
+    { caddr u addr } caddr u
+    34 $split to u to caddr addr data-id$ $!
+    caddr u s\" data_type=\"" search
+    if
+	11 - swap 11 + swap addr data-type$ $!
+    else
+	parse-new-er throw
+    then ;
+
+: [parse-new-device-xml] ( caddr u -- )
+    s" register>" search true =
+    if
+	2drop \ done parsing this string
+    else
+	s" register " search true =
+	if
+	    9 - swap 9 + swap 
+	    61 $split 3 - swap 1 + swap 2swap s" pxml-" parse-junk$ $! parse-junk$ $+! parse-junk$ $@ find-name name>int new-device swap execute
+	else
+	    0 =
+	    if
+		drop \ there is a empty string on the first $iter use that should be discarded
+	    else
+		parse-new-er throw \ if that string is not empty then it is an xml error
+	    then
+	then
+    then ;
+
+: parse-new-device-xml ( caddr u -- nflag )
+    try
+	dup 0 =
+	if
+	    parse-new-er throw
+	else
+	    temp$ $!
+	    new-device device% %size erase  \ note every time a this code runs to parse a new device there will be small memory leak
+	    new-device dt_added$ init$
+	    new-device ip$ init$
+	    new-device port$ init$
+	    new-device method$ init$
+	    new-device parse_char$ init$
+	    new-device data_table$ init$
+	    temp$ 60 ['] [parse-new-device-xml] $iter
+	    datetime$ 1 - new-device dt_added$ $!
+	    s" yes" new-device store_data$ $!
+	    s" yes" new-device read_device$ $!
+	    false 
+	then dup if swap drop swap drop then 
+    restore
+    endtry ;
+
 : view-new-device-data
     new-device dt_added$ $@ type cr
     new-device ip$ $@ type cr
@@ -129,14 +197,14 @@ variable parse-junk$
     new-device read_device$ $@ type cr
     new-device store_data$ $@ type cr
     new-device data-node @ . cr ;
-: view-new-data-node dup data-id$ $@ type next-node @ .s ;
+: view-new-data-node dup data-id$ $@ type dup s"  " type data-type$ $@ type next-node @ .s ;
 
 : parse-ip          ( caddr u addr -- ) ip$ $! ;
 : parse-port        ( caddr u addr -- ) port$ $! ;
 : parse-method      ( caddr u addr -- ) method$ $! ;
 : parse-parse_char  ( caddr u addr -- ) parse_char$ $! ;
 : parse-data_table  ( caddr u addr -- ) data_table$ $! ;
-: make-data-node    ( caddr -- ) data-node% %allot dup data-node% %size erase swap ! ;
+\ : make-data-node    ( caddr -- ) data-node% %allot dup data-node% %size erase swap ! ;
 : parse-data_id     ( caddr u addr -- )
     data-node @ 0 =
     if
@@ -238,3 +306,7 @@ variable makedn$
     restore dup if swap drop swap drop then 
 	\ note if an error happens then delete the datalogging table if it did get created
     endtry ;
+
+\ make a word to have a localaly version of the device table  and update that table when register-device is used and system restarts
+\ need a word to store data in the database for a give device from the device table
+\ need a word to retreve the device table info to query the device for data to store in the database!
