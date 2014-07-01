@@ -231,7 +231,7 @@ variable makedn$
     new-device store_data$ $@ temp$ $+! s" ');" temp$ $+!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: rm-datatable? ( -- ) \ will determin if a data table was created in database.  If it was it will try to drop the table.
+: rm-datatable? ( -- ) \ will determine if a data table was created in database.  If it was it will try to drop the table.
     try 
 	new-device data_table$ $@ dup 0 =
 	if
@@ -252,7 +252,7 @@ variable makedn$
 
 : register-device ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
-	new-device device% %size erase  \ note every time a this code runs to parse a new device there will be small memory leak
+	new-device device% %size erase  \ note every time this code runs to parse a new device there will be small memory leak
 	new-device dt_added$ init$
 	new-device ip$ init$
 	new-device port$ init$
@@ -267,9 +267,9 @@ variable makedn$
 	false
     restore dup
 	if
-	    swap drop swap drop \ clean up if an error
-	    rm-datatable? \ clean up datatable from database if it did get created by error
-	then 
+	    swap drop swap drop \ clean up after error
+	    rm-datatable?  \ delete data table created in error
+	then
     endtry ;
 
 \ make a word to have a localaly version of the device table  and update that table when register-device is used and system restarts
