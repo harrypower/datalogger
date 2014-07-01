@@ -85,13 +85,12 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ ip address of the device
     \ port number of the device
     \ method would contain the string to send socket device to get data from device eg "val"
-    \ parse_char is the string that separates data from each other ex ","
     \ data_table is the name of the table that contains the logged data for this registered device
     \ read_device is yes or no.  no means device is not read anymore. yes means device is read from still.
     \ store_data is yes or no. no means data_list_id table is not to be writen to anymore. yes means data_list_id table is to be writen to still when device is read from.
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
-    s" ip TEXT,port TEXT,method TEXT,parse_char TEXT,data_table TEXT," temp$ $+!
+    s" ip TEXT,port TEXT,method TEXT,data_table TEXT," temp$ $+!
     s" read_device TEXT,store_data TEXT );" temp$ $+! temp$ $@
     dbcmds
     sendsqlite3cmd dberrorthrow ;
@@ -107,7 +106,6 @@ struct
     cell% field ip$
     cell% field port$
     cell% field method$
-    cell% field parse_char$
     cell% field data_table$
     cell% field read_device$
     cell% field store_data$
@@ -136,8 +134,8 @@ variable parse-junk$
 	dup next-node make-data-node
 	next-node @
     then
-    { caddr u addr } caddr u
-    34 $split to u to caddr addr data-id$ $!
+    { caddr u addr } caddr u 
+    34 $split to u to caddr addr data-id$ $! \ need to break up the data_type from data_name in string
     caddr u s\" data_type=\"" search
     if
 	11 - swap 11 + swap addr data-type$ $!
@@ -164,7 +162,7 @@ variable parse-junk$
 	then
     then ;
 
-: parse-new-device-xml ( caddr u -- nflag )
+: parse-new-device-xml ( caddr u -- nflag ) \ string is the xml to register this sensor. nflag is false when data parsed correctly and in structure
     try
 	dup 0 =
 	if
@@ -176,7 +174,6 @@ variable parse-junk$
 	    new-device ip$ init$
 	    new-device port$ init$
 	    new-device method$ init$
-	    new-device parse_char$ init$
 	    new-device data_table$ init$
 	    temp$ 60 ['] [parse-new-device-xml] $iter
 	    datetime$ 1 - new-device dt_added$ $!
@@ -192,79 +189,13 @@ variable parse-junk$
     new-device ip$ $@ type cr
     new-device port$ $@ type cr
     new-device method$ $@ type cr
-    new-device parse_char$ $@ type cr
     new-device data_table$ $@ type cr
     new-device read_device$ $@ type cr
     new-device store_data$ $@ type cr
     new-device data-node @ . cr ;
 : view-new-data-node dup data-id$ $@ type dup s"  " type data-type$ $@ type next-node @ .s ;
 
-: parse-ip          ( caddr u addr -- ) ip$ $! ;
-: parse-port        ( caddr u addr -- ) port$ $! ;
-: parse-method      ( caddr u addr -- ) method$ $! ;
-: parse-parse_char  ( caddr u addr -- ) parse_char$ $! ;
-: parse-data_table  ( caddr u addr -- ) data_table$ $! ;
-\ : make-data-node    ( caddr -- ) data-node% %allot dup data-node% %size erase swap ! ;
-: parse-data_id     ( caddr u addr -- )
-    data-node @ 0 =
-    if
-	new-device data-node make-data-node \ make and store first node address at data-node
-	new-device data-node @ 
-    else
-	new-device data-node @  
-	begin
-	    dup next-node @ dup if swap drop false else drop true then  
-	until
-	dup next-node make-data-node
-	next-node @
-    then
-    data-id$ $! ;
-
-: [parse-new-device] { caddr u -- }
-    caddr u
-    s" =" search true =
-    if
-	dup caddr u rot - 2swap 1 /string 2swap new-device -rot s" parse-" parse-junk$ $! parse-junk$ $+! parse-junk$ $@ find-name name>int execute
-    else
-	parse-new-er throw
-    then ;
-
-: parse-new-device ( caddr u -- nflag ) \ nflag is false when parsing had no errors.  
-    try
-	dup 0 =
-	if
-	    parse-new-er throw
-	else
-	    temp$ $!
-	    new-device device% %size erase  \ note every time a this code runs to parse a new device there will be small memory leak
-	    new-device dt_added$ init$
-	    new-device ip$ init$
-	    new-device port$ init$
-	    new-device method$ init$
-	    new-device parse_char$ init$
-	    new-device data_table$ init$
-	    temp$ 38 ['] [parse-new-device] $iter
-	    datetime$ 1 - new-device dt_added$ $!
-	    s" yes" new-device store_data$ $!
-	    s" yes" new-device read_device$ $!
-	then
-	false
-    restore dup if swap drop swap drop then 
-    endtry ;
-
-variable makedn$ 
-: make-data-node-string ( -- caddr u )
-    new-device data-node @ dup 0 <>
-    if
-	makedn$ init$ 
-	begin
-	    dup data-id$ $@ makedn$ $+! s"  INTEGER," makedn$ $+! 
-	    next-node @ dup 0 = 
-	until
-	drop makedn$ $@ 
-    else
-	drop s" " 
-    then ;
+: make-data-node-string ( -- cadrr u ) ;
 
 : create-datalogging-table ( -- nflag ) \ nflag will be false if no errors
     try
@@ -288,7 +219,6 @@ variable makedn$
     s" '" temp$ $+! new-device ip$ $@ temp$ $+! s" ','" temp$ $+!
     new-device port$ $@ temp$ $+! s" ','" temp$ $+!
     new-device method$ $@ temp$ $+! s" ','" temp$ $+!
-    new-device parse_char$ $@ temp$ $+! s" ','" temp$ $+!
     new-device data_table$ $@ temp$ $+! s" ','" temp$ $+!
     new-device read_device$ $@ temp$ $+! s" ','" temp$ $+!
     new-device store_data$ $@ temp$ $+! s" ');" temp$ $+!
@@ -297,7 +227,7 @@ variable makedn$
 : register-device ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
 	create-device-table
-	parse-new-device throw
+	parse-new-device-xml throw
 	new-device ip$ $@ sqlite-ip? throw 
 	create-datalogging-table throw
 	create-device-entry
