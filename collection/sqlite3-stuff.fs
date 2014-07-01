@@ -335,7 +335,10 @@ variable makedn$
 	then
     endtry ;
 
-\ make a word to have a localaly version of the device table  and update that table when register-device is used and system restarts
-\ need a word to store data in the database for a give device from the device table
+\ make a word to have a local version of the device table and update that table when register-device is used and system restarts
+\ need a word to store data in the database for a given device from the device table
 \ need a word to retreve the device table info to query the device for data to store in the database!
+\ need to write the xml stuff on mbed sensor to register then write code to register via wget with ip and port only so mbed returns registry xlm info
+\ write words to take xml for datalogging from sensor then log it into database
+\ add the xml output for data from the mbed sensor
 
