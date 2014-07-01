@@ -328,11 +328,14 @@ variable makedn$
     restore dup
 	if
 	    swap drop swap drop \ clean up after error
-	    rm-datatable?  \ delete data table created in error
+	    dup table-present-er <>
+	    if \ only delete table if it was not present before trying to create a new one
+		rm-datatable?  
+	    then
 	then
     endtry ;
 
 \ make a word to have a localaly version of the device table  and update that table when register-device is used and system restarts
 \ need a word to store data in the database for a give device from the device table
 \ need a word to retreve the device table info to query the device for data to store in the database!
-\ need to make error table word and error storage method and retreval methods from database
+
