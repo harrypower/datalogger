@@ -1,0 +1,18 @@
+<register>
+<register sensor_name="mbed1"></register>
+<register ip="192.168.0.125"></register>
+<register port="4446"></register>
+<register method="value"></register>
+<register data_name="humidity" data_type="integer"></register>
+<register data_name="temperature" data_type="integer"></register>
+</register>
+
+
+The above xml is an example of how you register a device with this datalogging project.
+The above xml could be put into a file as is to register.  
+sensor_name is the table name of the data that will be logged.
+The data_name and data_type would be a table fieled of the data_type.
+The data types allowed are the same as sqlite3 TEXT, INTEGER, REAL.  The table will have a row and dtime field also.
+method is the value used in the http request as follows: 
+192.168.0.125:4446/value 
+Normaly this xml will come from the sensor it self and that is how i intend to register devices!

@@ -96,6 +96,68 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     dbcmds
     sendsqlite3cmd dberrorthrow ;
 
+: create-error-tables ( -- ) \ used to create the error logging tables 
+    setupsqlite3
+    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT);" dbcmds
+    sendsqlite3cmd dberrorthrow
+    setupsqlite3
+    s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT);" dbcmds
+    sendsqlite3cmd dberrorthrow ;
+
+: error-sqlite3! ( nerror -- ) \ used to store error values into errors table
+    setupsqlite3
+    s" insert into errors values(NULL," temp$ $!
+    datetime$ temp$ $+!
+    #to$ temp$ $+!
+    s" );" temp$ $+!
+    temp$ $@ dbcmds
+    sendsqlite3cmd  dberrorthrow ;
+
+: (errorINlist?) { nsyserror -- nflag ndberror }  \ see if nsyserror number is in database list of errors
+    \ ndberror is false only if there was no dberror if ndberror is true then nflag is undefined
+    \ nflag is true if nsyserror is in the dbase
+    \ nflag is false if nsyserror is not in the dbase
+    setupsqlite3
+    s" select exists (select error from errorList where (error = " temp$ $!
+    nsyserror #to$ temp$ $+!
+    s" ));" temp$ $+! temp$ $@ dbcmds
+    5 1 ?do 
+	sendsqlite3cmd 0 = if leave else i 20 * ms then
+    loop
+    dbret$ s" 1" search swap drop swap drop dup
+    dbret$ s" 0" search swap drop swap drop xor false =
+    if
+	true
+    else
+	dberrmsg swap drop swap drop
+    then ;
+
+: (puterrorINlist) ( nerror -- ) \ add nerror number and string to the error list
+    setupsqlite3
+    dup -2 <>  \ this is needed because -2 error does not report a message even though it is Abort !
+    if
+	s" insert into errorList values(" temp$ $!
+	dup  #to$, temp$ $+! s\" \"" temp$ $+!
+	error#to$ temp$ $+! s\" \");" temp$ $+! temp$ $@ dbcmds
+    else
+	drop
+	s\" insert into errorList values(-2, \'Abort\" has occured!\');" dbcmds
+    then
+    sendsqlite3cmd drop \ ****note if there is a sqlite3 error here this new error will not be stored in list*****
+    \ **** positive error numbers can come from sqlite3 but the proper string may not get placed in db for the number
+;
+
+: errorlist-sqlite3! { nerror -- } \ will add the nerror associated string for that error to database
+    5 1 ?do \ try to test and store 5 times after that just bail
+	nerror (errorINlist?)
+	false =
+	if false =
+	    if nerror (puterrorINlist) then
+	    leave
+	else drop i 20 * ms
+	then
+    loop ;
+
 struct
     cell% field next-node \ 0 indicates no more nodes
     cell% field data-id$
@@ -233,21 +295,18 @@ variable makedn$
 
 : rm-datatable? ( -- ) \ will determine if a data table was created in database.  If it was it will try to drop the table.
     try 
-	new-device data_table$ $@ dup 0 =
+	new-device data_table$ $@ dup 0 <>
 	if
-	    2drop false \ no table name no table
-	else
-	    sqlite-table? false =
+	    sqlite-table? true =
 	    if
-		false \ no table in database just exit
-	    else
 		\ remove found table as it is not needed due to registartion error
 		setupsqlite3
 		s" drop table " temp$ $! new-device data_table$ $@ temp$ $+! s" ;" temp$ $+! temp$ $@ dbcmds
-		sendsqlite3cmd dberrorthrow  \ note if this throws then the table may still be there after 
+		sendsqlite3cmd dberrorthrow  \ note if this throws then the table may still be there after all 
 	    then
 	then
-    restore
+	false
+    restore drop 
     endtry ;
 
 : register-device ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
@@ -259,6 +318,7 @@ variable makedn$
 	new-device method$ init$
 	new-device data_table$ init$
 	create-device-table
+	create-error-tables
 	parse-new-device-xml throw
 	new-device ip$ $@ sqlite-ip? throw 
 	create-datalogging-table throw
