@@ -43,6 +43,7 @@ s" Registration string not present in create-datalogging-table!"                
 s" Registration string empty or formed incorrectly in parse-new-device-xml!"     exception constant parse-new-er
 s" Table name already present in database file! (change name to register)"       exception constant table-present-er
 s" No data node's present when making table registration!"                       exception constant no-data-node-er
+s" Registry data not recieved from device!"                                      exception constant wg-registry-er
 
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
@@ -304,19 +305,23 @@ variable makedn$
 		s" drop table " temp$ $! new-device data_table$ $@ temp$ $+! s" ;" temp$ $+! temp$ $@ dbcmds
 		sendsqlite3cmd dberrorthrow  \ note if this throws then the table may still be there after all 
 	    then
+	else
+	    2drop 
 	then
 	false
     restore drop 
     endtry ;
 
-: register-device ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
+: register-device-$ ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
-	new-device device% %size erase  \ note every time this code runs to parse a new device there will be small memory leak
-	new-device dt_added$ init$
-	new-device ip$ init$
-	new-device port$ init$
-	new-device method$ init$
-	new-device data_table$ init$
+	new-device data-node off   \ note every time this code runs to parse a new device there will be small memory leak
+	new-device dt_added$ dup $off init$
+	new-device ip$ dup $off init$
+	new-device port$ dup $off init$
+	new-device method$ dup $off init$
+	new-device data_table$ dup $off init$
+	new-device read_device$ dup $off init$
+	new-device store_data$ dup $off init$
 	create-device-table
 	create-error-tables
 	parse-new-device-xml throw
@@ -328,12 +333,23 @@ variable makedn$
     restore dup
 	if
 	    swap drop swap drop \ clean up after error
-	  \  dup table-present-er <>
-	    \ if \ only delete table if it was not present before trying to create a new one
-	\	 rm-datatable?  
-	 \   then
+	    dup table-present-er <>
+	    if \ only delete table if it was not present before trying to create a new one
+		 rm-datatable?  
+	    then
 	then
     endtry ;
+
+: get-register-$ ( caddr-ip u -- nflag ) \ takes a string that has ip and port numbers to get registration data from
+    \ eg s" 192.168.0.126:4445" could be used to talk to a sensor at that ip address and that port number
+    s" sudo wget --output-document=" temp$ $! path$ $@ temp$ $+! s" /collection/wg-reg-device.data " temp$ $+! 
+    temp$ $+! s" /regdev" temp$ $+! temp$ $@ system
+    path$ $@ temp$ $! s" /collection/wg-reg-device.data" temp$ $+! temp$ $@ slurp-file dup 0 >
+    if
+	register-device-$ 
+    else
+	wg-registry-er 
+    then ;
 
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
 \ need a word to store data in the database for a given device from the device table
