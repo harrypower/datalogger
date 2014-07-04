@@ -40,7 +40,7 @@ path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code
 
 s" Registration string not present in create-datalogging-table!"                 exception constant dltable-name-er
-s" Registration string empty or formed incorrectly in parse-new-device-xml!"     exception constant parse-new-er
+s" Registration string empty or formed incorrectly in parse-new-device-json!"     exception constant parse-new-er
 s" Table name already present in database file! (change name to register)"       exception constant table-present-er
 s" No data node's present when making table registration!"                       exception constant no-data-node-er
 s" Registry data not recieved from device!"                                      exception constant wg-registry-er
@@ -174,16 +174,13 @@ struct
     cell% field read_device$
     cell% field store_data$
     cell% field data-node
+    cell% field data-quantity
 end-struct device%
 
 create new-device
 device% %size allot new-device device% %size erase
 variable parse-junk$
-
-: pxml-sensor_name ( caddr u addr -- ) data_table$ $! ;
-: pxml-ip          ( caddr u addr -- ) ip$ $! ;
-: pxml-port        ( caddr u addr -- ) port$ $! ;
-: pxml-method      ( caddr u addr -- ) method$ $! ;
+\  **************** remove this when done reading it ************
 : make-data-node   ( caddr -- ) data-node% %allot dup data-node% %size erase swap ! ;
 : pxml-data_name   ( caddr u addr -- )
     data-node @ 0 =
@@ -206,43 +203,50 @@ variable parse-junk$
     else
 	parse-new-er throw
     then ;
+\ ***************************************** remove up to the separation
 
-: [parse-new-device-xml] ( caddr u -- )
-    s" register>" search true =
-    if
-	2drop \ done parsing this string
-    else
-	s" register " search true =
-	if
-	    9 - swap 9 + swap 
-	    61 $split 3 - swap 1 + swap 2swap s" pxml-" parse-junk$ $! parse-junk$ $+! parse-junk$ $@ find-name name>int new-device swap execute
-	else
-	    0 =
-	    if
-		drop \ there is a empty string on the first $iter use that should be discarded
-	    else
-		parse-new-er throw \ if that string is not empty then it is an xml error
-	    then
-	then
-    then ;
+false value name-type?  \ this is false for name is next and true for type is next 
+: pjson-"sensor_name" ( caddr u addr -- ) data_table$ $! ;
+: pjson-"ip"          ( caddr u addr -- ) ip$ $! ;
+: pjson-"port"        ( caddr u addr -- ) port$ $! ;
+: pjson-"method"      ( caddr u addr -- ) method$ $! ;
+: pjson-"quantity"    ( caddr u addr -- ) data-quantity $! ;
+: pjson-              ( caddr u addr -- ) parse-new-er throw ;  \ incorrect formed json found
+: pjson-"name"        ( caddr u addr -- ) 2drop drop ; \ impliment this not stuff still ***********
+: pjson-"type"        ( caddr u addr -- ) 2drop drop ; \ still to impiment  ***************
 
-: parse-new-device-xml ( caddr u -- nflag ) \ string is the xml to register this sensor. nflag is false when data parsed correctly and in structure
+: [parse-json] ( caddr u -- )
+    ':' $split 
+    2swap s" pjson-" temp$ $! temp$ $+! temp$ $@ find-name name>int new-device swap execute ;
+
+variable register_device$
+variable register_data$
+: parse-new-device-json ( caddr u - nflag ) \ string is the json to register this sensor. nflag is false when json data parsed correctly and in structure now
     try
 	dup 0 =
 	if
 	    parse-new-er throw
 	else
+	    false to name-type?  \ start with a name 
 	    temp$ $!
-	    temp$ 60 ['] [parse-new-device-xml] $iter
+	    temp$ $@ s\" {\"register device\":" search false = if parse-new-er throw then
+	    '{' skip '{' scan '{' skip register_device$ $!
+	    temp$ $@ s\" \"register data\":" search false = if parse-new-er throw then
+	    '{' scan '{' skip register_data$ $!
+	    register_device$ $@ dup -rot '}' scan swap drop - register_device$ $!len
+	    register_data$ $@ '}' scan drop register_data$ $@ drop - register_data$ $!len
+	    register_device$ ',' ['] [parse-json] $iter
+	    register_data$ ',' ['] [parse-json] $iter
 	    datetime$ 1 - new-device dt_added$ $!
 	    s" yes" new-device store_data$ $!
 	    s" yes" new-device read_device$ $!
-	    false 
-	then dup if swap drop swap drop then 
-    restore
+	    false
+	then 
+    restore dup if swap drop swap drop then
     endtry ;
 
-: view-new-device-data
+: view-new-device-data ( -- )
+    cr
     new-device dt_added$ $@ type cr
     new-device ip$ $@ type cr
     new-device port$ $@ type cr
@@ -250,8 +254,10 @@ variable parse-junk$
     new-device data_table$ $@ type cr
     new-device read_device$ $@ type cr
     new-device store_data$ $@ type cr
-    new-device data-node @ . cr ;
-: view-new-data-node dup data-id$ $@ type dup s"  " type data-type$ $@ type next-node @ .s ;
+    new-device data-node @ . cr 
+    new-device data-quantity $@ type cr ;
+: view-new-data-node ( addr -- )
+    dup data-id$ $@ type dup s"  " type data-type$ $@ type next-node @ .s ;
 
 variable makedn$
 : make-data-node-string ( -- cadrr u )
@@ -315,6 +321,7 @@ variable makedn$
 : register-device-$ ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
 	new-device data-node off   \ note every time this code runs to parse a new device there will be small memory leak
+	new-device data-quantity off 
 	new-device dt_added$ dup $off init$
 	new-device ip$ dup $off init$
 	new-device port$ dup $off init$
@@ -324,7 +331,7 @@ variable makedn$
 	new-device store_data$ dup $off init$
 	create-device-table
 	create-error-tables
-	parse-new-device-xml throw
+	parse-new-device-json throw
 	new-device ip$ $@ sqlite-ip? throw 
 	create-datalogging-table throw
 	create-device-entry
