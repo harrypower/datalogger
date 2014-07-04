@@ -1,18 +1,11 @@
-<register>
-<register sensor_name="mbed1"></register>
-<register ip="192.168.0.125"></register>
-<register port="4446"></register>
-<register method="value"></register>
-<register data_name="humidity" data_type="integer"></register>
-<register data_name="temperature" data_type="integer"></register>
-</register>
+{"register device":{"sensor_name":"mbedA","ip":"192.168.0.126","port":"4445","method":"value","quantity":8},"register data":{"name":"temperature","type":"INTEGER","name":"humidity","type":"INTEGER","name":"co2raw","type":"INTEGER","name":"nh3raw","type":"INTEGER","name":"co2cal","type":"INTEGER","name":"nh3cal","type":"INTEGER","name":"co2rel","type":"INTEGER","name":"nh3rel","type":"INTEGER"}}
 
-
-The above xml is an example of how you register a device with this datalogging project.
-The above xml could be put into a file as is to register.  
-sensor_name is the table name of the data that will be logged.
-The data_name and data_type would be a table fieled of the data_type.
-The data types allowed are the same as sqlite3 TEXT, INTEGER, REAL.  The table will have a row and dtime field also.
-method is the value used in the http request as follows: 
+The above json is an example of how you register a device with this datalogging project.
+The above json could be put into a file to register from.  
+sensor_name is the table name of the device that will be logged.
+The name and type would be fields of the table sensor_name that is given.
+The types allowed are the same as sqlite3 TEXT, INTEGER, REAL.  The table will have a row and dtime field also.
+method is the value used in the http request as follows(for data retreaval): 
 192.168.0.125:4446/value 
-Normaly this xml will come from the sensor it self and that is how i intend to register devices!
+Normaly this json will come from the sensor it self from a wget request or some other method that is used to create the tables in database!
+Note there are some restrictions on the names that can be used for sensor_name, name and type.  The normal sqlite3 table name restrictions!
