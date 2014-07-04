@@ -40,11 +40,11 @@ path$ $@ db-path$ $! s" /collection/datalogged.data" db-path$ $+!  \ this is the
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code
 
 s" Registration string not present in create-datalogging-table!"                 exception constant dltable-name-er
-s" Registration string empty or formed incorrectly in parse-new-device-json!"     exception constant parse-new-er
-s" Table name already present in database file! (change name to register)"       exception constant table-present-er
+s" Registration string empty or formed incorrectly in parse-new-device-json!"    exception constant parse-new-er
+s" Table name already present in database file! (change name of table)"          exception constant table-present-er
 s" No data node's present when making table registration!"                       exception constant no-data-node-er
 s" Registry data not recieved from device!"                                      exception constant wg-registry-er
-
+s" Registration parsing data node quantitys do not match!"                       exception constant parse-quantity-er
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -206,15 +206,15 @@ false value name-type?  \ this is false for name is next and true for type is ne
 	next-node @
     then ;
 
-: pjson-"name"        ( caddr u addr -- ) \ 2drop drop ; \ impliment this not stuff still ***********
+: pjson-"name"        ( caddr u addr -- )
     name-type? false <> if parse-new-er throw then
     swap dup 0 = if parse-new-er throw then
     swap [create-data-node] dup to node-addr data-id$ $!
     true to name-type?
     node-count 1 + to node-count ;
 
-: pjson-"type"        ( caddr u addr -- ) \ 2drop drop ; \ still to impiment  ***************
-    drop \ this addres is not used
+: pjson-"type"        ( caddr u addr -- )
+    drop \ this addres is not used must calculate real addr to store this type
     name-type? true <> if parse-new-er throw then
     dup 0 = if parse-new-er throw then
     node-addr 0 = if parse-new-er throw then
