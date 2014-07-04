@@ -249,7 +249,7 @@ variable register_data$
 	    datetime$ 1 - new-device dt_added$ $!
 	    s" yes" new-device store_data$ $!
 	    s" yes" new-device read_device$ $!
-	    new-device data_quantity$ $@ s>unumber? true =
+	    new-device data-quantity$ $@ s>unumber? true =
 	    if
 		d>s node-count <> if parse-quantity-er throw then
 	    else
@@ -313,7 +313,7 @@ variable makedn$
     new-device data_table$ $@ temp$ $+! s" ','" temp$ $+!
     new-device read_device$ $@ temp$ $+! s" ','" temp$ $+!
     new-device store_data$ $@ temp$ $+! s" '," temp$ $+!
-    new-device data_quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
+    new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : rm-datatable? ( -- ) \ will determine if a data table was created in database in error.  If it was in error added it will try to drop the table.
@@ -344,11 +344,11 @@ variable makedn$
 	new-device data_table$ dup $off init$
 	new-device read_device$ dup $off init$
 	new-device store_data$ dup $off init$
-	new-device data_quantity$ dup $off init$
+	new-device data-quantity$ dup $off init$
 	create-device-table
 	create-error-tables
 	parse-new-device-json throw
-	new-device ip$ $@ sqlite-ip? throw 
+	new-device ip$ $@ sqlite-ip? throw \ check for existing ip and port in the database
 	create-datalogging-table throw
 	create-device-entry
 	\ possibly check the table for the ip address entered and see if data-table named for ip is also a named table
@@ -374,10 +374,10 @@ variable makedn$
 	wg-registry-er 
     then ;
 
+
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
 \ need a word to store data in the database for a given device from the device table
 \ need a word to retreve the device table info to query the device for data to store in the database!
-\ need to write the xml stuff on mbed sensor to register then write code to register via wget with ip and port only so mbed returns registry xlm info
-\ write words to take xml for datalogging from sensor then log it into database
-\ add the xml output for data from the mbed sensor
+\ write words to take json for datalogging from sensor then log it into database
+
 
