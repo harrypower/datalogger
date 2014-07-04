@@ -93,7 +93,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
     s" ip TEXT,port TEXT,method TEXT,data_table TEXT," temp$ $+!
-    s" read_device TEXT,store_data TEXT );" temp$ $+! temp$ $@
+    s" read_device TEXT,store_data TEXT,quantity INTEGER );" temp$ $+! temp$ $@
     dbcmds
     sendsqlite3cmd dberrorthrow ;
 
@@ -174,7 +174,7 @@ struct
     cell% field read_device$
     cell% field store_data$
     cell% field data-node
-    cell% field data-quantity
+    cell% field data-quantity$
 end-struct device%
 
 create new-device
@@ -183,11 +183,12 @@ variable parse-junk$
 
 false value name-type?  \ this is false for name is next and true for type is next 
 0 value node-addr  \ this is set when a name is placed because the name makes the node
+0 value node-count \ this is used to confirm data node count created matches info of sent quantity
 : pjson-"sensor_name" ( caddr u addr -- ) data_table$ $! ;
 : pjson-"ip"          ( caddr u addr -- ) ip$ $! ;
 : pjson-"port"        ( caddr u addr -- ) port$ $! ;
 : pjson-"method"      ( caddr u addr -- ) method$ $! ;
-: pjson-"quantity"    ( caddr u addr -- ) data-quantity $! ;
+: pjson-"quantity"    ( caddr u addr -- ) data-quantity$ $! ; \ note this is stored here as a string but is a int in database
 : pjson-              ( caddr u addr -- ) parse-new-er throw ;  \ incorrect formed json found
 : [make-data-node]    ( caddr -- )  \ allots data node space and saves addres in the caddr provide
     data-node% %allot dup data-node% %size erase swap ! ;
@@ -209,7 +210,8 @@ false value name-type?  \ this is false for name is next and true for type is ne
     name-type? false <> if parse-new-er throw then
     swap dup 0 = if parse-new-er throw then
     swap [create-data-node] dup to node-addr data-id$ $!
-    true to name-type? ;
+    true to name-type?
+    node-count 1 + to node-count ;
 
 : pjson-"type"        ( caddr u addr -- ) \ 2drop drop ; \ still to impiment  ***************
     drop \ this addres is not used
@@ -233,7 +235,8 @@ variable register_data$
 	    parse-new-er throw
 	else
 	    false to name-type?  \ start with a name
-	    0 to node-addr  \ start with no addr 
+	    0 to node-addr  \ start with no addr
+	    0 to node-count \ start with 0 nodes
 	    temp$ $!
 	    temp$ $@ s\" {\"register device\":" search false = if parse-new-er throw then
 	    '{' skip '{' scan '{' skip register_device$ $!
@@ -246,6 +249,12 @@ variable register_data$
 	    datetime$ 1 - new-device dt_added$ $!
 	    s" yes" new-device store_data$ $!
 	    s" yes" new-device read_device$ $!
+	    new-device data_quantity$ $@ s>unumber? true =
+	    if
+		d>s node-count <> if parse-quantity-er throw then
+	    else
+		parse-quantity-er throw
+	    then
 	    false
 	then 
     restore dup if swap drop swap drop then
@@ -261,7 +270,7 @@ variable register_data$
     new-device read_device$ $@ type cr
     new-device store_data$ $@ type cr
     new-device data-node @ . cr 
-    new-device data-quantity $@ type cr ;
+    new-device data-quantity$ $@ type cr ;
 : view-new-data-node ( addr -- )
     dup data-id$ $@ type dup s"  " type data-type$ $@ type next-node @ .s ;
 
@@ -303,10 +312,11 @@ variable makedn$
     new-device method$ $@ temp$ $+! s" ','" temp$ $+!
     new-device data_table$ $@ temp$ $+! s" ','" temp$ $+!
     new-device read_device$ $@ temp$ $+! s" ','" temp$ $+!
-    new-device store_data$ $@ temp$ $+! s" ');" temp$ $+!
+    new-device store_data$ $@ temp$ $+! s" '," temp$ $+!
+    new-device data_quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: rm-datatable? ( -- ) \ will determine if a data table was created in database.  If it was it will try to drop the table.
+: rm-datatable? ( -- ) \ will determine if a data table was created in database in error.  If it was in error added it will try to drop the table.
     try 
 	new-device data_table$ $@ dup 0 <>
 	if
@@ -327,7 +337,6 @@ variable makedn$
 : register-device-$ ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
 	new-device data-node off   \ note every time this code runs to parse a new device there will be small memory leak
-	new-device data-quantity off 
 	new-device dt_added$ dup $off init$
 	new-device ip$ dup $off init$
 	new-device port$ dup $off init$
@@ -335,6 +344,7 @@ variable makedn$
 	new-device data_table$ dup $off init$
 	new-device read_device$ dup $off init$
 	new-device store_data$ dup $off init$
+	new-device data_quantity$ dup $off init$
 	create-device-table
 	create-error-tables
 	parse-new-device-json throw
