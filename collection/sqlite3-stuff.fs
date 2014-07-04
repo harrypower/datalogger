@@ -180,40 +180,45 @@ end-struct device%
 create new-device
 device% %size allot new-device device% %size erase
 variable parse-junk$
-\  **************** remove this when done reading it ************
-: make-data-node   ( caddr -- ) data-node% %allot dup data-node% %size erase swap ! ;
-: pxml-data_name   ( caddr u addr -- )
-    data-node @ 0 =
-    if
-	new-device data-node make-data-node \ make and store first node address at data-node
-	new-device data-node @
-    else
-	new-device data-node @
-	begin
-	    dup next-node @ dup if swap drop false else drop true then
-	until
-	dup next-node make-data-node
-	next-node @
-    then
-    { caddr u addr } caddr u 
-    34 $split to u to caddr addr data-id$ $! \ need to break up the data_type from data_name in string
-    caddr u s\" data_type=\"" search
-    if
-	11 - swap 11 + swap addr data-type$ $!
-    else
-	parse-new-er throw
-    then ;
-\ ***************************************** remove up to the separation
 
 false value name-type?  \ this is false for name is next and true for type is next 
+0 value node-addr  \ this is set when a name is placed because the name makes the node
 : pjson-"sensor_name" ( caddr u addr -- ) data_table$ $! ;
 : pjson-"ip"          ( caddr u addr -- ) ip$ $! ;
 : pjson-"port"        ( caddr u addr -- ) port$ $! ;
 : pjson-"method"      ( caddr u addr -- ) method$ $! ;
 : pjson-"quantity"    ( caddr u addr -- ) data-quantity $! ;
 : pjson-              ( caddr u addr -- ) parse-new-er throw ;  \ incorrect formed json found
-: pjson-"name"        ( caddr u addr -- ) 2drop drop ; \ impliment this not stuff still ***********
-: pjson-"type"        ( caddr u addr -- ) 2drop drop ; \ still to impiment  ***************
+: [make-data-node]    ( caddr -- )  \ allots data node space and saves addres in the caddr provide
+    data-node% %allot dup data-node% %size erase swap ! ;
+: [create-data-node]  ( caddr -- caddr1 ) \ returns address of the current working node 
+    data-node @ 0 =
+    if   \ makes first node and returns address for location of that node
+	new-device data-node [make-data-node]
+	new-device data-node @
+    else \ iterate to end of nodes and make another one and return its address
+	new-device data-node @ \ start at first location
+	begin
+	    dup next-node @ dup if swap drop false else drop true then
+	until
+	dup next-node [make-data-node]
+	next-node @
+    then ;
+
+: pjson-"name"        ( caddr u addr -- ) \ 2drop drop ; \ impliment this not stuff still ***********
+    name-type? false <> if parse-new-er throw then
+    swap dup 0 = if parse-new-er throw then
+    swap [create-data-node] dup to node-addr data-id$ $!
+    true to name-type? ;
+
+: pjson-"type"        ( caddr u addr -- ) \ 2drop drop ; \ still to impiment  ***************
+    drop \ this addres is not used
+    name-type? true <> if parse-new-er throw then
+    dup 0 = if parse-new-er throw then
+    node-addr 0 = if parse-new-er throw then
+    node-addr data-type$ $!
+    false to name-type?
+    0 to node-addr ;
 
 : [parse-json] ( caddr u -- )
     ':' $split 
@@ -227,7 +232,8 @@ variable register_data$
 	if
 	    parse-new-er throw
 	else
-	    false to name-type?  \ start with a name 
+	    false to name-type?  \ start with a name
+	    0 to node-addr  \ start with no addr 
 	    temp$ $!
 	    temp$ $@ s\" {\"register device\":" search false = if parse-new-er throw then
 	    '{' skip '{' scan '{' skip register_device$ $!
