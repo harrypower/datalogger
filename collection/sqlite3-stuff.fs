@@ -45,6 +45,7 @@ s" Table name already present in database file! (change name of table)"         
 s" No data node's present when making table registration!"                       exception constant no-data-node-er
 s" Registry data not recieved from device!"                                      exception constant wg-registry-er
 s" Registration parsing data node quantitys do not match!"                       exception constant parse-quantity-er
+s" Data table name is not present or available in parse-data-table!"             exception constant datatable-name-er
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -90,6 +91,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ data_table is the name of the table that contains the logged data for this registered device
     \ read_device is yes or no.  no means device is not read anymore. yes means device is read from still.
     \ store_data is yes or no. no means data_list_id table is not to be writen to anymore. yes means data_list_id table is to be writen to still when device is read from.
+    \ quantity is the size of the fields in the data_table that will contain the data from the logged device
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
     s" ip TEXT,port TEXT,method TEXT,data_table TEXT," temp$ $+!
@@ -374,6 +376,12 @@ variable makedn$
 	wg-registry-er 
     then ;
 
+: parse-data-table! { caddr-table ut caddr-data ud -- nflag } \ caddr-data is a string that needs to be parsed and stored into
+    \ database at the table named in the string caddr-table.
+    \ nflag is false if data was parsed correctly and data then stored into table of database correctly
+    caddr-table ut sqlite-table? false = if datatable-name-er throw then
+    
+;
 
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
 \ need a word to store data in the database for a given device from the device table
