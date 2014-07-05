@@ -46,6 +46,7 @@ s" No data node's present when making table registration!"                      
 s" Registry data not recieved from device!"                                      exception constant wg-registry-er
 s" Registration parsing data node quantitys do not match!"                       exception constant parse-quantity-er
 s" Data table name is not present or available in parse-data-table!"             exception constant datatable-name-er
+s" Ip address aready registered in database!"                                    exception constant ip-already-er
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -64,22 +65,39 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	dup throw
     endcase ;
 
-: sqlite-table? ( caddr u -- nflag ) \ will search db for the string as a table name.  nflag will return false if no table named exists
-    try  \ note this will find the string as a sub name in longer table names as a table so name your tables well!
+2159 constant table-yes
+2158 constant table-no
+: sqlite-table? ( caddr u -- nflag ) \ will search db for the string as a table name.  
+    \ nflag is table-yes (2159) meaning the table is in database
+    \ nflag is table-no  (2158) meaning the table is not in database
+    \ nflag is some error either  +1 to +110 for some sqlite3 error
+    \ nflag is some error either -1 to -x for some system error or other returned error defined with exception
+    try  
+	temp$ $! s\" ,\n" temp$ $+!  
 	setupsqlite3  
 	s" select name from sqlite_master;" dbcmds
 	sendsqlite3cmd dberrorthrow  \ note if some error happens in file access or sqlite3 access this will look like table is present
-	dbret$ 2swap search
+	dbret$ temp$ $@ search true = if table-yes else table-no then  
     restore swap drop swap drop 
     endtry ;
 
-: sqlite-ip? ( caddrip u -- nflag ) \ search device table for the ip addr in the string.  nflag is false if no ip addr registered yet
-    setupsqlite3
-    s" " dbfieldseparator
-    s" " dbrecordseparator
-    s" select case when ip = '" temp$ $! temp$ $+! s" ' then -1 else 0 end from devices ;" temp$ $+! temp$ $@ dbcmds
-    sendsqlite3cmd dberrorthrow
-    dbret$ s>number? false = throw d>s ;
+2160 constant ip-yes
+2161 constant ip-no
+: sqlite-ip? ( caddrip u -- nflag ) \ search device table for the ip addr in the string.
+    \ nflag is ip-no (2161) if no ip address registered yet
+    \ nflag is ip-yes (2160) if ip address is registered now
+    \ nflag can return other numbers indicating sqlite3 errors or system errors
+    try
+	setupsqlite3
+	s" " dbfieldseparator
+	s" " dbrecordseparator
+	s" select case when ip = '" temp$ $! temp$ $+! s" ' then 2160 else 2161 end from devices ;" temp$ $+! temp$ $@ dbcmds
+	sendsqlite3cmd dberrorthrow
+	dbret$ s>number? false = throw
+	d>s 
+	false
+    restore dup if swap drop swap drop else drop then 
+    endtry ;
 
 : create-device-table ( -- ) \ This creates the main table used in the database. This table is used to reference all other tables and then data in database.
     \ table is called devices
@@ -294,7 +312,7 @@ variable makedn$
     try
 	setupsqlite3
 	new-device data_table$ $@len 0 = if dltable-name-er throw then
-	new-device data_table$ $@ sqlite-table? false <> if table-present-er throw then
+	new-device data_table$ $@ sqlite-table? table-yes = if table-present-er throw then
 	new-device data-node @ 0 = if dltable-name-er throw then
 	s" CREATE TABLE " temp$ $!
 	new-device data_table$ $@ temp$ $+!
@@ -322,7 +340,7 @@ variable makedn$
     try 
 	new-device data_table$ $@ dup 0 <>
 	if
-	    sqlite-table? true =
+	    sqlite-table? table-yes =
 	    if
 		\ remove found table as it is not needed due to registartion error
 		setupsqlite3
@@ -350,7 +368,7 @@ variable makedn$
 	create-device-table
 	create-error-tables
 	parse-new-device-json throw
-	new-device ip$ $@ sqlite-ip? throw \ check for existing ip and port in the database
+	new-device ip$ $@ sqlite-ip? ip-yes = if ip-already-er throw then \ check for existing ip and port in the database
 	create-datalogging-table throw
 	create-device-entry
 	\ possibly check the table for the ip address entered and see if data-table named for ip is also a named table
@@ -379,7 +397,7 @@ variable makedn$
 : parse-data-table! { caddr-table ut caddr-data ud -- nflag } \ caddr-data is a string that needs to be parsed and stored into
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
-    caddr-table ut sqlite-table? false = if datatable-name-er throw then
+    caddr-table ut sqlite-table? table-no = if datatable-name-er throw then
     
 ;
 
