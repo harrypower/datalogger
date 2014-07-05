@@ -47,6 +47,10 @@ s" Registry data not recieved from device!"                                     
 s" Registration parsing data node quantitys do not match!"                       exception constant parse-quantity-er
 s" Data table name is not present in parse-data-table!"                          exception constant datatable-name-er
 s" Ip address aready registered in database!"                                    exception constant ip-already-er
+s" Sensor data parsing json error!"                                              exception constant data-parse-er
+s" No data to parse from sensor error!"                                          exception constant no-data-er
+s" Data quantity not present from sensor!"                                       exception constant data-quantity-er
+s" Sensor data quantity does not match table quantity!"                          exception constant data-table-quantity-er
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -400,11 +404,37 @@ variable makedn$
 	wg-registry-er 
     then ;
 
+: pjsdata-"name"     ( caddr u addr -- ) drop type cr ;
+: pjsdata-"value"    ( caddr u addr -- ) drop type cr ;
+: pjsdata-           ( caddr u addr -- ) data-parse-er throw ;
+
+: [parse-json-data] ( caddr u -- )
+    ':' $split
+    2swap s" pjsdata-" temp$ $! temp$ $+! temp$ $@ find-name name>int new-device swap execute ;
+
+0 value data-quantity
+variable data-parse$
 : parse-data-table! { caddr-table ut caddr-data ud -- nflag } \ caddr-data is a string that needs to be parsed and stored into
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
-    caddr-table ut sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then  then
-    
+    try
+	caddr-table ut sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then  then
+	ud 0 =
+	if
+	    no-data-er throw
+	else
+	    caddr-data ud s\" {\"quantity\":" search false = if data-quantity-er throw then
+	    ':' scan ':' skip temp$ $!
+	    temp$ $@ ',' scan swap drop temp$ $@len swap -
+	    temp$ $@ rot swap drop s>unumber?
+	    true <> if data-quantity-er throw then
+	    d>s to data-quantity
+	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
+	    data-parse$ ',' ['] [parse-json-data] $iter
+	then
+    restore
+    endtry
+    \ parse caddr-data string now and store into caddr-table in the database
 ;
 
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
