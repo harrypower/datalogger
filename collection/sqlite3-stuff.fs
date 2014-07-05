@@ -45,7 +45,7 @@ s" Table name already present in database file! (change name of table)"         
 s" No data node's present when making table registration!"                       exception constant no-data-node-er
 s" Registry data not recieved from device!"                                      exception constant wg-registry-er
 s" Registration parsing data node quantitys do not match!"                       exception constant parse-quantity-er
-s" Data table name is not present or available in parse-data-table!"             exception constant datatable-name-er
+s" Data table name is not present in parse-data-table!"                          exception constant datatable-name-er
 s" Ip address aready registered in database!"                                    exception constant ip-already-er
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
@@ -72,13 +72,16 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is table-no  (2158) meaning the table is not in database
     \ nflag is some error either  +1 to +110 for some sqlite3 error
     \ nflag is some error either -1 to -x for some system error or other returned error defined with exception
-    try  
-	temp$ $! s\" ,\n" temp$ $+!  
-	setupsqlite3  
-	s" select name from sqlite_master;" dbcmds
-	sendsqlite3cmd dberrorthrow  \ note if some error happens in file access or sqlite3 access this will look like table is present
-	dbret$ temp$ $@ search true = if table-yes else table-no then  
-    restore swap drop swap drop 
+    try
+	2>r
+	setupsqlite3
+	s" " dbfieldseparator
+	s" " dbrecordseparator
+	s" select name from sqlite_master where name = '" temp$ $! 2r@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	sendsqlite3cmd dberrorthrow 
+	dbret$ 2r> search -rot 2drop true = if table-yes else table-no then
+	false
+    restore dup if swap drop swap drop else drop then  
     endtry ;
 
 2160 constant ip-yes
@@ -88,13 +91,13 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is ip-yes (2160) if ip address is registered now
     \ nflag can return other numbers indicating sqlite3 errors or system errors
     try
+	2>r
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select case when ip = '" temp$ $! temp$ $+! s" ' then 2160 else 2161 end from devices ;" temp$ $+! temp$ $@ dbcmds
+	s" select ip from devices where ip = '" temp$ $! 2r@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
-	dbret$ s>number? false = throw
-	d>s 
+	dbret$ 2r> search -rot 2drop true = if ip-yes else ip-no then
 	false
     restore dup if swap drop swap drop else drop then 
     endtry ;
@@ -204,10 +207,11 @@ variable parse-junk$
 false value name-type?  \ this is false for name is next and true for type is next 
 0 value node-addr  \ this is set when a name is placed because the name makes the node
 0 value node-count \ this is used to confirm data node count created matches info of sent quantity
-: pjson-"sensor_name" ( caddr u addr -- ) data_table$ $! ;
-: pjson-"ip"          ( caddr u addr -- ) ip$ $! ;
-: pjson-"port"        ( caddr u addr -- ) port$ $! ;
-: pjson-"method"      ( caddr u addr -- ) method$ $! ;
+: cleanup$ ( caddr u addr -- caddr1 u1 addr ) -rot '"' skip -trailing 1 - rot ;
+: pjson-"sensor_name" ( caddr u addr -- ) cleanup$ data_table$ $! ;
+: pjson-"ip"          ( caddr u addr -- ) cleanup$ ip$ $! ;
+: pjson-"port"        ( caddr u addr -- ) cleanup$ port$ $! ;
+: pjson-"method"      ( caddr u addr -- ) cleanup$ method$ $! ;
 : pjson-"quantity"    ( caddr u addr -- ) data-quantity$ $! ; \ note this is stored here as a string but is a int in database
 : pjson-              ( caddr u addr -- ) parse-new-er throw ;  \ incorrect formed json found
 : [make-data-node]    ( caddr -- )  \ allots data node space and saves addres in the caddr provide
@@ -227,6 +231,7 @@ false value name-type?  \ this is false for name is next and true for type is ne
     then ;
 
 : pjson-"name"        ( caddr u addr -- )
+    cleanup$ 
     name-type? false <> if parse-new-er throw then
     swap dup 0 = if parse-new-er throw then
     swap [create-data-node] dup to node-addr data-id$ $!
@@ -234,6 +239,7 @@ false value name-type?  \ this is false for name is next and true for type is ne
     node-count 1 + to node-count ;
 
 : pjson-"type"        ( caddr u addr -- )
+    cleanup$
     drop \ this addres is not used must calculate real addr to store this type
     name-type? true <> if parse-new-er throw then
     dup 0 = if parse-new-er throw then
@@ -312,7 +318,7 @@ variable makedn$
     try
 	setupsqlite3
 	new-device data_table$ $@len 0 = if dltable-name-er throw then
-	new-device data_table$ $@ sqlite-table? table-yes = if table-present-er throw then
+	new-device data_table$ $@ sqlite-table? dup table-yes = if table-present-er throw else dup table-no <> if throw else drop then then
 	new-device data-node @ 0 = if dltable-name-er throw then
 	s" CREATE TABLE " temp$ $!
 	new-device data_table$ $@ temp$ $+!
@@ -345,7 +351,7 @@ variable makedn$
 		\ remove found table as it is not needed due to registartion error
 		setupsqlite3
 		s" drop table " temp$ $! new-device data_table$ $@ temp$ $+! s" ;" temp$ $+! temp$ $@ dbcmds
-		sendsqlite3cmd dberrorthrow  \ note if this throws then the table may still be there after all 
+		sendsqlite3cmd dberrorthrow  \ note if this throws then the table may still be there 
 	    then
 	else
 	    2drop 
@@ -368,7 +374,7 @@ variable makedn$
 	create-device-table
 	create-error-tables
 	parse-new-device-json throw
-	new-device ip$ $@ sqlite-ip? ip-yes = if ip-already-er throw then \ check for existing ip and port in the database
+	new-device ip$ $@ sqlite-ip? dup ip-yes = if ip-already-er throw else dup ip-no <> if throw else drop then then 
 	create-datalogging-table throw
 	create-device-entry
 	\ possibly check the table for the ip address entered and see if data-table named for ip is also a named table
@@ -377,7 +383,7 @@ variable makedn$
 	if
 	    swap drop swap drop \ clean up after error
 	    dup table-present-er <>
-	    if \ only delete table if it was not present before trying to create a new one
+    if \ only delete table if it was not present before trying to create a new one
 		 rm-datatable?  
 	    then
 	then
@@ -397,7 +403,7 @@ variable makedn$
 : parse-data-table! { caddr-table ut caddr-data ud -- nflag } \ caddr-data is a string that needs to be parsed and stored into
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
-    caddr-table ut sqlite-table? table-no = if datatable-name-er throw then
+    caddr-table ut sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then  then
     
 ;
 
