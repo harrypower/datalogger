@@ -403,18 +403,81 @@ variable makedn$
     else
 	wg-registry-er 
     then ;
+
 struct
-    cell% field anode
-    cell% field aname
-    cell% field cname
-    cell% field avalue
-    cell% field cvalue
+    cell% field next-data-node
+    cell% field name$
+    cell% field value$
 end-struct parse-data%
 
-create parsed-data
+variable parsed-data 
+parse-data% %allocate throw parsed-data ! \ the last node is always empty this starts that empty node 
+parsed-data @ parse-data% %size erase  \ this ensures the test for last node will show it as last node
+
 0 value current-data-quantity
-: pjsdata-"name"     ( caddr u -- ) type cr ;
-: pjsdata-"value"    ( caddr u -- ) type cr ;
+: free-parsed-data ( -- ) \ remove nodes from memory and free strings also
+    parsed-data @ next-data-node @ .s ."  " 0 <> .s cr \ detect if there are any nodes to free!  The last node is never freed!
+    if
+	parsed-data @ .s cr { cpd } \ this is the first node location
+	begin
+	    cpd .s cr name$ $off 
+	    cpd value$ $off 
+	    cpd next-data-node @ dup 0 =  \ get next node address and loop exit state calculate
+	    cpd free throw  \ free this node
+	    ." here" .s cr
+	    swap 
+	    0 <>
+	    if
+		to cpd 
+	    then
+	until
+	parse-data% %allocate throw parsed-data ! \ create the empty node for next use
+	parsed-data @ parse-data% %size erase
+    then ;
+
+: make-data-node     ( -- caddr ) \ make a new node for data and return its address
+    parse-data% %allocate throw
+    dup parse-data% %size erase
+    parsed-data @ { caddr working-addr }
+    begin
+	working-addr next-data-node @ 0 =
+	if
+	    caddr working-addr next-data-node ! true
+	else
+	    working-addr next-data-node @ to working-addr false
+	then
+    until
+    working-addr ;
+
+: find-last-data-node ( -- caddr ) \ return the address of the current node that is to be added to
+    parsed-data @ dup { working-addr last-addr }
+    begin
+	working-addr next-data-node @ 0 =
+	if
+	    true
+	else
+	    working-addr to last-addr 
+	    working-addr next-data-node @ to working-addr false
+	then
+    until last-addr ;
+
+: view-parsed-data ( -- ) \ simply view the data in the current data node if there are any
+    parsed-data @ { working-addr }
+    begin
+	working-addr next-data-node @ 0 =
+	if
+	    true
+	else
+	    working-addr next-data-node @ . cr
+	    working-addr name$ $@ type cr
+	    working-addr value$ $@ type cr
+	    working-addr next-data-node @ to working-addr
+	    false
+	then
+    until ;
+
+: pjsdata-"name"     ( caddr u -- ) make-data-node name$ $! ;
+: pjsdata-"value"    ( caddr u -- ) find-last-data-node value$ $! current-data-quantity 1 + to current-data-quantity ;
 : pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
 : [parse-json-data] ( caddr u -- )
@@ -439,6 +502,7 @@ variable data-parse$
 	    true <> if data-quantity-er throw then
 	    d>s to data-quantity
 	    0 to current-data-quantity
+	    free-parsed-data
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
 	    data-parse$ ',' ['] [parse-json-data] $iter
 	then
