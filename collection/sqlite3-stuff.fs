@@ -403,14 +403,23 @@ variable makedn$
     else
 	wg-registry-er 
     then ;
+struct
+    cell% field anode
+    cell% field aname
+    cell% field cname
+    cell% field avalue
+    cell% field cvalue
+end-struct parse-data%
 
-: pjsdata-"name"     ( caddr u addr -- ) drop type cr ;
-: pjsdata-"value"    ( caddr u addr -- ) drop type cr ;
-: pjsdata-           ( caddr u addr -- ) data-parse-er throw ;
+create parsed-data
+0 value current-data-quantity
+: pjsdata-"name"     ( caddr u -- ) type cr ;
+: pjsdata-"value"    ( caddr u -- ) type cr ;
+: pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
 : [parse-json-data] ( caddr u -- )
     ':' $split
-    2swap s" pjsdata-" temp$ $! temp$ $+! temp$ $@ find-name name>int new-device swap execute ;
+    2swap s" pjsdata-" temp$ $! temp$ $+! temp$ $@ find-name name>int execute ;
 
 0 value data-quantity
 variable data-parse$
@@ -429,6 +438,7 @@ variable data-parse$
 	    temp$ $@ rot swap drop s>unumber?
 	    true <> if data-quantity-er throw then
 	    d>s to data-quantity
+	    0 to current-data-quantity
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
 	    data-parse$ ',' ['] [parse-json-data] $iter
 	then
