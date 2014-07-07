@@ -475,7 +475,7 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
 	then
     until ;
 
-: pjsdata-"name"     ( caddr u -- ) '"' skip '"' $split 2drop make-data-node name$ $! ;
+: pjsdata-"name"     ( caddr u -- ) '"' scan '"' skip '"' $split 2drop make-data-node name$ $! ;
 : pjsdata-"value"    ( caddr u -- )
     find-last-data-node dup 0 <>
     if
@@ -517,8 +517,39 @@ variable data-parse$
 	then                       \ this needs to be done to free up memory or leaks will happen 
     endtry ;
 
+0 value iter-nodes
+: iter-parsed-data ( -- caddr nflag ) \ will start at the beginning of data node and return structure address
+    \ nflag will be false if the caddr is valid
+    \ nflag will be true when data not present or done iterating through 
+    \ This word will always restart the node after it reaches the end next time called
+    0 { cur-node }
+    parsed-data @ to cur-node cur-node  
+    0 =
+    if
+	0 true 
+    else
+	iter-nodes 0 ?do
+	    cur-node next-data-node @ to cur-node
+	loop
+	cur-node next-data-node @ 0 =
+	if
+	    0 to iter-nodes
+	    0 true
+	else
+	    iter-nodes 1+ to iter-nodes
+	    cur-node
+	    false
+	then
+    then ;
+
 : [parsed-data!] ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
-;
+    setupsqlite3
+    s" insert into " temp$ $! temp$ $+! s" (" temp$ $+! 
+    datetime$ temp$ $+! s" ," temp$ $+!
+    parsed-data @ name$ $! temp$ $+!
+    parsed-data next-data-node @
+    new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
+    temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : parse-data-table! ( caddr-table ut caddr-data ud -- nflag ) \ caddr-data is a string that needs to be parsed and stored into
     \ database at the table named in the string caddr-table.
