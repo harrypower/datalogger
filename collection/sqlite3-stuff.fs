@@ -522,8 +522,7 @@ variable data-parse$
     \ nflag will be false if the caddr is valid
     \ nflag will be true when data not present or done iterating through 
     \ This word will always restart the node after it reaches the end next time called
-    0 { cur-node }
-    parsed-data @ to cur-node cur-node  
+    parsed-data @ { cur-node } cur-node  
     0 =
     if
 	0 true 
@@ -543,13 +542,37 @@ variable data-parse$
     then ;
 
 : [parsed-data!] ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
-    setupsqlite3
-    s" insert into " temp$ $! temp$ $+! s" (" temp$ $+! 
-    datetime$ temp$ $+! s" ," temp$ $+!
-    parsed-data @ name$ $! temp$ $+!
-    parsed-data next-data-node @
-    new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
-    temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
+    try
+	setupsqlite3
+	s" insert into " temp$ $! temp$ $+! s" (dtime," temp$ $+!
+	0 to iter-nodes  \ to ensure starting at begining of data nodes
+	begin
+	    iter-parsed-data
+	    if
+		drop true
+	    else
+		name$ $@ temp$ $+! s" ," temp$ $+!
+		false
+	    then
+	until
+	temp$ dup $@len 1- swap $!len \ remove the last , from the string
+	s" ) values(" temp$ $+!
+	datetime$ temp$ $+!
+	begin
+	    iter-parsed-data
+	    if
+		drop true
+	    else \ data_quantity$ are interger in the database so no ' are needed!
+		value$ $@ temp$ $+! s" ," temp$ $+!
+		false
+	    then
+	until
+	temp$ dup $@len 1- swap $!len \ remove the last , from string
+	s" );" temp$ $+! 
+	temp$ $@ dbcmds sendsqlite3cmd dberrorthrow
+	false
+    restore dup if swap drop swap drop then
+    endtry ;
 
 : parse-data-table! ( caddr-table ut caddr-data ud -- nflag ) \ caddr-data is a string that needs to be parsed and stored into
     \ database at the table named in the string caddr-table.
@@ -557,11 +580,9 @@ variable data-parse$
     2swap 2dup
     sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
     2swap 
-    [parse-data-table]
-    [parsed-data!]
-    free-parsed-data throw
-    \ parse caddr-data string now and store into caddr-table in the database
-;
+    [parse-data-table] throw
+    [parsed-data!] throw 
+    free-parsed-data throw ;
 
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
 \ need a word to store data in the database for a given device from the device table
