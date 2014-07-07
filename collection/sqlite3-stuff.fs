@@ -415,25 +415,24 @@ parse-data% %allocate throw parsed-data ! \ the last node is always empty this s
 parsed-data @ parse-data% %size erase  \ this ensures the test for last node will show it as last node
 
 0 value current-data-quantity
-: free-parsed-data ( -- ) \ remove nodes from memory and free strings also
-    parsed-data @ next-data-node @ .s ."  " 0 <> .s cr \ detect if there are any nodes to free!  The last node is never freed!
-    if
-	parsed-data @ .s cr { cpd } \ this is the first node location
-	begin
-	    cpd .s cr name$ $off 
-	    cpd value$ $off 
-	    cpd next-data-node @ dup 0 =  \ get next node address and loop exit state calculate
-	    cpd free throw  \ free this node
-	    ." here" .s cr
-	    swap 
-	    0 <>
-	    if
-		to cpd 
-	    then
-	until
-	parse-data% %allocate throw parsed-data ! \ create the empty node for next use
-	parsed-data @ parse-data% %size erase
-    then ;
+: free-parsed-data ( -- nflag ) \ remove nodes from memory and free strings also
+    try  \ nflag will be false indicating all is ok
+	parsed-data @ next-data-node @ 0 <> \ detect if there are any nodes to free!  The last node is never freed!
+	if
+	    parsed-data @ { cpd } \ this is the first node location
+	    begin
+		cpd name$ $off 
+		cpd value$ $off 
+		cpd next-data-node @ dup 0 =  \ get next node address and loop exit state calculate
+		cpd free throw  \ free this node
+		swap to cpd
+	    until
+	    parse-data% %allocate throw parsed-data ! \ create the empty node for next use
+	    parsed-data @ parse-data% %size erase \ clear it to ensure last node test will work
+	then
+	false
+    restore 
+    endtry ;
 
 : make-data-node     ( -- caddr ) \ make a new node for data and return its address
     parse-data% %allocate throw
@@ -450,7 +449,7 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
     working-addr ;
 
 : find-last-data-node ( -- caddr ) \ return the address of the current node that is to be added to
-    parsed-data @ dup { working-addr last-addr }
+    parsed-data @ 0 { working-addr last-addr }
     begin
 	working-addr next-data-node @ 0 =
 	if
@@ -462,7 +461,7 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
     until last-addr ;
 
 : view-parsed-data ( -- ) \ simply view the data in the current data node if there are any
-    parsed-data @ { working-addr }
+    cr parsed-data @ { working-addr } \ this helper word will only show if the data was not freed already
     begin
 	working-addr next-data-node @ 0 =
 	if
@@ -476,8 +475,15 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
 	then
     until ;
 
-: pjsdata-"name"     ( caddr u -- ) make-data-node name$ $! ;
-: pjsdata-"value"    ( caddr u -- ) find-last-data-node value$ $! current-data-quantity 1 + to current-data-quantity ;
+: pjsdata-"name"     ( caddr u -- ) '"' skip '"' $split 2drop make-data-node name$ $! ;
+: pjsdata-"value"    ( caddr u -- )
+    find-last-data-node dup 0 <>
+    if
+	value$ $!
+	current-data-quantity 1 + to current-data-quantity
+    else
+	data-quantity-er throw
+    then ;
 : pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
 : [parse-json-data] ( caddr u -- )
@@ -486,28 +492,43 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
 
 0 value data-quantity
 variable data-parse$
-: parse-data-table! { caddr-table ut caddr-data ud -- nflag } \ caddr-data is a string that needs to be parsed and stored into
-    \ database at the table named in the string caddr-table.
-    \ nflag is false if data was parsed correctly and data then stored into table of database correctly
+: [parse-data-table] ( caddr u -- nflag )  \ nflag is false if the data was parsed and in data nodes now
     try
-	caddr-table ut sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then  then
-	ud 0 =
+	dup 0 =
 	if
 	    no-data-er throw
 	else
-	    caddr-data ud s\" {\"quantity\":" search false = if data-quantity-er throw then
+	    s\" {\"quantity\":" search false = if data-quantity-er throw then
 	    ':' scan ':' skip temp$ $!
 	    temp$ $@ ',' scan swap drop temp$ $@len swap -
 	    temp$ $@ rot swap drop s>unumber?
 	    true <> if data-quantity-er throw then
 	    d>s to data-quantity
 	    0 to current-data-quantity
-	    free-parsed-data
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
 	    data-parse$ ',' ['] [parse-json-data] $iter
+	    current-data-quantity data-quantity <> if data-quantity-er throw then
 	then
-    restore
-    endtry
+	false
+    restore   dup
+	if
+	    swap drop swap drop    \ errors will be returned
+	    free-parsed-data drop  \ this means if memory could not be freed there will be no error detected
+	then                       \ this needs to be done to free up memory or leaks will happen 
+    endtry ;
+
+: [parsed-data!] ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
+;
+
+: parse-data-table! ( caddr-table ut caddr-data ud -- nflag ) \ caddr-data is a string that needs to be parsed and stored into
+    \ database at the table named in the string caddr-table.
+    \ nflag is false if data was parsed correctly and data then stored into table of database correctly
+    2swap 2dup
+    sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
+    2swap 
+    [parse-data-table]
+    [parsed-data!]
+    free-parsed-data throw
     \ parse caddr-data string now and store into caddr-table in the database
 ;
 
