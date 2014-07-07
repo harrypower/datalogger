@@ -51,6 +51,9 @@ s" Sensor data parsing json error!"                                             
 s" No data to parse from sensor error!"                                          exception constant no-data-er
 s" Data quantity not present from sensor!"                                       exception constant data-quantity-er
 s" Sensor data quantity does not match table quantity!"                          exception constant data-table-quantity-er
+s" Data quantity not retreaved from device table!"                               exception constant quantity-retreave-er
+s" Sensor json data quantity does not match registered device quantity!"         exception constant json-quantity-er
+
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -106,6 +109,31 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     restore dup if swap drop swap drop else drop then 
     endtry ;
 
+2162 constant dname-yes
+2163 constant dname-no
+: sqlite-devicename? ( caddrname u -- nflag ) \ search device table and database for device name or table name
+    \ nflag is dname-yes (2162) if a named device is registered
+    \ nflag is dname-no  (2163) if there is no named device registered
+    \ nflag can return other numbers indicating sqlite3 errors or system errors
+    try
+	2>r
+	setupsqlite3
+	s" " dbfieldseparator
+	s" " dbrecordseparator
+	s" select data_table from devices where data_table = '" temp$ $! 2r@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	sendsqlite3cmd dberrorthrow
+	dbret$ 2r@ search -rot 2drop true = if dname-yes else dname-no then
+	dup dname-no
+	if
+	    drop
+	    2r@ sqlite-table? dup table-yes =
+	    if drop dname-yes else dup table-no = if drop dname-no else throw  then then 
+	then
+	2r> 2drop 
+	false
+    restore dup if swap drop swap drop else drop then 
+    endtry ;
+
 : create-device-table ( -- ) \ This creates the main table used in the database. This table is used to reference all other tables and then data in database.
     \ table is called devices
     \ row is primary key and is autoincrmented
@@ -115,7 +143,8 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ method would contain the string to send socket device to get data from device eg "val"
     \ data_table is the name of the table that contains the logged data for this registered device
     \ read_device is yes or no.  no means device is not read anymore. yes means device is read from still.
-    \ store_data is yes or no. no means data_list_id table is not to be writen to anymore. yes means data_list_id table is to be writen to still when device is read from.
+    \ store_data is yes or no. No means data_list_id table is not to be writen to anymore.
+    \      Yes means data_list_id table is to be writen to still when device is read from.
     \ quantity is the size of the fields in the data_table that will contain the data from the logged device
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS devices(row INTEGER PRIMARY KEY AUTOINCREMENT,dt_added INTEGER," temp$ $!
@@ -322,7 +351,6 @@ variable makedn$
     try
 	setupsqlite3
 	new-device data_table$ $@len 0 = if dltable-name-er throw then
-	new-device data_table$ $@ sqlite-table? dup table-yes = if table-present-er throw else dup table-no <> if throw else drop then then
 	new-device data-node @ 0 = if dltable-name-er throw then
 	s" CREATE TABLE " temp$ $!
 	new-device data_table$ $@ temp$ $+!
@@ -346,7 +374,7 @@ variable makedn$
     new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: rm-datatable? ( -- ) \ will determine if a data table was created in database in error.  If it was in error added it will try to drop the table.
+: [rm-datatable?] ( -- ) \ will determine if a data table was created in database in error.  If it was in error added it will try to drop the table.
     try 
 	new-device data_table$ $@ dup 0 <>
 	if
@@ -378,17 +406,19 @@ variable makedn$
 	create-device-table
 	create-error-tables
 	parse-new-device-json throw
-	new-device ip$ $@ sqlite-ip? dup ip-yes = if ip-already-er throw else dup ip-no <> if throw else drop then then 
+	new-device ip$ $@ sqlite-ip? dup ip-yes =
+	if ip-already-er throw else dup ip-no <> if throw else drop then then
+	new-device data_table$ $@ sqlite-devicename? dup dname-yes =
+	if table-present-er throw else dup dname-no <> if throw else drop then then 
 	create-datalogging-table throw
 	create-device-entry
-	\ possibly check the table for the ip address entered and see if data-table named for ip is also a named table
 	false
     restore dup
 	if
 	    swap drop swap drop \ clean up after error
 	    dup table-present-er <>
-    if \ only delete table if it was not present before trying to create a new one
-		 rm-datatable?  
+	    if \ only delete table if it was not present before trying to create a new one
+		 [rm-datatable?]  
 	    then
 	then
     endtry ;
@@ -493,6 +523,8 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
 0 value data-quantity
 variable data-parse$
 : [parse-data-table] ( caddr u -- nflag )  \ nflag is false if the data was parsed and in data nodes now
+    \ note parsing will work as long as quantity reported in json is same as quantity sent in json.
+    \ no checking is done to see if data matches what should be stored
     try
 	dup 0 =
 	if
@@ -544,6 +576,18 @@ variable data-parse$
 : [parsed-data!] ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
     try
 	setupsqlite3
+	s" " dbfieldseparator
+	s" " dbrecordseparator
+	2dup s" select quantity from devices where data_table = '" temp$ $!
+	temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	sendsqlite3cmd dberrorthrow
+	dbret$ s>number? true =
+	if
+	    d>s data-quantity <> if json-quantity-er throw then
+	else
+	    quantity-retreave-er throw
+	then
+	setupsqlite3
 	s" insert into " temp$ $! temp$ $+! s" (dtime," temp$ $+!
 	0 to iter-nodes  \ to ensure starting at begining of data nodes
 	begin
@@ -568,7 +612,7 @@ variable data-parse$
 	    then
 	until
 	temp$ dup $@len 1- swap $!len \ remove the last , from string
-	s" );" temp$ $+! 
+	s" );" temp$ $+!
 	temp$ $@ dbcmds sendsqlite3cmd dberrorthrow
 	false
     restore dup if swap drop swap drop then
@@ -577,12 +621,16 @@ variable data-parse$
 : parse-data-table! ( caddr-table ut caddr-data ud -- nflag ) \ caddr-data is a string that needs to be parsed and stored into
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
-    2swap 2dup
-    sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
-    2swap 
-    [parse-data-table] throw
-    [parsed-data!] throw 
-    free-parsed-data throw ;
+    try
+	2swap 2dup
+	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
+	2swap 
+	[parse-data-table] throw
+	[parsed-data!] throw 
+	free-parsed-data throw
+	false
+    restore dup if >r 2drop 2drop r> then 
+    endtry ;
 
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
 \ need a word to store data in the database for a given device from the device table
