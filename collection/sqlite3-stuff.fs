@@ -26,6 +26,7 @@
 require string.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 require gforth-misc-tools.fs
+require ffl/scl.fs
 
 decimal
 
@@ -632,8 +633,22 @@ variable data-parse$
     restore dup if >r 2drop 2drop r> then 
     endtry ;
 
+scl-create reg-devices
+
+: registered-devices@ ( -- rd-scl )
+    reg-devices scl-clear
+    setupsqlite3
+    s" select data_table from devices;" dbcmds sendsqlite3cmd dberrorthrow
+    dbret$
+    cell allocate throw 
+    reg-devices scl-append
+    0 reg-devices scl-get cell erase 
+    0 reg-devices scl-get $!
+    reg-devices
+;
+
+
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
-\ need a word to store data in the database for a given device from the device table
 \ need a word to retreve the device table info to query the device for data to store in the database!
 \ write words to take json for datalogging from sensor then log it into database
 
