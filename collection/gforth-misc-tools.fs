@@ -58,5 +58,54 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 : init$ ( addr -- ) >r r@ off s" " r> $! ;  \ this is the same as $init in higher version of gforth.
 \ use this to initalize a string variable before accessing the string in the variable
 
+\ ********************************************************************
+: (list$)
+  does> ( -- addr nindex  )
+    dup @ swap cell + @ ;  \ return address of list$ and current index of list$'s
 
-    
+: (list$!) \ 
+  does> ( caddr u -- )
+    @ >r r@ @ r@ cell + @ cells cell + resize throw    \ resize past allocated stuff for new string
+    r@ !                                               \ store new address of list$
+    r@ @ r@  cell + @ cells +    ( caddr u addr -- )   \ calculate offset to store next string
+    dup 0 swap !                 ( caddr u addr -- )   \ clear addr contents to use as string
+    $!                           ( caddr u addr-- )    \ store string
+    r@ cell + @ 1+ r> cell + !   ( -- )                \ update index 
+;
+
+: (list$@)
+  does>
+    >r
+    r@ @ cell + @ 0 <>
+    if
+	r@ @ @ $@ 
+    else
+	0 0 
+    then rdrop ;
+
+: (list$off)
+  does> ; \ impliment freeing strings then freeing allocated addresses 
+
+: list$ ( -- ) ( "name" )
+    create here latest { addr nt }
+    0 , 0 ,             \ start address for list$, total stored list$'s
+    nt name>string addr $!  \ temporarily store name of created list$
+    s" -$!" addr $+!    \ add -$! to name for next create
+    addr $@ nextname    \ set next create name
+    (list$)             \ set doer for this word
+    create addr ,       \ store first list$ addr
+    nt name>string addr $!
+    s" -$@" addr $+!
+    addr $@ nextname
+    (list$!)            \ set doer for this word
+    create addr , 0 ,   \ store first list$ addr and a interative index for viewing
+    nt name>string addr $!
+    s" -$off" addr $+!
+    addr $@ nextname
+    addr $off           \ reclaim temporary string
+    0 addr !            \ reset cell to start the new list$ 
+    (list$@)
+    create addr ,       \ name-$off store first list$ addr
+    (list$off) ;
+
+\ ************************************************************************
