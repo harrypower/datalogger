@@ -74,19 +74,40 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 ;
 
 : (list$@)
-  does>
+  does> ( -- caddr u )
     >r
-    r@ @ cell + @ 0 <>
+    r@ @ cell + @ 0 >  \ if list$ is empty just return null string
     if
-	r@ @ @ $@ 
+	r@ cell + @ 0 < 
+	if
+	    0 0
+	    0 r@ cell + !
+	else
+	    r@ @ @                 \ get string address start
+	    r@ cell + @ cells + $@ \ return string with index offset added 
+	    r@ cell + @ 1 + dup    \ add one to iterator next output
+	    r@ @ cell + @ >=       \ if iterator next output to large start again at zero
+	    if
+		drop -1            \ restart
+	    then
+	    r@ cell + !            \ store next iterator value
+	then
     else
-	0 0 
+	0 0
+	0 r@ cell + !              \ ensure iterator has zero for starting index value
     then rdrop ;
 
 : (list$off)
-  does> ; \ impliment freeing strings then freeing allocated addresses 
+  does> ( -- )
+    @ { addr }                 \ note used local here because return stack cant be used in do loops
+    addr cell + @ 0 ?do
+	addr @ i cells + $off  \ free the strings
+    loop
+    addr @ free throw          \ free the pointers
+    0 addr !                   \ start at begining
+    0 addr cell + ! ; 
 
-: list$ ( -- ) ( "name" )
+: list$: ( -- ) ( "name" ) \ used to create a dynamic string array handler
     create here latest { addr nt }
     0 , 0 ,             \ start address for list$, total stored list$'s
     nt name>string addr $!  \ temporarily store name of created list$
