@@ -58,3 +58,5 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 : init$ ( addr -- ) >r r@ off s" " r> $! ;  \ this is the same as $init in higher version of gforth.
 \ use this to initalize a string variable before accessing the string in the variable
 
+
+    
