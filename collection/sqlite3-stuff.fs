@@ -73,6 +73,23 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	dup throw
     endcase ;
 
+2157 constant db-ok
+2156 constant db-errors
+: sqlite-integrity-check ( -- nflag ) \ This will do a pragma integrity_check and test returned result
+    \ nflag is db-ok if that is the returned result from sqlite3
+    \ nflag is db-errors is returned if ok was not returned from sqlite3
+    \ nflag can also return other system or sqlite3 messages
+    try
+	setupsqlite3
+\	s" " dbfieldseparator
+\	s" " dbrecordseparator
+	s" pragma integrity_check;" dbcmds
+	sendsqlite3cmd dberrorthrow
+	dbret$ s" ok" search -rot 2drop true = if db-ok throw then
+	dbret$ s" ok" search -rot 2drop false = if db-errors throw then 
+    restore 
+    endtry ;
+
 2159 constant table-yes
 2158 constant table-no
 : sqlite-table? ( caddr u -- nflag ) \ will search db for the string as a table name.  
@@ -248,19 +265,19 @@ false value name-type?  \ this is false for name is next and true for type is ne
 : pjson-"method"      ( caddr u addr -- ) cleanup$ method$ $! ;
 : pjson-"quantity"    ( caddr u addr -- ) data-quantity$ $! ; \ note this is stored here as a string but is a int in database
 : pjson-              ( caddr u addr -- ) parse-new-er throw ;  \ incorrect formed json found
-: [make-data-node]    ( caddr -- )  \ allots data node space and saves addres in the caddr provide
+: (make-data-node)    ( caddr -- )  \ allots data node space and saves addres in the caddr provide
     data-node% %allot dup data-node% %size erase swap ! ;
-: [create-data-node]  ( caddr -- caddr1 ) \ returns address of the current working node 
+: (create-data-node)  ( caddr -- caddr1 ) \ returns address of the current working node 
     data-node @ 0 =
     if   \ makes first node and returns address for location of that node
-	new-device data-node [make-data-node]
+	new-device data-node (make-data-node)
 	new-device data-node @
     else \ iterate to end of nodes and make another one and return its address
 	new-device data-node @ \ start at first location
 	begin
 	    dup next-node @ dup if swap drop false else drop true then
 	until
-	dup next-node [make-data-node]
+	dup next-node (make-data-node)
 	next-node @
     then ;
 
@@ -268,7 +285,7 @@ false value name-type?  \ this is false for name is next and true for type is ne
     cleanup$ 
     name-type? false <> if parse-new-er throw then
     swap dup 0 = if parse-new-er throw then
-    swap [create-data-node] dup to node-addr data-id$ $!
+    swap (create-data-node) dup to node-addr data-id$ $!
     true to name-type?
     node-count 1 + to node-count ;
 
@@ -282,7 +299,7 @@ false value name-type?  \ this is false for name is next and true for type is ne
     false to name-type?
     0 to node-addr ;
 
-: [parse-json] ( caddr u -- )
+: (parse-json) ( caddr u -- )
     ':' $split 
     2swap s" pjson-" temp$ $! temp$ $+! temp$ $@ find-name name>int new-device swap execute ;
 
@@ -304,8 +321,8 @@ variable register_data$
 	    '{' scan '{' skip register_data$ $!
 	    register_device$ $@ dup -rot '}' scan swap drop - register_device$ $!len
 	    register_data$ $@ '}' scan drop register_data$ $@ drop - register_data$ $!len
-	    register_device$ ',' ['] [parse-json] $iter
-	    register_data$ ',' ['] [parse-json] $iter
+	    register_device$ ',' ['] (parse-json) $iter
+	    register_data$ ',' ['] (parse-json) $iter
 	    datetime$ 1 - new-device dt_added$ $!
 	    s" yes" new-device store_data$ $!
 	    s" yes" new-device read_device$ $!
@@ -375,7 +392,7 @@ variable makedn$
     new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: [rm-datatable?] ( -- ) \ will determine if a data table was created in database in error.  If it was in error added it will try to drop the table.
+: (rm-datatable?) ( -- ) \ will determine if a data table was created in database in error.  If it was in error added it will try to drop the table.
     try 
 	new-device data_table$ $@ dup 0 <>
 	if
@@ -419,7 +436,7 @@ variable makedn$
 	    swap drop swap drop \ clean up after error
 	    dup table-present-er <>
 	    if \ only delete table if it was not present before trying to create a new one
-		 [rm-datatable?]  
+		 (rm-datatable?)  
 	    then
 	then
     endtry ;
@@ -517,13 +534,13 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
     then ;
 : pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
-: [parse-json-data] ( caddr u -- )
+: (parse-json-data) ( caddr u -- )
     ':' $split
     2swap s" pjsdata-" temp$ $! temp$ $+! temp$ $@ find-name name>int execute ;
 
 0 value data-quantity
 variable data-parse$
-: [parse-data-table] ( caddr u -- nflag )  \ nflag is false if the data was parsed and in data nodes now
+: (parse-data-table) ( caddr u -- nflag )  \ nflag is false if the data was parsed and in data nodes now
     \ note parsing will work as long as quantity reported in json is same as quantity sent in json.
     \ no checking is done to see if data matches what should be stored
     try
@@ -539,7 +556,7 @@ variable data-parse$
 	    d>s to data-quantity
 	    0 to current-data-quantity
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
-	    data-parse$ ',' ['] [parse-json-data] $iter
+	    data-parse$ ',' ['] (parse-json-data) $iter
 	    current-data-quantity data-quantity <> if data-quantity-er throw then
 	then
 	false
@@ -574,7 +591,7 @@ variable data-parse$
 	then
     then ;
 
-: [parsed-data!] ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
+: (parsed-data!) ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
     try
 	setupsqlite3
 	s" " dbfieldseparator
@@ -626,18 +643,21 @@ variable data-parse$
 	2swap 2dup
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
 	2swap 
-	[parse-data-table] throw
-	[parsed-data!] throw 
+	(parse-data-table) throw
+	(parsed-data!) throw 
 	free-parsed-data throw
 	false
     restore dup if >r 2drop 2drop r> then 
     endtry ;
+
 
 scl-create reg-devices
 
 : registered-devices@ ( -- rd-scl )
     reg-devices scl-clear
     setupsqlite3
+\    s" " dbfieldseparator
+    s" " dbrecordseparator
     s" select data_table from devices;" dbcmds sendsqlite3cmd dberrorthrow
     dbret$
     cell allocate throw 
