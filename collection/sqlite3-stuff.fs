@@ -666,12 +666,17 @@ list$: devices$
     2drop 
 ;
 
+: named-device-connection$ ( caddr-dname u -- caddr u ) \ from a registered device string name produce the string too connect to it! 
+    setupsqlite3
+    s" select ip,port,method from devices where data_table ='" temp$ $!
+    temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+    sendsqlite3cmd dberrorthrow
+    dbret$
+    44 $split 2swap temp$ $! s" :" temp$ $+!    \ ip address with : after it
+    44 $split 2swap temp$ $+! s" \" temp$ $+!   \ port number added 
+    44 $split 2drop temp$ $+! temp$ $@ ;              \ call method string added and string now returned
 
 
 
-
-\ make a word to have a local version of the device table and update that table when register-device is used and system restarts
-\ need a word to retreve the device table info to query the device for data to store in the database!
-\ write words to take json for datalogging from sensor then log it into database
 
 
