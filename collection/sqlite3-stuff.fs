@@ -650,22 +650,24 @@ variable data-parse$
     restore dup if >r 2drop 2drop r> then 
     endtry ;
 
+list$: devices$
 
-scl-create reg-devices
-
-: registered-devices@ ( -- rd-scl )
-    reg-devices scl-clear
+: registered-devices@ ( -- ) \ puts the current names of devices into devices$ 
     setupsqlite3
-\    s" " dbfieldseparator
     s" " dbrecordseparator
     s" select data_table from devices;" dbcmds sendsqlite3cmd dberrorthrow
     dbret$
-    cell allocate throw 
-    reg-devices scl-append
-    0 reg-devices scl-get cell erase 
-    0 reg-devices scl-get $!
-    reg-devices
+    begin
+	44 $split
+	2swap
+	devices$-$!
+	dup 0 =
+    until
+    2drop 
 ;
+
+
+
 
 
 \ make a word to have a local version of the device table and update that table when register-device is used and system restarts
