@@ -59,12 +59,13 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 \ use this to initalize a string variable before accessing the string in the variable
 
 \ ********************************************************************
+
 : (list$)
   does> ( -- addr nindex  )
-    dup @ swap cell + @ ;  \ return address of list$ and current index of list$'s
+    dup dup @ -rot cell + @    \ return address of list$ and current index of list$'s
+    0 rot 2 cells + ! ;        \ reset iterator value to zero
 
-: (list$!) \ 
-  does> ( caddr u -- )
+: (dolist$!) ( caddr u addr -- )
     @ >r r@ @ r@ cell + @ cells cell + resize throw    \ resize past allocated stuff for new string
     r@ !                                               \ store new address of list$
     r@ @ r@  cell + @ cells +    ( caddr u addr -- )   \ calculate offset to store next string
@@ -73,60 +74,85 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
     r@ cell + @ 1+ r> cell + !   ( -- )                \ update index 
 ;
 
+: (list$!) \ note resize here will resize 0 alloted address in gforth only (non ans forth)
+  does> ( caddr u -- )
+    (dolist$!)
+    \ @ >r r@ @ r@ cell + @ cells cell + resize throw    \ resize past allocated stuff for new string
+    \ r@ !                                               \ store new address of list$
+    \ r@ @ r@  cell + @ cells +    ( caddr u addr -- )   \ calculate offset to store next string
+    \ dup 0 swap !                 ( caddr u addr -- )   \ clear addr contents to use as string
+    \ $!                           ( caddr u addr-- )    \ store string
+    \ r@ cell + @ 1+ r> cell + !   ( -- )                \ update index 
+;
+
 : (list$@)
   does> ( -- caddr u )
-    >r
-    r@ @ cell + @ 0 >  \ if list$ is empty just return null string
+    @ >r
+    r@ cell + @ 0 >  \ if list$ is empty just return null string
     if
-	r@ cell + @ 0 < 
+	r@ @                       \ get string address star
+	r@ 2 cells + @ cells + $@  \ return string with index offset added 
+	r@ 2 cells + @ 1 + dup     \ add one to iterator next output
+	r@ cell + @ >=             \ if iterator next output to large start again at zero
 	if
-	    0 0
-	    0 r@ cell + !
-	else
-	    r@ @ @                 \ get string address start
-	    r@ cell + @ cells + $@ \ return string with index offset added 
-	    r@ cell + @ 1 + dup    \ add one to iterator next output
-	    r@ @ cell + @ >=       \ if iterator next output to large start again at zero
-	    if
-		drop -1            \ restart
-	    then
-	    r@ cell + !            \ store next iterator value
+	    drop 0                 \ restart
 	then
+	r@ 2 cells + !             \ store next iterator value
     else
 	0 0
-	0 r@ cell + !              \ ensure iterator has zero for starting index value
+	0 r@ 2 cells + !           \ ensure iterator has zero for starting index value
     then rdrop ;
 
 : (list$off)
-  does> ( -- )
-    @ { addr }                 \ note used local here because return stack cant be used in do loops
-    addr cell + @ 0 ?do
-	addr @ i cells + $off  \ free the strings
+  does> ( -- ) \ note this local is used inside the ?do loop and works in gforth (non ans forth)
+    @ { this@ }                 \ note used local here because return stack cant be used in do loops
+    this@ cell + @ 0 ?do
+	this@ @ i cells + $off  \ free the strings
     loop
-    addr @ free throw          \ free the pointers
-    0 addr !                   \ start at begining
-    0 addr cell + ! ; 
+    this@ @ free throw          \ free the pointers
+    0 this@ !                   \ start at begining
+    0 this@ cell + !
+    0 this@ 2 cells + !         \ zero iterator 
+; 
+
+: (list$@>)
+  does> ( addr nindex )
+    swap -rot { addr this }
+    0 ?do \ this loops from 0 to nindex
+	i cells addr + $@ this (dolist$!)
+    loop ;
 
 : list$: ( -- ) ( "name" ) \ used to create a dynamic string array handler
     create here latest { addr nt }
-    0 , 0 ,             \ start address for list$, total stored list$'s
+    0 , 0 , 0 ,             \ start address for list$, total stored list$'s, interative index for viewing
     nt name>string addr $!  \ temporarily store name of created list$
     s" -$!" addr $+!    \ add -$! to name for next create
     addr $@ nextname    \ set next create name
-    (list$)             \ set doer for this word
+    (list$)             \ set doer for name handler
+
     create addr ,       \ store first list$ addr
     nt name>string addr $!
     s" -$@" addr $+!
     addr $@ nextname
-    (list$!)            \ set doer for this word
-    create addr , 0 ,   \ store first list$ addr and a interative index for viewing
+    (list$!)            \ set doer for name string storer
+
+    create addr ,       \ store first list$ addr 
     nt name>string addr $!
     s" -$off" addr $+!
     addr $@ nextname
+    (list$@)            \ set doer for name string fetch iterator
+
+    create addr ,       \ name-$off store first list$ addr
+    nt name>string addr $!
+    s" -$@>" addr $+!
+    addr $@ nextname
+
     addr $off           \ reclaim temporary string
     0 addr !            \ reset cell to start the new list$ 
-    (list$@)
-    create addr ,       \ name-$off store first list$ addr
-    (list$off) ;
+    
+    (list$off)          \ set doer for name string reclaimer
+
+    create addr ,
+    (list$@>) ;         \ set doer for name string copier
 
 \ ************************************************************************
