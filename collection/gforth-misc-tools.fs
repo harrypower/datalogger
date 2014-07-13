@@ -71,19 +71,11 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
     r@ @ r@  cell + @ cells +    ( caddr u addr -- )   \ calculate offset to store next string
     dup 0 swap !                 ( caddr u addr -- )   \ clear addr contents to use as string
     $!                           ( caddr u addr-- )    \ store string
-    r@ cell + @ 1+ r> cell + !   ( -- )                \ update index 
-;
+    r@ cell + @ 1+ r> cell + ! ; ( -- )                \ update index 
 
 : (list$!) \ note resize here will resize 0 alloted address in gforth only (non ans forth)
   does> ( caddr u -- )
-    (dolist$!)
-    \ @ >r r@ @ r@ cell + @ cells cell + resize throw    \ resize past allocated stuff for new string
-    \ r@ !                                               \ store new address of list$
-    \ r@ @ r@  cell + @ cells +    ( caddr u addr -- )   \ calculate offset to store next string
-    \ dup 0 swap !                 ( caddr u addr -- )   \ clear addr contents to use as string
-    \ $!                           ( caddr u addr-- )    \ store string
-    \ r@ cell + @ 1+ r> cell + !   ( -- )                \ update index 
-;
+    (dolist$!) ;
 
 : (list$@)
   does> ( -- caddr u )
@@ -112,8 +104,7 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
     this@ @ free throw          \ free the pointers
     0 this@ !                   \ start at begining
     0 this@ cell + !
-    0 this@ 2 cells + !         \ zero iterator 
-; 
+    0 this@ 2 cells + ! ;       \ zero iterator 
 
 : (list$@>)
   does> ( addr nindex )
