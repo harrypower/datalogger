@@ -621,9 +621,9 @@ variable data-parse$
 	2swap 2dup
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
 	2swap 
-	(parse-data-table) throw
-	(parsed-data!) throw 
-	free-parsed-data throw
+	(parse-data-table) .s cr throw
+	(parsed-data!) .s cr throw 
+	free-parsed-data .s cr throw
 	false
     restore dup if >r 2drop 2drop r> then 
     endtry ;
@@ -646,7 +646,7 @@ list$: devices$
 
 list$: connection$s
 
-: named-device-connection$ ( caddr-dname u -- caddr u ) \ from a registered device string name produce the string too connect to it! 
+: named-device-connection$ ( caddr-dname u -- ) \ from a registered device name produce connection$s strings! 
     setupsqlite3
     connection$s-$off
     s" select ip,port,method from devices where data_table ='" temp$ $!

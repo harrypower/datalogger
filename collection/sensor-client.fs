@@ -33,8 +33,14 @@ require sqlite3-stuff.fs
 
 decimal
 
+2000000 constant mbed-timeout#
+1000 constant abufsize
+1000 constant buff2max 
+
 variable abuffer
-1000 allocate throw abuffer ! \ store allocated heap address for buffer 
+abufsize allocate throw abuffer ! \ store allocated heap address for abuffer
+
+variable buffer2$ buffer2$ off s" " buffer2$ $!   \ start buffer2$ empty
 variable path-logging$
 
 
@@ -47,6 +53,7 @@ s" Mbed tcp HTTP header missing"                          exception constant mbe
 s" Mbed data message incomplete"                          exception constant mbedmessagefail-err       
 s" Socket timeout failure in mbedread-client"             exception constant sockettime-err            
 s" Socket message recieved to large"                      exception constant tcpoverflow-err          
+s" Port number invalid"                                   exception constant portnumber-err
 
 next-exception @ constant socket-errorListEnd
 
@@ -62,7 +69,6 @@ s" HTTP/1.0 200 OK"  mystrings http$ $!
 s\" \r\n\r\n"        mystrings socketterm$ $!
 s" GET /"            mystrings GET$ $!
 
-list$: socketbuffer$s
 list$: regdevice$s
 list$: theconxtinfo$s
 
@@ -90,17 +96,20 @@ list$: theconxtinfo$s
 	2drop false
     then ;
 
+variable socketjunk$
 : mbedread-client ( caddr u nport# -- caddr1 u1 nflag )
-    try
+    try   \ nflag is false if socket reading was ok and then caddr1 u1 is a good string from socket
 	open-socket { socketid }
-	
-	s\" GET /val \r\n\r\n" socketid write-socket
-	abuffer 500 erase
-	buffer2$ $off s" " buffer2$ $!
+	mystrings GET$ $@ socketjunk$ $!
+	theconxtinfo$s-$@ socketjunk$ $+! s"  " socketjunk$ $+! \ method string
+	mystrings socketterm$ $@ socketjunk$ $+!
+	socketjunk$ $@ socketid write-socket
+	abuffer @ abufsize erase
+	buffer2$ $off s" " buffer2$ $!   \ note the $off is to deallocate the heap stuff so no memory leaks
 	utime
 	begin
 	    2dup
-	    socketid abuffer 499 read-socket  \ note read-socket is for TCP read-socket-from is for UDP
+	    socketid abuffer @ abufsize read-socket  \ note read-socket is for TCP read-socket-from is for UDP
 	    buffer2$ $+!
 	    utime 2swap d- d>s mbed-timeout# >
 	    if
@@ -121,9 +130,15 @@ list$: theconxtinfo$s
 	dup if swap drop then
     endtry ;
 
-: get-thp$ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
+: mbedread-client2
+    .s . dump sockettime-err throw ;
+
+: socket@ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
     try   \ flag is false for reading of mbed was ok any other value is some error
-	mystrings mbed-ip$ $@ mbed-port# mbedread-client throw
+	theconxtinfo$s 2drop  \ start string iterator at beginning
+	theconxtinfo$s-$@     \ ip address string
+	theconxtinfo$s-$@ s>unumber? true <> if portnumber-err throw else d>s then
+	mbedread-client throw
 	mystrings http$ $@ search
 	if
 	    2dup find2sockterm
@@ -131,10 +146,10 @@ list$: theconxtinfo$s
 		findsockterm drop
 		4 - false
 	    else
-		2drop mbedpackage2termfail-err
+		2drop mbedpackage2termfail-err throw
 	    then
 	else
-	    2drop mbedhttpfail-err
+	    2drop mbedhttpfail-err throw
 	then
     restore dup if 0 swap 0 swap then
     endtry ;
@@ -144,9 +159,13 @@ list$: theconxtinfo$s
     regdevice$s-$off          \ empty string handler
     theconxtinfo$s-$off       \ empty connection info handler
     devices$ regdevice$s->$!  \ transfer device name list to regdevice$s
-    connection$s theconxtinfo$s->$!  \ transfer connection info to theconxtinfo$s
-
+    regdevice$s-$@
     named-device-connection$
+    connection$s theconxtinfo$s->$!  \ transfer connection info to theconxtinfo$s
+\   socket@ throw
+\    regdevice$s 2drop
+\    regdevice$s-$@ 2swap
+\    parse-data-table!
 ;
 
 
