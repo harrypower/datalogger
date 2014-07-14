@@ -81,8 +81,6 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag can also return other system or sqlite3 messages
     try
 	setupsqlite3
-\	s" " dbfieldseparator
-\	s" " dbrecordseparator
 	s" pragma integrity_check;" dbcmds
 	sendsqlite3cmd dberrorthrow
 	dbret$ s" ok" search -rot 2drop true = if db-ok throw then
@@ -98,15 +96,14 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is some error either  +1 to +110 for some sqlite3 error
     \ nflag is some error either -1 to -x for some system error or other returned error defined with exception
     try
-	2>r
+	{ caddr u }
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select name from sqlite_master where name = '" temp$ $! 2r@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select name from sqlite_master where name = '" temp$ $! caddr u temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow 
-	dbret$ 2r> search -rot 2drop true = if table-yes else table-no then
-	false
-    restore dup if swap drop swap drop else drop then  
+	dbret$ caddr u search -rot 2drop true = if table-yes throw else table-no throw then
+    restore swap drop swap drop   
     endtry ;
 
 2160 constant ip-yes
@@ -116,15 +113,14 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is ip-yes (2160) if ip address is registered now
     \ nflag can return other numbers indicating sqlite3 errors or system errors
     try
-	2>r
+	{ caddr u }
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select ip from devices where ip = '" temp$ $! 2r@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select ip from devices where ip = '" temp$ $! caddr u temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
-	dbret$ 2r> search -rot 2drop true = if ip-yes else ip-no then
-	false
-    restore dup if swap drop swap drop else drop then 
+	dbret$ caddr u search -rot 2drop true = if ip-yes throw else ip-no throw then
+    restore swap drop swap drop  
     endtry ;
 
 2162 constant dname-yes
@@ -134,20 +130,19 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is dname-no  (2163) if there is no named device registered
     \ nflag can return other numbers indicating sqlite3 errors or system errors
     try
-	2>r
+	{ caddr u }
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select data_table from devices where data_table = '" temp$ $! 2r@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select data_table from devices where data_table = '" temp$ $! caddr u temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
-	dbret$ 2r@ search -rot 2drop true = if dname-yes else dname-no then
-	dup dname-no
+	dbret$ caddr u search -rot 2drop true = if dname-yes else dname-no then
+	dup dname-no =
 	if
 	    drop
-	    2r@ sqlite-table? dup table-yes =
-	    if drop dname-yes else dup table-no = if drop dname-no else throw  then then 
+	    caddr u sqlite-table? dup table-yes =
+	    if drop dname-yes throw else dup table-no = if drop dname-no throw else throw  then then 
 	then
-	2r> 2drop 
 	false
     restore dup if swap drop swap drop else drop then 
     endtry ;
@@ -413,7 +408,7 @@ variable makedn$
 	create-datalogging-table throw
 	create-device-entry
 	false
-    restore dup
+    restore dup 
 	if
 	    swap drop swap drop \ clean up after error
 	then
@@ -425,7 +420,7 @@ variable makedn$
     temp$ $+! s" /regdev" temp$ $+! temp$ $@ system
     path$ $@ temp$ $! s" /collection/wg-reg-device.data" temp$ $+! temp$ $@ slurp-file dup 0 >
     if
-	register-device-$ 
+	register-device-$  
     else
 	wg-registry-er 
     then ;
