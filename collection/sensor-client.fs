@@ -155,17 +155,29 @@ variable socketjunk$
     endtry ;
 
 : get-sensor-data ( -- )
-    registered-devices@
-    regdevice$s-$off          \ empty string handler
-    theconxtinfo$s-$off       \ empty connection info handler
-    devices$ regdevice$s->$!  \ transfer device name list to regdevice$s
-    regdevice$s-$@
-    named-device-connection$
-    connection$s theconxtinfo$s->$!  \ transfer connection info to theconxtinfo$s
-    socket@ throw
-    regdevice$s 2drop
-    regdevice$s-$@ 2swap
-    parse-data-table!
+    try
+	registered-devices@
+	regdevice$s-$off          \ empty string handler
+	theconxtinfo$s-$off       \ empty connection info handler
+	devices$ regdevice$s->$!  \ transfer device name list to regdevice$s
+	regdevice$s-$@
+	named-device-connection$
+	connection$s theconxtinfo$s->$!  \ transfer connection info to theconxtinfo$s
+	socket@ throw
+	regdevice$s 2drop
+	regdevice$s-$@ 2swap
+	parse-data-table!
+	false
+    restore 
+    endtry ;
+
+
+: testcollect ( -- )
+    begin
+	get-sensor-data
+	dup false <>
+	if errorlist-sqlite3! else drop then
+	60000 ms
+	
+    again
 ;
-
-
