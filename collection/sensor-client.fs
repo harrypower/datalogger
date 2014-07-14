@@ -162,10 +162,10 @@ variable socketjunk$
     regdevice$s-$@
     named-device-connection$
     connection$s theconxtinfo$s->$!  \ transfer connection info to theconxtinfo$s
-\   socket@ throw
-\    regdevice$s 2drop
-\    regdevice$s-$@ 2swap
-\    parse-data-table!
+    socket@ throw
+    regdevice$s 2drop
+    regdevice$s-$@ 2swap
+    parse-data-table!
 ;
 
 

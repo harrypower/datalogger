@@ -591,7 +591,7 @@ variable data-parse$
 	    then
 	until
 	temp$ dup $@len 1- swap $!len \ remove the last , from the string
-	s" ) values(" temp$ $+!
+	s\" \) values\(" temp$ $+!
 	datetime$ temp$ $+!
 	begin
 	    iter-parsed-data
@@ -616,9 +616,9 @@ variable data-parse$
 	2swap 2dup
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
 	2swap 
-	(parse-data-table) .s cr throw
-	(parsed-data!) .s cr throw 
-	free-parsed-data .s cr throw
+	(parse-data-table) throw
+	(parsed-data!) throw 
+	free-parsed-data throw
 	false
     restore dup if >r 2drop 2drop r> then 
     endtry ;

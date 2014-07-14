@@ -18,7 +18,6 @@
 require string.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 
-\ note pad will get clobered with some of the following words
 
 variable path$
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ configure sets this up to contain the full path
@@ -48,8 +47,9 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
     swap over dabs
     <<# #s rot sign #> #>> ;
 
+variable mytemppad$
 : #to$, ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
-    #to$ pad $! s" ," pad $+! pad $@ ;
+    #to$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
 
 : datetime$ ( -- caddr u ) \ create the current time value of unixepoch and make into a string with a "," at the end of string
     utime 1000000 fm/mod swap drop
