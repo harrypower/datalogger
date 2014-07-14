@@ -657,14 +657,14 @@ list$: devices$
     s" " dbrecordseparator
     s" select data_table from devices;" dbcmds sendsqlite3cmd dberrorthrow
     dbret$
+    devices$-$off
     begin
 	44 $split
 	2swap
 	devices$-$!
 	dup 0 =
     until
-    2drop 
-;
+    2drop ;
 
 : named-device-connection$ ( caddr-dname u -- caddr u ) \ from a registered device string name produce the string too connect to it! 
     setupsqlite3
@@ -673,8 +673,8 @@ list$: devices$
     sendsqlite3cmd dberrorthrow
     dbret$
     44 $split 2swap temp$ $! s" :" temp$ $+!    \ ip address with : after it
-    44 $split 2swap temp$ $+! s" \" temp$ $+!   \ port number added 
-    44 $split 2drop temp$ $+! temp$ $@ ;              \ call method string added and string now returned
+    44 $split 2swap temp$ $+! s" /" temp$ $+!   \ port number added 
+    44 $split 2drop temp$ $+! temp$ $@ ;        \ call method string added and string now returned
 
 
 

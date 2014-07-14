@@ -28,11 +28,13 @@ require ../socket.fs  \ note this is the socket.fs included in this git rep
 \ this socket.fs works in this code and the version 0.7.0 unix/socket.fs does not work with this code
 require gforth-misc-tools.fs
 require sqlite3-stuff.fs
+require script.fs
+
 
 decimal
 
-0 value buffer
-here to buffer 1000 allot
+0 value abuffer
+here to abuffer 1000 allot
 variable path-logging$
 
 
@@ -40,9 +42,23 @@ next-exception @ constant socket-errorListStart
 
 next-exception @ constant socket-errorListEnd
 
-: get-data ( -- )
+variable bbuffer
+
+: get-sensor-data ( -- )
     registered-devices@
+    devices$ 2drop
     devices$-$@
     named-device-connection$
+    s" sudo wget --output-document=wg-sensor-read.data " bbuffer $! bbuffer $+! s"  &" bbuffer $+!
+    bbuffer $@ system
+    devices$ 2drop
+    devices$-$@
+    s" cat wg-sensor-read.data " shget throw
+    parse-data-table! throw
 ;
 
+: loopit
+    10 0 ?do
+	get-sensor-data
+	10000 ms
+    loop ;
