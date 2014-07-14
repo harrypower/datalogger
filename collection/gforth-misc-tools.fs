@@ -106,7 +106,7 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
     0 this@ cell + !
     0 this@ 2 cells + ! ;       \ zero iterator 
 
-: (list$@>)
+: (list$>$!)
   does> ( addr nindex )
     swap -rot { addr this }
     0 ?do \ this loops from 0 to nindex
@@ -135,7 +135,7 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 
     create addr ,       \ name-$off store first list$ addr
     nt name>string addr $!
-    s" -$@>" addr $+!
+    s" ->$!" addr $+!
     addr $@ nextname
 
     addr $off           \ reclaim temporary string
@@ -144,6 +144,6 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
     (list$off)          \ set doer for name string reclaimer
 
     create addr ,
-    (list$@>) ;         \ set doer for name string copier
+    (list$>$!) ;         \ set doer for name string copier
 
 \ ************************************************************************

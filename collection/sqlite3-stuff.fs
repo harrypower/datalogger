@@ -392,24 +392,6 @@ variable makedn$
     new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: (rm-datatable?) ( -- ) \ will determine if a data table was created in database in error.  If it was in error added it will try to drop the table.
-    try 
-	new-device data_table$ $@ dup 0 <>
-	if
-	    sqlite-table? table-yes =
-	    if
-		\ remove found table as it is not needed due to registartion error
-		setupsqlite3
-		s" drop table " temp$ $! new-device data_table$ $@ temp$ $+! s" ;" temp$ $+! temp$ $@ dbcmds
-		sendsqlite3cmd dberrorthrow  \ note if this throws then the table may still be there 
-	    then
-	else
-	    2drop 
-	then
-	false
-    restore drop 
-    endtry ;
-
 : register-device-$ ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
 	new-device data-node off   \ note every time this code runs to parse a new device there will be small memory leak
@@ -434,10 +416,6 @@ variable makedn$
     restore dup
 	if
 	    swap drop swap drop \ clean up after error
-	    dup table-present-er <>
-	    if \ only delete table if it was not present before trying to create a new one
-		 (rm-datatable?)  
-	    then
 	then
     endtry ;
 
@@ -666,15 +644,20 @@ list$: devices$
     until
     2drop ;
 
+list$: connection$s
+
 : named-device-connection$ ( caddr-dname u -- caddr u ) \ from a registered device string name produce the string too connect to it! 
     setupsqlite3
+    connection$s-$off
     s" select ip,port,method from devices where data_table ='" temp$ $!
     temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
     sendsqlite3cmd dberrorthrow
     dbret$
-    44 $split 2swap temp$ $! s" :" temp$ $+!    \ ip address with : after it
-    44 $split 2swap temp$ $+! s" /" temp$ $+!   \ port number added 
-    44 $split 2drop temp$ $+! temp$ $@ ;        \ call method string added and string now returned
+    44 $split 2swap connection$s-$! \ ip address
+    44 $split 2swap connection$s-$! \ port number in a string from
+    44 $split 2drop connection$s-$! \ method string to talk to sensor
+    ;
+    
 
 
 
