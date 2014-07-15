@@ -176,7 +176,7 @@ variable socketjunk$
     begin
 	get-sensor-data
 	dup false <>
-	if errorlist-sqlite3! else drop then
+	if dup errorlist-sqlite3! error-sqlite3! else drop then
 	60000 ms
 	
     again
