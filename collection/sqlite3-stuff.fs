@@ -429,7 +429,7 @@ end-struct parse-data%
 
 variable parsed-data 
 parse-data% %allocate throw parsed-data ! \ the last node is always empty this starts that empty node 
-parsed-data @ parse-data% %size erase  \ this ensures the test for last node will show it as last node
+parsed-data @ parse-data% %size 0 fill \ erase  \ this ensures the test for last node will show it as last node
 
 0 value current-data-quantity
 : free-parsed-data ( -- nflag ) \ remove nodes from memory and free strings also
@@ -445,7 +445,7 @@ parsed-data @ parse-data% %size erase  \ this ensures the test for last node wil
 		swap to cpd
 	    until
 	    parse-data% %allocate throw parsed-data ! \ create the empty node for next use
-	    parsed-data @ parse-data% %size erase \ clear it to ensure last node test will work
+	    parsed-data @ parse-data% %size 0 fill \ erase \ clear it to ensure last node test will work
 	then
 	false
     restore 

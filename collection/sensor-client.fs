@@ -190,7 +190,7 @@ variable socketjunk$
 	    named-device-connection$
 	    theconxtinfo$s-$off
 	    connection$s theconxtinfo$s->$!
-	    get-sensor-data
+	    get-sensor-data dup . ."   now what" cr
 	    dup false <>
 	    if dup errorlist-sqlite3! error-sqlite3! else drop then 
 	loop
