@@ -154,7 +154,7 @@ variable socketjunk$
     restore dup if 0 swap 0 swap then
     endtry ;
 
-: get-sensor-data ( -- )
+: get-first-device-only ( -- )
     try
 	registered-devices@
 	regdevice$s-$off          \ empty string handler
@@ -171,13 +171,39 @@ variable socketjunk$
     restore 
     endtry ;
 
+: get-sensor-data ( caddrdevice u -- flag ) \ takes a device name gets data from device then parse data and put into database
+    \ nflag will be false if data retrieved and ok
+    \ nflag could return any type of issue from socket problems to database problems
+    try
+	2dup
+	socket@ throw
+	parse-data-table! throw
+	false
+    restore dup if swap drop swap drop then
+    endtry ;
+
+: get-allsensors-data ( -- )
+    try
+	registered-devices@
+	regdevice$S-$off
+	devices$ regdevice$s->$!
+	regdevice$s drop 0 ?do
+	    regdevice$s-$@ 2dup
+	    named-device-connection$
+	    connection$s theconxtinfo$s->$!
+	    get-sensor-data
+	    dup false <>
+	    if dup errorlist-sqlite3! error-sqlite3! else drop then 
+	loop
+	false
+    restore
+    endtry ;
+
+
 
 : testcollect ( -- )
     begin
-	get-sensor-data
-	dup false <>
-	if dup errorlist-sqlite3! error-sqlite3! else drop then
+	get-allsensor-data
 	60000 ms
-	
     again
 ;
