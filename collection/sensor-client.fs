@@ -175,23 +175,24 @@ variable socketjunk$
     \ nflag will be false if data retrieved and ok
     \ nflag could return any type of issue from socket problems to database problems
     try
-	2dup
 	socket@ throw
 	parse-data-table! throw
 	false
     restore dup if swap drop swap drop then
     endtry ;
 
-: get-allsensors-data ( -- )
+: get-allsensors-data ( -- nflag )
     try
 	registered-devices@
-	regdevice$S-$off
+	regdevice$s-$off
 	devices$ regdevice$s->$!
-	regdevice$s drop 0 ?do
-	    regdevice$s-$@ 2dup
+	regdevice$s swap drop 0 ?do
+	    regdevice$s-$@ 2dup 
 	    named-device-connection$
+	    theconxtinfo$s-$off
 	    connection$s theconxtinfo$s->$!
 	    get-sensor-data
+	    dup . ."  result" cr
 	    dup false <>
 	    if dup errorlist-sqlite3! error-sqlite3! else drop then 
 	loop
@@ -203,7 +204,7 @@ variable socketjunk$
 
 : testcollect ( -- )
     begin
-	get-allsensor-data
+	get-allsensors-data drop  
 	60000 ms
     again
 ;
