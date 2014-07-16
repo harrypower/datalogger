@@ -22,14 +22,12 @@
 
 \ warnings off
 
+require gforth-misc-tools.fs
 require string.fs
 require ../socket.fs  \ note this is the socket.fs included in this git rep
 \ this socket.fs is a version for gforth but it is not compatable with version 0.7.0 that comes with apt-get install gforth
 \ this socket.fs works in this code and the version 0.7.0 unix/socket.fs does not work with this code
-require gforth-misc-tools.fs
 require sqlite3-stuff.fs
-
-
 
 decimal
 
@@ -42,6 +40,7 @@ abufsize allocate throw abuffer ! \ store allocated heap address for abuffer
 
 variable buffer2$ buffer2$ off s" " buffer2$ $!   \ start buffer2$ empty
 variable path-logging$
+60001 value mbed-readtime
 
 
 next-exception @ constant socket-errorListStart
@@ -192,7 +191,6 @@ variable socketjunk$
 	    theconxtinfo$s-$off
 	    connection$s theconxtinfo$s->$!
 	    get-sensor-data
-	    dup . ."  result" cr
 	    dup false <>
 	    if dup errorlist-sqlite3! error-sqlite3! else drop then 
 	loop
@@ -200,11 +198,57 @@ variable socketjunk$
     restore
     endtry ;
 
-
-
-: testcollect ( -- )
+: main_loop ( -- )
     begin
 	get-allsensors-data drop  
-	60000 ms
+	mbed-readtime ms
     again
 ;
+
+: config-mbed-client ( -- ) \ will run when this file is loaded and will look at arguments for operation
+    next-arg  
+    dup 0=
+    if
+	." Argument needed!" cr 2drop s" -help"
+    then
+
+    s" -help" search
+    if
+	." -r use to start the datalogging process at 5 min. default time!" cr
+	." -r 10 use to start datalogging process with 10 min. logging time!" cr
+	." -r x  where x is a number for minuets for logging time!" cr
+	." -i use to enter the gforth command line to issue commands!" cr
+	2drop bye
+    then
+
+    s" -r" search
+    if
+	2drop
+	5 60001 * to mbed-readtime
+	next-arg dup 0<> if
+	    s>number? if
+		d>s dup 1 >= if
+		    60001 * to mbed-readtime
+		else
+		    drop
+		then
+	    then
+	else
+	    2drop
+	then
+	main_loop bye
+    then
+
+    s" -i" search
+    if
+	2drop \ now just enter the gforth cmd line
+    else
+	2drop
+	." Switch not supported!" cr
+	." -r use to start the datalogging process!" cr
+	." -i use to enter the gforth command line to issue commands!" cr
+	bye
+    then
+;
+
+config-mbed-client 

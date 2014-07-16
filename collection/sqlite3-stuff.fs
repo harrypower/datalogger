@@ -1,6 +1,3 @@
-\ #! /usr/local/bin/gforth   \ note this should call gforth version 0.7.2 and up  /usr/bin/gforth  would call 0.7.0 only!
-\ this may not be needed because this code is allways reqired by other code 
-
 \ This Gforth code is a Raspberry Pi Data logging code
 \    Copyright (C) 2014  Philip K. Smith
 
@@ -26,7 +23,6 @@
 require string.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
 require gforth-misc-tools.fs
-require ffl/scl.fs
 
 decimal
 
@@ -653,8 +649,82 @@ list$: connection$s
     44 $split 2drop connection$s-$! \ method string to talk to sensor
     ;
     
+\ *******************************************************
+\ some tools to look at data
+variable errjnk$
+: listerrors ( -- )
+    setupsqlite3
+    s" select max(rowid) from errorList;" dbcmds
+    sendsqlite3cmd 0<>
+    if
+	s" **sql msg**" type dberrmsg drop type
+	begin
+	    2 ms
+	    sendsqlite3cmd 0=
+	until
+    then
+    dbret$
+    s>number? 0 =
+    if  cr
+	d>s 0 { end now }  begin
+	    s" select error,errorText from errorList limit 1 offset " errjnk$ $!
+	    now s>d dto$ errjnk$ $+! s" ;" errjnk$ $+!
+	    errjnk$ $@ dbcmds
+	    sendsqlite3cmd 0<>
+	    if
+		s" **sql msg**" type dberrmsg drop type
+		begin
+		    2 ms
+		    sendsqlite3cmd 0=
+		until
+		now 1- to now
+	    else
+		dbret$ type \ cr
+	    then
+	    now 1+ to now
+	    now end >=
+	until
+    then ;
+
+: listdberrors ( -- )
+    setupsqlite3
+    s" select max(row) from errors;" dbcmds
+    sendsqlite3cmd 0<>
+    if
+	s" **sql msg**" type dberrmsg drop type
+	begin
+	    2 ms
+	    sendsqlite3cmd 0=
+	until
+    then
+    dbret$
+    s>number? 0 =
+    if
+	d>s 0 { end now }  begin
+	    s" select row,datetime(dtime,'unixepoch','localtime'),error from errors limit 1 offset " errjnk$ $!
+	    now s>d dto$ errjnk$ $+! s" ;" errjnk$ $+!
+	    errjnk$ $@ dbcmds
+	    sendsqlite3cmd 0<>
+	    if
+		s" **sql msg**" type dberrmsg drop type
+		begin
+		    2 ms
+		    sendsqlite3cmd 0=
+		until
+		now 1- to now
+	    else
+		dbret$ type \ cr
+	    then
+	    now 1+ to now
+	    now end >=
+	until
+    then ;
+
+\ **************************************************************
 
 
+
+    
 
 
 
