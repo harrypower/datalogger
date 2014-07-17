@@ -8,13 +8,15 @@ To use this server you need to install Gforth, inetd and then configure this ser
     $ sudo apt-get install inetutils-inetd
     $ sudo apt-get install sqlite3 libsqlite3-dev
 -Install dependent Rpi_Gforth_GPIO library submodule ( the raspberry pi gpio stuff depends on this library !)
+	Note this library is not used yet in the datalogging software but you can simply add code to use it! 	
 	Note that this Rpi_Gforth_GPIO is a submodule in this repository.  This means you must issue these commands from this gforth_webserver repositorys directory to get the files:
 		$ sudo git submodule init
 		$ sudo git submodule update
 	Now follow the README in the gpio directory for information on compiling the C code into a shared library.
 	Run gforth as in the README in the gpio directory and enter the following as show in that README:
 		include rpi_GPIO_lib.fs
-	There should be no message if all is working.  Note if you need to recompile the library just follow the README file for how to remove the old and recompile the new library.  Then use ./clean command to remove the gforth library and then do the above include rpi_GPIO_lib.fs from gforth command line to reconnect the c library to gforth.  
+	There should be no message if all is working.  Note if you need to recompile the library just follow the README file for how to remove the old and recompile the new library.
+        Then use ./clean command to remove the gforth library and then do the above include rpi_GPIO_lib.fs from gforth command line to reconnect the c library to gforth.  
 -Install dependant Chart.js library submodule ( this is only needed if you want to see the chart test or work with it in any way!)
 	Nothing else is needed to be done for this submodule.  
 	Note there are example html files in this submodule directory for example usage of the chart.js library.
@@ -33,19 +35,23 @@ When the pi starts up it will serve index.html !
 	This just puts a file in /var/lib/datalogger-gforth/ directory called datalobber_home_path. 
 	In this file is simply stored the path to the repository so now the project can find files in this repository.  
 	Note the web server and the mbed-sensor-client.fs programs us this method to find where files are!
--The data collection is done with mbed-sensor-client.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
-        $ sudo nano /etc/rc.local 
+-The data collection is done with sensor-client.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
+     $ sudo nano /etc/rc.local 
         This above command will open the file for editing that is used to run a script at the end of boot processes. Place the following into file before exit at bottom of the file:
-        ####
-	/home/pi/git/datalogger/collection/mbed-sensor-client.fs -r & 
-	####
-        Note this will run the mbed-sensor-client.fs gforth program as root after boot up is done and collection will be every 5 min.
-	Note this script starts with #! but it will start gforth for the compiling of the rest of mbed-sensor-client.fs. 
-        Data collection will be in a file called sensordb.data but this is a sqlite3 database file!
--The database is stored in the collection directory and is in a file called sensordb.data.  This dbfile can be backup up with the program in that directory called usbcopydb.fs .  This program could be set up to run in a cron job as root with the following:
-        $ sudo crontab -e
+     ####
+     /home/pi/git/datalogger/collection/sensor-client.fs -r & 
+     ####
+        Note this will run the sensor-client.fs gforth program as root after boot up is done and collection will be every 5 min.
+	Note this script starts with #! but it will start gforth for the compiling of the rest of sensor-client.fs. 
+        Data collection will be in a file called datalogged.data and this is a sqlite3 database file!
+-The database is stored in the collection directory and is in a file called datalogged.data.  This dbfile can be backup up with the program in that directory called usbcopydb.fs .
+        This program could be set up to run in a cron job as root with the following:
+     $ sudo crontab -e
         Then enter this line at the bottom of the text that is in the editor:
-        0 * * * * /home/pi/git/datalogger/collection/usbcopydb.fs
-        A directory needs to be made with the following:
-	$ sudo mkdir /mnt/usb0 
-        This will set up a backup to a usb stick once per hour. The backup will be called sensordb.yearmonthday (year month and day replaced with the numbers for those values).  Realize this will replace that backup file once an hour only if the file in collection directory is newer then the backup file.  You can change the cron job to anything you want or even change the usbcopydb.fs program to work any way you want!
+     0 23 * * * /home/pi/git/datalogger/collection/usbcopydb.fs >/dev/null 2>&1
+     0 15 * * * /home/pi/git/datalogger/collection/usbcopydb.fs >/dev/null 2>&1
+
+        A directory needs to be made for mounting point with the following:
+     $ sudo mkdir /mnt/usb0 
+        This will setup a backup to a usb stick twice per day ( 23 hour and 15 hour). The backup will be called datalogged.yearmonthday (year month and day replaced with the numbers for those values). 
+	You can change the cron job to anything you want or even change the usbcopydb.fs program to work any way you want!

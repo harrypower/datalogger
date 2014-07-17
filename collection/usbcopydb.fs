@@ -25,20 +25,15 @@
 warnings off
 require string.fs
 require script.fs
+require sqlite3-stuff.fs
 
 variable junk$
 variable mount_name$
 s" /mnt/usb0" mount_name$ $!
-variable datalogger_path$
-variable dbname$
-variable dbname-path$
 
-s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file datalogger_path$ $!
-s" /collection/sensordb.data" datalogger_path$ $@ junk$ $! junk$ $+! junk$ $@ dbname$ $!
-s" sensordb" dbname-path$ $!
+variable dbbackupname$
 
-: dto$ ( d -- caddr u )  \ convert double signed to a string
-    swap over dabs <<# #s rot sign #> #>> ;
+s" datalogged" dbbackupname$ $!
 
 : filetest ( caddr u -- nflag )  \ a file path and name is tested flag is true if file is present
     s" test -e " junk$ $! junk$ $+! s"  && echo 'yes' || echo 'no'" junk$ $+! junk$ $@ shget throw s" yes" search swap drop swap drop
@@ -89,8 +84,8 @@ s" sensordb" dbname-path$ $!
 
 : copydb ( --  ) \ copies the db file onto the usb0 that should be mounted.
     \ makes the file name have extention of yearmonthdayhour
-    s" sudo cp -u " junk$ $! dbname$ $@ junk$ $+! s"  " junk$ $+! mount_name$ $@ junk$ $+! s" /" junk$ $+!
-    dbname-path$ $@ junk$ $+! s" ." junk$ $+! 
+    s" sudo cp -u " junk$ $! db-path$ $@ junk$ $+! s"  " junk$ $+! mount_name$ $@ junk$ $+! s" /" junk$ $+!
+    dbbackupname$ $@ junk$ $+! s" ." junk$ $+! 
     time&date s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! 2drop 
     junk$ $@ system ;
 
