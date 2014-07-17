@@ -44,14 +44,12 @@ variable path-logging$
 
 
 next-exception @ constant socket-errorListStart
-\ s" Data from sensor incomplete!"                            exception constant sensorfail-err              
-s" Sensor tcp socket terminator or terminators not present" exception constant sensorpackage2termfail-err  
+s" Sensor tcp socket terminator or terminators not present" exception constant sensorpackagetermfail-err  
 s" Sensor tcp HTTP header missing"                          exception constant sensorhttpfail-err          
 s" Sensor data message incomplete"                          exception constant sensormessagefail-err       
 s" Socket timeout failure in socket-client"                 exception constant sockettime-err            
 s" Socket message recieved to large"                        exception constant tcpoverflow-err          
 s" Port number invalid"                                     exception constant portnumber-err
-
 next-exception @ constant socket-errorListEnd
 
 struct
@@ -70,8 +68,8 @@ list$: regdevice$s
 list$: theconxtinfo$s
 
 : findsockterm ( caddr u -- caddr1 u1 nflag ) \ nflag is true if socket terminator is found and caddr1 u1 is a
-    \ new string past the terminator.  String is the same as caddr u but the first part is removed as well as
-    \ terminator
+    \ new string past the terminator.
+    \ String is the same as caddr u but the first part is removed as well as terminator
     \ nflag is false if there was no terminator found and caddr1 and u1 will contain original string
     mystrings socketterm$ $@ search
     if
@@ -140,7 +138,7 @@ variable socketjunk$
 		findsockterm drop
 		4 - false
 	    else
-		2drop sensorpackage2termfail-err throw
+		2drop sensorpackagetermfail-err throw
 	    then
 	else
 	    2drop sensorhttpfail-err throw
@@ -189,8 +187,7 @@ variable socketjunk$
 	    named-device-connection$
 	    theconxtinfo$s-$off
 	    connection$s theconxtinfo$s->$!
-	    get-sensor-data
-	    dblogerror
+	    get-sensor-data dblogerror
 	loop
 	false
     restore
@@ -198,8 +195,7 @@ variable socketjunk$
 
 : main_loop ( -- )
     begin
-	get-allsensors-data
-	dblogerror
+	get-allsensors-data dblogerror
 	sensor-readtime ms
     again ;
 
