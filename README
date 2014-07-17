@@ -1,8 +1,10 @@
-This is a project that started out as a clone from my gforth_webserver repository.  Please see and or clone the gforth_webserver repository as this one will not contain any help for general consumption.
+This is a project that started out as a clone from my gforth_webserver repository.
+Please see and or clone the gforth_webserver repository as this one will not contain any help for general consumption.
 
-This code needs the inetd service running and this can be installed with $ apt-get install inetutils-inetd
+This code needs the inetd service running and setup as bellow.
 
-To use this server you need to install Gforth, inetd and then configure this service and adjust the path for the web files. The steps are below( do this on the pi or via sshing into the pi)
+To use this server you need to install Gforth, inetd and then configure this service and adjust the path for the web files.
+The steps are below( do this on the pi or via sshing into the pi):
 -Install stuff
     $ sudo apt-get install gforth
     $ sudo apt-get install inetutils-inetd
@@ -10,16 +12,28 @@ To use this server you need to install Gforth, inetd and then configure this ser
 -Install dependent Rpi_Gforth_GPIO library submodule ( the raspberry pi gpio stuff depends on this library !)
 	Note this library is not used yet in the datalogging software but you can simply add code to use it! 	
 	Note that this Rpi_Gforth_GPIO is a submodule in this repository.  This means you must issue these commands from this gforth_webserver repositorys directory to get the files:
-		$ sudo git submodule init
-		$ sudo git submodule update
+    $ sudo git submodule init
+    $ sudo git submodule update
 	Now follow the README in the gpio directory for information on compiling the C code into a shared library.
 	Run gforth as in the README in the gpio directory and enter the following as show in that README:
-		include rpi_GPIO_lib.fs
+    include rpi_GPIO_lib.fs
 	There should be no message if all is working.  Note if you need to recompile the library just follow the README file for how to remove the old and recompile the new library.
         Then use ./clean command to remove the gforth library and then do the above include rpi_GPIO_lib.fs from gforth command line to reconnect the c library to gforth.  
 -Install dependant Chart.js library submodule ( this is only needed if you want to see the chart test or work with it in any way!)
-	Nothing else is needed to be done for this submodule.  
+	Nothing else is needed to be done for this submodule as the above submodule init did the work.
 	Note there are example html files in this submodule directory for example usage of the chart.js library.
+-Install dependant Gforth-Tools submodule ( this is the sqlite3 database stuff ).
+        Nothing esle is needed on this submodule as the above submodule init did the work.
+        If you want to you can test, remove and retest the sqlite3 library as follows:
+        First cd to be working in the Gforth-Tools directory.
+        Then issue the following to ensure it works correctly:
+    $ sudo gforth sqlite3_gforth_lib.fs 
+        This should put you at a command line in Gforth with no errors.  If this happens you are done and all is ok ... type bye enter to exit gforth.
+        If you get an error you can remove the sqlite3 library for gforth as follows:
+    $ sudo ./clean_mysqlite3_gforth_lib
+        This just is a simple batch file that removes all the sqilte3 gforth library stuff so you can do the above step again to test.
+        This should allow the above test to work without errors because after the existing files are removed recompiling it should have no conflics.
+        There is a wiki with possibly more info on the github page for this library.  Look for Gforth-Tools.
 -Configure inetd service and start the webserver as follows:
     $ sudo nano /etc/inetd.conf
 	Move the curser to the end of the document and enter the following text:
@@ -27,11 +41,11 @@ To use this server you need to install Gforth, inetd and then configure this ser
 	Note the path in the above line is the path for where you installed this repository.
 	Save the file with control x y enter
 	Now at this moment you can restart your pi as follows:
-	$ sudo shutdown "now" -r
+    $ sudo shutdown "now" -r
 When the pi starts up it will serve index.html !
 -Configure path for repository as follows:
 	There is a batch file called configure in the datalogger directory.  Use it as follows:
-	$ sudo ./configure
+    $ sudo ./configure
 	This just puts a file in /var/lib/datalogger-gforth/ directory called datalobber_home_path. 
 	In this file is simply stored the path to the repository so now the project can find files in this repository.  
 	Note the web server and the mbed-sensor-client.fs programs us this method to find where files are!
@@ -53,5 +67,6 @@ When the pi starts up it will serve index.html !
 
         A directory needs to be made for mounting point with the following:
      $ sudo mkdir /mnt/usb0 
-        This will setup a backup to a usb stick twice per day ( 23 hour and 15 hour). The backup will be called datalogged.yearmonthday (year month and day replaced with the numbers for those values). 
+        This will setup a backup to a usb stick twice per day ( 23 hour and 15 hour).
+   	The backup will be called datalogged.yearmonthday (year month and day replaced with the numbers for those values). 
 	You can change the cron job to anything you want or even change the usbcopydb.fs program to work any way you want!
