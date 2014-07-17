@@ -17,6 +17,6 @@ if [ "$_IP" ]; then
   printf "My IP address is %s\n" "$_IP"
 fi
 
-/home/pi/git/datalogger/collection/mbed-sensor-client.fs -r &
+/home/pi/git/datalogger/collection/sensor-client.fs -r &
 /home/pi/git/datalogger/collection/usbcopydb.fs &
 exit 0

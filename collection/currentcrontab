@@ -24,6 +24,6 @@
 0 23 * * * /home/pi/git/datalogger/collection/usbcopydb.fs >/dev/null 2>&1
 0 15 * * * /home/pi/git/datalogger/collection/usbcopydb.fs >/dev/null 2>&1
 0 *  * * * /home/pi/git/datalogger/collection/sendsmtp.fs >/dev/null 2>&1
-0  3 * * * /sbin/shutdown -r +1  >/dev/null 2>&1
+\ 0  3 * * * /sbin/shutdown -r +1  >/dev/null 2>&1
 
 
