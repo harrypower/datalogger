@@ -31,7 +31,7 @@ require sqlite3-stuff.fs
 
 decimal
 
-2000000 constant mbed-timeout#
+2000000 constant sensor-timeout#
 1000 constant abufsize
 1000 constant buff2max 
 
@@ -40,19 +40,17 @@ abufsize allocate throw abuffer ! \ store allocated heap address for abuffer
 
 variable buffer2$ buffer2$ off s" " buffer2$ $!   \ start buffer2$ empty
 variable path-logging$
-60001 value mbed-readtime
+60001 value sensor-readtime
 
 
 next-exception @ constant socket-errorListStart
-s" Data from mbed incomplete!"                            exception constant mbedfail-err              
-s" Socket failure in get-thp$ function"                   exception constant socketfail-err            
-s" Mbed tcp socket package second terminator not present" exception constant mbedpackage2termfail-err  
-s" Mbed tcp socket terminator not present"                exception constant mbedpackagetermfail-err   
-s" Mbed tcp HTTP header missing"                          exception constant mbedhttpfail-err          
-s" Mbed data message incomplete"                          exception constant mbedmessagefail-err       
-s" Socket timeout failure in mbedread-client"             exception constant sockettime-err            
-s" Socket message recieved to large"                      exception constant tcpoverflow-err          
-s" Port number invalid"                                   exception constant portnumber-err
+\ s" Data from sensor incomplete!"                            exception constant sensorfail-err              
+s" Sensor tcp socket terminator or terminators not present" exception constant sensorpackage2termfail-err  
+s" Sensor tcp HTTP header missing"                          exception constant sensorhttpfail-err          
+s" Sensor data message incomplete"                          exception constant sensormessagefail-err       
+s" Socket timeout failure in socket-client"                 exception constant sockettime-err            
+s" Socket message recieved to large"                        exception constant tcpoverflow-err          
+s" Port number invalid"                                     exception constant portnumber-err
 
 next-exception @ constant socket-errorListEnd
 
@@ -96,7 +94,7 @@ list$: theconxtinfo$s
     then ;
 
 variable socketjunk$
-: mbedread-client ( caddr u nport# -- caddr1 u1 nflag )
+: socket-client ( caddr u nport# -- caddr1 u1 nflag )
     try   \ nflag is false if socket reading was ok and then caddr1 u1 is a good string from socket
 	open-socket { socketid }
 	mystrings GET$ $@ socketjunk$ $!
@@ -110,7 +108,7 @@ variable socketjunk$
 	    2dup
 	    socketid abuffer @ abufsize read-socket  \ note read-socket is for TCP read-socket-from is for UDP
 	    buffer2$ $+!
-	    utime 2swap d- d>s mbed-timeout# >
+	    utime 2swap d- d>s sensor-timeout# >
 	    if
 		socketid close-socket
 		sockettime-err throw
@@ -129,15 +127,12 @@ variable socketjunk$
 	dup if swap drop then
     endtry ;
 
-: mbedread-client2
-    .s . dump sockettime-err throw ;
-
-: socket@ ( -- caddr u nflag )  \ reads the mbed server and returns the data to be inserted into db
-    try   \ flag is false for reading of mbed was ok any other value is some error
+: socket@ ( -- caddr u nflag )  \ reads the sensor server and returns the data to be inserted into db
+    try   \ flag is false for reading of sensor was ok any other value is some error
 	theconxtinfo$s 2drop  \ start string iterator at beginning
 	theconxtinfo$s-$@     \ ip address string
 	theconxtinfo$s-$@ s>unumber? true <> if portnumber-err throw else d>s then
-	mbedread-client throw
+	socket-client throw
 	mystrings http$ $@ search
 	if
 	    2dup find2sockterm
@@ -145,15 +140,15 @@ variable socketjunk$
 		findsockterm drop
 		4 - false
 	    else
-		2drop mbedpackage2termfail-err throw
+		2drop sensorpackage2termfail-err throw
 	    then
 	else
-	    2drop mbedhttpfail-err throw
+	    2drop sensorhttpfail-err throw
 	then
     restore dup if 0 swap 0 swap then
     endtry ;
 
-: get-first-device-only ( -- )
+: get-first-device-only ( -- nflag )  \ this word is just for testing... it only processes the first sensor 
     try
 	registered-devices@
 	regdevice$s-$off          \ empty string handler
@@ -165,7 +160,7 @@ variable socketjunk$
 	socket@ throw
 	regdevice$s 2drop
 	regdevice$s-$@ 2swap
-	parse-data-table!
+	parse-data-table! throw
 	false
     restore 
     endtry ;
@@ -180,6 +175,10 @@ variable socketjunk$
     restore dup if swap drop swap drop then
     endtry ;
 
+: dblogerror ( nerror -- )  \ simply log nerror into database with its string 
+    dup false <>
+    if dup errorlist-sqlite3! error-sqlite3! else drop then ;
+
 : get-allsensors-data ( -- nflag )
     try
 	registered-devices@
@@ -190,9 +189,8 @@ variable socketjunk$
 	    named-device-connection$
 	    theconxtinfo$s-$off
 	    connection$s theconxtinfo$s->$!
-	    get-sensor-data dup . ."   now what" cr
-	    dup false <>
-	    if dup errorlist-sqlite3! error-sqlite3! else drop then 
+	    get-sensor-data
+	    dblogerror
 	loop
 	false
     restore
@@ -200,10 +198,10 @@ variable socketjunk$
 
 : main_loop ( -- )
     begin
-	get-allsensors-data drop  
-	mbed-readtime ms
-    again
-;
+	get-allsensors-data
+	dblogerror
+	sensor-readtime ms
+    again ;
 
 : config-mbed-client ( -- ) \ will run when this file is loaded and will look at arguments for operation
     next-arg  
@@ -224,11 +222,11 @@ variable socketjunk$
     s" -r" search
     if
 	2drop
-	5 60001 * to mbed-readtime
+	5 60001 * to sensor-readtime
 	next-arg dup 0<> if
 	    s>number? if
 		d>s dup 1 >= if
-		    60001 * to mbed-readtime
+		    60001 * to sensor-readtime
 		else
 		    drop
 		then
@@ -248,7 +246,6 @@ variable socketjunk$
 	." -r use to start the datalogging process!" cr
 	." -i use to enter the gforth command line to issue commands!" cr
 	bye
-    then
-;
+    then ;
 
 config-mbed-client 
