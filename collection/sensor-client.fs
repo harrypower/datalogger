@@ -126,6 +126,7 @@ variable socketjunk$
     endtry ;
 
 : socket@ ( -- caddr u nflag )  \ reads the sensor server and returns the data to be inserted into db
+    \ note theconxtinfo$s needs to be set up so this code takes data from there!
     try   \ flag is false for reading of sensor was ok any other value is some error
 	theconxtinfo$s 2drop  \ start string iterator at beginning
 	theconxtinfo$s-$@     \ ip address string
@@ -164,6 +165,7 @@ variable socketjunk$
     endtry ;
 
 : get-sensor-data ( caddrdevice u -- flag ) \ takes a device name gets data from device then parse data and put into database
+    \ note theconxtinfo$s needs to be setup this codes takes data from there!
     \ nflag will be false if data retrieved and ok
     \ nflag could return any type of issue from socket problems to database problems
     try
