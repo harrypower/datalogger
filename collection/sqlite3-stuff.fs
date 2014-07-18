@@ -50,7 +50,7 @@ s" Data quantity not present from sensor!"                                      
 s" Sensor data quantity does not match table quantity!"                          exception constant data-table-quantity-er
 s" Data quantity not retreaved from device table!"                               exception constant quantity-retreave-er
 s" Sensor json data quantity does not match registered device quantity!"         exception constant json-quantity-er
-
+s" Table does not exist to get the fields of!"                                   exception constant field->table-err
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -61,10 +61,10 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ if a resend sqlite3 cmd fails then that error is thrown
     \ all other errors will throw that are behond the scope of recovery in this code!
     case
-	5     of sqlite3-resend-time ms sendsqlite3cmd dup throw  endof \ database is locked now
-	6     of sqlite3-resend-time ms sendsqlite3cmd dup throw  endof \ table is locked now
+	5     of sqlite3-resend-time ms sendsqlite3cmd throw  endof \ database is locked now
+	6     of sqlite3-resend-time ms sendsqlite3cmd throw  endof \ table is locked now
 	sqlerrors retbuffover-err @
-	      of sqlmessg retbuffmaxsize-cell @ 2 * mkretbuff sendsqlite3cmd dup throw  endof \ buffer overflow from sqlite3
+	      of sqlmessg retbuffmaxsize-cell @ 2 * mkretbuff sendsqlite3cmd throw  endof \ buffer overflow from sqlite3
 	\ might want to limit this buffer resize to 10k bytes or something like that
 	dup throw
     endcase ;
@@ -648,6 +648,35 @@ list$: connection$s
     44 $split 2swap connection$s-$! \ port number in a string from
     44 $split 2drop connection$s-$! \ method string to talk to sensor
     ;
+
+list$: field$s
+variable fieldtable$    
+: get-table->fields ( caddr-table ut -- nflag )  \ will get the field names of a table.  nflag is false if the field names are valid
+    \ field$s will contain the names if nflag is false or will be 
+    try
+	2dup sqlite-table? dup table-yes =
+	if
+	    drop 
+	    setupsqlite3
+	    s" ," dbfieldseparator
+	    s"  " dbrecordseparator
+	    s" pragma table_info(" fieldtable$ $! fieldtable$ $+! s" );" fieldtable$ $+!
+	    fieldtable$ $@ dbcmds
+	    sendsqlite3cmd dberrorthrow 
+ 	    dbret$
+	    field$s-$off  \ clear the holder for the field name strings
+	    begin
+		32 $split 2swap \ break up record separators 
+		',' scan ',' skip ',' $split 2drop field$s-$! \ find the second field with the table name and store it
+		dup 0= \ am i done
+	    until 
+	    2drop 
+	    false
+	else
+	    dup table-no = if drop 2drop field->table-err throw else throw then
+	then
+    restore dup if swap drop swap drop then
+    endtry ;
     
 \ *******************************************************
 \ some tools to look at data
@@ -656,7 +685,7 @@ list$: connection$s
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select max(rowid) from errors;" dbcmds
+	s" select max(rowid) from errors;" dbcmds \ remember rowid is a speical name
 	sendsqlite3cmd dberrorthrow
 	dbret$ 
 	false
@@ -666,7 +695,7 @@ list$: connection$s
 variable errjnk$
 : listerrors ( -- )
     setupsqlite3
-    s" select max(rowid) from errorList;" dbcmds
+    s" select max(rowid) from errorList;" dbcmds  \ remember rowid is a special name
     sendsqlite3cmd 0<>
     if
 	s" **sql msg**" type dberrmsg drop type
@@ -700,7 +729,7 @@ variable errjnk$
 
 : listdberrors ( -- )
     setupsqlite3
-    s" select max(row) from errors;" dbcmds
+    s" select max(rowid) from errors;" dbcmds
     sendsqlite3cmd 0<>
     if
 	s" **sql msg**" type dberrmsg drop type
