@@ -1,0 +1,27 @@
+h1 {
+color: sienna;
+font-family: "lucida Console";
+}
+
+p {
+margin-left: 20px;
+font-family: "lucida Console";
+}
+
+body {
+background-image: url("background.jpg");
+font-family: "lucida Console";
+}
+
+.errorbutton {
+ color: sienna;
+ font-size: 20px;
+ width: 160px;
+ height: 40px;
+ border: 10px;
+ border-radius:6px;
+ margin: 5px;
+ padding: 5px;
+ font-family: "lucida Console";
+ }
+

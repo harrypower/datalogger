@@ -651,6 +651,18 @@ list$: connection$s
     
 \ *******************************************************
 \ some tools to look at data
+: totalerrors ( -- caddr u nflag )  \ nflag is false if string is valid.  caddr u is current total error count in database in string format 
+    try
+	setupsqlite3
+	s" " dbfieldseparator
+	s" " dbrecordseparator
+	s" select max(rowid) from errors;" dbcmds
+	sendsqlite3cmd dberrorthrow
+	dbret$ 
+	false
+    restore dup if 0 swap 0 swap then 
+    endtry ;
+    
 variable errjnk$
 : listerrors ( -- )
     setupsqlite3
