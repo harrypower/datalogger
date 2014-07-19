@@ -651,7 +651,7 @@ list$: connection$s
 
 list$: field$s
 variable fieldtable$    
-: get-table->fields ( caddr-table ut -- nflag )  \ will get the field names of a table.  nflag is false if the field names are valid
+: get-table>fields ( caddr-table ut -- nflag )  \ will get the field names of a table.  nflag is false if the field names are valid
     \ field$s will contain the names if nflag is false or will be 
     try
 	2dup sqlite-table? dup table-yes =
