@@ -13,13 +13,21 @@ decimal
 : listdevices ( -- )
    registered-devices@
    devices$ swap drop 0 ?do
-	devices$-$@ type ." <br>"  
+       ." <tr>"
+       ." <td>" devices$-$@ 2dup type ." </td>"
+       get-table>fields throw
+       field$s swap drop 0 ?do
+	   ." <td>" field$s-$@ type ." </td>"
+       loop
+       ." </tr>"
    loop ;
 
 $>
 <body>
-<h1><p> The Current Registered Sensor Names: <br><$ listdevices  $> </p></h1>
-
+<h1><p> The Registered Sensors: </p></h1>
+<table style="width:1000px">
+<$ listdevices $>
+</table>
 <form action="data-table.shtml" method="get"><input type="submit" value="Last Data Points List"></form>
 
 <h1><p> Current Total Errors: <$ totalerrors false = [if] type [else] ." DB busy at the moment try again!" 2drop [then] $> </p></h1>

@@ -25,3 +25,9 @@ font-family: "lucida Console";
  font-family: "lucida Console";
  }
 
+table {
+color: sienna;
+font-size: 20px;
+font-family: "lucida Console";
+margin-left: 20px;
+}
