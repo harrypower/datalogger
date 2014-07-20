@@ -51,6 +51,7 @@ s" Sensor data quantity does not match table quantity!"                         
 s" Data quantity not retreaved from device table!"                               exception constant quantity-retreave-er
 s" Sensor json data quantity does not match registered device quantity!"         exception constant json-quantity-er
 s" Table does not exist to get the fields of!"                                   exception constant field->table-err
+s" ErrorList query for an error did not return expected number!"                 exception constant errorlist-number-err
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -171,32 +172,52 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     sendsqlite3cmd dberrorthrow ;
 
 : error-sqlite3! ( nerror -- ) \ used to store error values into errors table
-    setupsqlite3
-    s" insert into errors values(NULL," temp$ $!
-    datetime$ temp$ $+!
-    #to$ temp$ $+!
-    s" );" temp$ $+!
-    temp$ $@ dbcmds
-    sendsqlite3cmd  dberrorthrow ;
+    try
+	setupsqlite3
+	s" insert into errors values(NULL," temp$ $!
+	datetime$ temp$ $+!
+	#to$ temp$ $+!
+	s" );" temp$ $+!
+	temp$ $@ dbcmds
+	sendsqlite3cmd  dberrorthrow
+	false
+    restore 2drop \ note this word will not pass any errors upwards so nothing is returned !
+    endtry ;
 
-: (errorINlist?) { nsyserror -- nflag ndberror }  \ see if nsyserror number is in database list of errors
-    \ ndberror is false only if there was no dberror if ndberror is true then nflag is undefined
-    \ nflag is true if nsyserror is in the dbase
-    \ nflag is false if nsyserror is not in the dbase
-    setupsqlite3
-    s" select exists (select error from errorList where (error = " temp$ $!
-    nsyserror #to$ temp$ $+!
-    s" ));" temp$ $+! temp$ $@ dbcmds
-    5 1 ?do 
-	sendsqlite3cmd 0 = if leave else i 20 * ms then
-    loop
-    dbret$ s" 1" search swap drop swap drop dup
-    dbret$ s" 0" search swap drop swap drop xor false =
-    if
-	true
-    else
-	dberrmsg swap drop swap drop
-    then ;
+2164 constant error-yes
+2165 constant error-no
+: (errorINlist?) { nsyserror -- nflag }  \ see if nsyserror number is in database list of errors
+    \ nflag is error-yes if nsyserror is in the dbase
+    \ nflag is error-no if nsyserror is not in the dbase
+    \ nflag can be other error numbers
+    try
+	setupsqlite3
+	s" " dbfieldseparator
+	s" " dbrecordseparator
+	s" select error from errorList where (error = " temp$ $!
+	nsyserror #to$ temp$ $+!
+	s" );" temp$ $+! temp$ $@ dbcmds
+	sendsqlite3cmd dberrorthrow 
+	dbret$ dup 0 =
+	if
+	    \ the error is not in the list at this time
+	    2drop error-no throw
+	else
+	     s>number? false =
+	     if
+		\ number not recieved from errorList query
+	 	2drop errorlist-number-err throw
+	     else 
+	 	 d>s nsyserror <>
+		 if
+		     errorlist-number-err throw
+		 else
+		     error-yes throw
+		 then
+	    then
+	then
+    restore 
+    endtry ;
 
 : (puterrorINlist) ( nerror -- ) \ add nerror number and string to the error list
     setupsqlite3
@@ -213,16 +234,24 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ **** positive error numbers can come from sqlite3 but the proper string may not get placed in db for the number
 ;
 
-: errorlist-sqlite3! { nerror -- } \ will add the nerror associated string for that error to database
-    5 1 ?do \ try to test and store 5 times after that just bail
-	nerror (errorINlist?)
-	false =
-	if false =
-	    if nerror (puterrorINlist) then
-	    leave
-	else drop i 20 * ms
-	then
-    loop ;
+: errorlist-sqlite3! ( nerror -- ) \ will add the nerror associated string for that error to database 
+    0 { nerror ntest -- } 
+    try
+	5 0 ?do \ try to test and store 5 times after that just bail
+	    nerror (errorINlist?) to ntest ntest error-no =
+	    if
+		nerror (puterrorINlist) leave
+	    then
+	    ntest error-yes <>
+	    if
+		i 20 * ms
+	    else
+		leave
+	    then
+	loop
+	false 
+    restore drop \ nothing returned by this word even if an error happens in this word!	
+    endtry ;
 
 struct
     cell% field next-node \ 0 indicates no more nodes
