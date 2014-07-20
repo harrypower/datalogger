@@ -8,16 +8,27 @@
 <$
 
 require ../collection/sqlite3-stuff.fs
-
 decimal
+
+variable tablename$
+
 : listdevices ( -- )
    registered-devices@
    devices$ swap drop 0 ?do
-       ." <tr>"
-       ." <td>" devices$-$@ 2dup type ." </td>"
-       get-table>fields throw
+       ." <tr><td>" devices$-$@ tablename$ $! tablename$ $@ type ." </td>"
+       tablename$ $@ get-table>fields throw
        field$s swap drop 0 ?do
 	   ." <td>" field$s-$@ type ." </td>"
+       loop ." </tr>"
+       
+       ." <tr><td>" tablename$ $@ max(rowid)$ type ." </td>"
+       tablename$ $@ last-record lastrecord$s swap drop 0 ?do
+	   ." <td>" lastrecord$s-$@ type ." </td>"
+       loop ." </tr>"
+       
+       ." <tr>"
+       field$s swap drop 1 + 0 ?do
+	   ." <td><td>"
        loop
        ." </tr>"
    loop ;
@@ -25,14 +36,16 @@ decimal
 $>
 <body>
 <h1><p> The Registered Sensors: </p></h1>
-<table style="width:1000px">
+<table > 
 <$ listdevices $>
 </table>
-<form action="data-table.shtml" method="get"><input type="submit" value="Last Data Points List"></form>
 
-<h1><p> Current Total Errors: <$ totalerrors false = [if] type [else] ." DB busy at the moment try again!" 2drop [then] $> </p></h1>
-<form class="errorbutton" action="errors-table.shtml" method="get"><input class="errorbutton" type="submit" value="Last errors"></form>
+<$ \ <form action="data-table.shtml" method="get"><input type="submit" value="Last Data Points List"></form>
+$>
 
+<h1><p> The Errors: <$ totalerrors false = [if] type [else] ." DB busy at the moment try again!" 2drop [then] $> </p></h1>
+<$ \ <form class="errorbutton" action="errors-table.shtml" method="get"><input class="errorbutton" type="submit" value="Last errors"></form>
+$>
 
 </body>
 </html>

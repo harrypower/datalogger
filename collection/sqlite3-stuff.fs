@@ -677,7 +677,17 @@ variable fieldtable$
 	then
     restore dup if swap drop swap drop then
     endtry ;
-    
+
+: max(rowid)$ ( caddr-table u -- caddr-max umax ) \ gets the max(rowid) of a sqlite3 named table and returns the string
+    setupsqlite3
+    s" " dbfieldseparator
+    s" " dbrecordseparator
+    s" select max(rowid) from " temp$ $! temp$ $+! s" ;" temp$ $+!
+    temp$ $@ dbcmds
+    sendsqlite3cmd dberrorthrow
+    dbret$ ;
+
+
 \ *******************************************************
 \ some tools to look at data
 : totalerrors ( -- caddr u nflag )  \ nflag is false if string is valid.  caddr u is current total error count in database in string format 
@@ -761,7 +771,26 @@ variable errjnk$
 	until
     then ;
 
-\ **************************************************************
+list$: lastrecord$s
+: last-record ( caddr-table u -- )
+    2dup
+    setupsqlite3
+    s" ," dbfieldseparator
+    s" " dbrecordseparator
+    s" select * from " temp$ $! temp$ $+! s"  where row = (select max(rowid) from " temp$ $+! temp$ $+! s" );" temp$ $+!
+    temp$ $@ dbcmds
+    sendsqlite3cmd dberrorthrow
+    dbret$
+    lastrecord$s-$off  \ clear the holder for the field name strings
+    begin
+	',' $split 2swap lastrecord$s-$!
+	dup 0= \ am i done
+    until
+    2drop ;
+
+
+
+
 
 
 
