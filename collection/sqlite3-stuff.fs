@@ -181,7 +181,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	temp$ $@ dbcmds
 	sendsqlite3cmd  dberrorthrow
 	false
-    restore 2drop \ note this word will not pass any errors upwards so nothing is returned !
+    restore if drop then \ note this word will not pass any errors upwards so nothing is returned !
     endtry ;
 
 2164 constant error-yes
