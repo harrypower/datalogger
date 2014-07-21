@@ -58,6 +58,16 @@ variable mytemppad$
 : init$ ( addr -- ) >r r@ off s" " r> $! ;  \ this is the same as $init in higher version of gforth.
 \ use this to initalize a string variable before accessing the string in the variable
 
+: iter$ ( .. $addr char xt -- .. ) \ gforth-string string-iter
+    \G takes a string apart piece for piece, also with a character as
+    \G separator. For each part a passed token will be called. With
+    \G this you can take apart arguments -- separated with '&' -- at
+    \G ease.
+    \ this is from gforth verson 0.7.9 because $iter in lower versions have a bug
+    >r >r
+    $@ BEGIN  dup  WHILE  r@ $split i' -rot >r >r execute r> r>
+	        REPEAT  2drop rdrop rdrop ;
+
 \ ********************************************************************
 
 : (list$)

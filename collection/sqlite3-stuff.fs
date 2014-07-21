@@ -341,8 +341,8 @@ variable register_data$
 	    '{' scan '{' skip register_data$ $!
 	    register_device$ $@ dup -rot '}' scan swap drop - register_device$ $!len
 	    register_data$ $@ '}' scan drop register_data$ $@ drop - register_data$ $!len
-	    register_device$ ',' ['] (parse-json) $iter
-	    register_data$ ',' ['] (parse-json) $iter
+	    register_device$ ',' ['] (parse-json) iter$
+	    register_data$ ',' ['] (parse-json) iter$
 	    datetime$ 1 - new-device dt_added$ $!
 	    s" yes" new-device store_data$ $!
 	    s" yes" new-device read_device$ $!
@@ -457,9 +457,12 @@ list$: pvalue$s
 : pjsdata-"value"    ( caddr u -- ) pvalue$s-$! ;
 : pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
+variable parsejunk$
 : (parse-json-data) ( caddr u -- )
     ':' $split
-    2swap s" pjsdata-" temp$ $! temp$ $+! temp$ $@ find-name name>int execute ;
+    2swap s" pjsdata-" parsejunk$ $! parsejunk$ $+! parsejunk$ $@
+    2dup type ."  parsed name to exceute" cr
+    find-name name>int execute ;
 
 0 value data-quantity
 variable data-parse$
@@ -481,7 +484,9 @@ variable data-parse$
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
 	    ."  **c:" .s cr
 	    data-parse$ $@ type cr ."  **D:" .s cr
-	    data-parse$ ',' ['] (parse-json-data) $iter
+	    data-parse$ ',' ['] (parse-json-data)
+	    ."  **E:" .s cr
+	    iter$
 	    pname$s swap drop data-quantity <> if data-quantity-er throw then
 	    pvalue$s swap drop data-quantity <> if data-quantity-er throw then
 	then
