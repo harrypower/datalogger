@@ -32,6 +32,7 @@ require sqlite3-stuff.fs
 decimal
 
 2000000 constant sensor-timeout#
+1000 constant sensor-read-pause
 1000 constant abufsize
 1000 constant buff2max 
 
@@ -169,8 +170,8 @@ variable socketjunk$
     \ nflag will be false if data retrieved and ok
     \ nflag could return any type of issue from socket problems to database problems
     try
-	socket@ dup . ."  socket@ throw " cr throw
-	parse-data-table! dup . ."  parse-data-table! throw " cr throw
+	socket@ throw \ dup . ."  socket@ throw " cr throw
+	parse-data-table! throw \ dup . ."  parse-data-table! throw " cr throw
 	false
     restore dup if swap drop swap drop then
     endtry ;
@@ -190,6 +191,7 @@ variable socketjunk$
 	    theconxtinfo$s-$off
 	    connection$s theconxtinfo$s->$!
 	    get-sensor-data dblogerror
+	    sensor-read-pause ms \ just pause some time between readings
 	loop
 	false
     restore

@@ -450,86 +450,11 @@ variable makedn$
 	wg-registry-er 
     then ;
 
-struct
-    cell% field next-data-node
-    cell% field name$
-    cell% field value$
-end-struct parse-data%
+list$: pname$s
+list$: pvalue$s
 
-variable parsed-data 
-parse-data% %allocate throw parsed-data ! \ the last node is always empty this starts that empty node 
-parsed-data @ parse-data% %size 0 fill \ erase  \ this ensures the test for last node will show it as last node
-
-0 value current-data-quantity
-: free-parsed-data ( -- nflag ) \ remove nodes from memory and free strings also
-    try  \ nflag will be false indicating all is ok
-	parsed-data @ next-data-node @ 0 <> \ detect if there are any nodes to free!  The last node is never freed!
-	if
-	    parsed-data @ { cpd } \ this is the first node location
-	    begin
-		cpd name$ $off 
-		cpd value$ $off 
-		cpd next-data-node @ dup 0 =  \ get next node address and loop exit state calculate
-		cpd free throw  \ free this node
-		swap to cpd
-	    until
-	    parse-data% %allocate throw parsed-data ! \ create the empty node for next use
-	    parsed-data @ parse-data% %size 0 fill \ erase \ clear it to ensure last node test will work
-	then
-	false
-    restore 
-    endtry ;
-
-: make-data-node     ( -- caddr ) \ make a new node for data and return its address
-    parse-data% %allocate throw
-    dup parse-data% %size erase
-    parsed-data @ { caddr working-addr }
-    begin
-	working-addr next-data-node @ 0 =
-	if
-	    caddr working-addr next-data-node ! true
-	else
-	    working-addr next-data-node @ to working-addr false
-	then
-    until
-    working-addr ;
-
-: find-last-data-node ( -- caddr ) \ return the address of the current node that is to be added to
-    parsed-data @ 0 { working-addr last-addr }
-    begin
-	working-addr next-data-node @ 0 =
-	if
-	    true
-	else
-	    working-addr to last-addr 
-	    working-addr next-data-node @ to working-addr false
-	then
-    until last-addr ;
-
-: view-parsed-data ( -- ) \ simply view the data in the current data node if there are any
-    cr parsed-data @ { working-addr } \ this helper word will only show if the data was not freed already
-    begin
-	working-addr next-data-node @ 0 =
-	if
-	    true
-	else
-	    working-addr next-data-node @ . cr
-	    working-addr name$ $@ type cr
-	    working-addr value$ $@ type cr
-	    working-addr next-data-node @ to working-addr
-	    false
-	then
-    until ;
-
-: pjsdata-"name"     ( caddr u -- ) '"' scan '"' skip '"' $split 2drop make-data-node name$ $! ;
-: pjsdata-"value"    ( caddr u -- )
-    find-last-data-node dup 0 <>
-    if
-	value$ $!
-	current-data-quantity 1 + to current-data-quantity
-    else
-	data-quantity-er throw
-    then ;
+: pjsdata-"name"     ( caddr u -- ) '"' scan '"' skip '"' $split 2drop pname$s-$! ;
+: pjsdata-"value"    ( caddr u -- ) pvalue$s-$! ;
 : pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
 : (parse-json-data) ( caddr u -- )
@@ -552,42 +477,14 @@ variable data-parse$
 	    temp$ $@ rot swap drop s>unumber?
 	    true <> if data-quantity-er throw then
 	    d>s to data-quantity
-	    0 to current-data-quantity
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
 	    data-parse$ ',' ['] (parse-json-data) $iter
-	    current-data-quantity data-quantity <> if data-quantity-er throw then
+	    pname$s swap drop data-quantity <> if data-quantity-er throw then
+	    pvalue$s swap drop data-quantity <> if data-quantity-er throw then
 	then
 	false
-    restore   dup
-	if
-	    swap drop swap drop    \ errors will be returned
-	    free-parsed-data drop  \ this means if memory could not be freed there will be no error detected
-	then                       \ this needs to be done to free up memory or leaks will happen 
+    restore   dup if swap drop swap drop then   \ errors will be returned
     endtry ;
-
-0 value iter-nodes
-: iter-parsed-data ( -- caddr nflag ) \ will start at the beginning of data node and return structure address
-    \ nflag will be false if the caddr is valid
-    \ nflag will be true when data not present or done iterating through 
-    \ This word will always restart the node after it reaches the end next time called
-    parsed-data @ { cur-node } cur-node  
-    0 =
-    if
-	0 true 
-    else
-	iter-nodes 0 ?do
-	    cur-node next-data-node @ to cur-node
-	loop
-	cur-node next-data-node @ 0 =
-	if
-	    0 to iter-nodes
-	    0 true
-	else
-	    iter-nodes 1+ to iter-nodes
-	    cur-node
-	    false
-	then
-    then ;
 
 : (parsed-data!) ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
     try
@@ -605,28 +502,16 @@ variable data-parse$
 	then
 	setupsqlite3
 	s" insert into " temp$ $! temp$ $+! s" (dtime," temp$ $+!
-	0 to iter-nodes  \ to ensure starting at begining of data nodes
-	begin
-	    iter-parsed-data
-	    if
-		drop true
-	    else
-		name$ $@ temp$ $+! s" ," temp$ $+!
-		false
-	    then
-	until
+	pname$s swap drop 0 ?do
+	    pname$s-$@ temp$ $+! s" ," temp$ $+!
+	loop
 	temp$ dup $@len 1- swap $!len \ remove the last , from the string
-	s\" \) values\(" temp$ $+!
+	s" ) values(" temp$ $+!
 	datetime$ temp$ $+!
-	begin
-	    iter-parsed-data
-	    if
-		drop true
-	    else \ data_quantity$ are interger in the database so no ' are needed!
-		value$ $@ temp$ $+! s" ," temp$ $+!
-		false
-	    then
-	until
+	pvalue$s swap drop 0 ?do
+	    \ data_quantity$ are interger in the database so no ' are needed!
+	    pvalue$s-$@ temp$ $+! s" ," temp$ $+!
+	loop
 	temp$ dup $@len 1- swap $!len \ remove the last , from string
 	s" );" temp$ $+!
 	temp$ $@ dbcmds sendsqlite3cmd dberrorthrow
@@ -638,12 +523,13 @@ variable data-parse$
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
     try
+	pname$s-$off
+	pvalue$s-$off
 	2swap 2dup
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
 	2swap 
 	(parse-data-table) throw
 	(parsed-data!) throw 
-	free-parsed-data throw
 	false
     restore dup if >r 2drop 2drop r> then 
     endtry ;
