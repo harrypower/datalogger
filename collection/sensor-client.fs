@@ -198,6 +198,9 @@ variable socketjunk$
     restore
     endtry ;
 
+: mytest ( -- ) \ just a small test to look for issues
+    begin get-allsensors-data . ."  get-allsensor-data  " cr 5000 ms again ;
+
 : main_loop ( -- )
     begin
 	get-allsensors-data dblogerror

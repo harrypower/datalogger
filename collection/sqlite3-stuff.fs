@@ -473,11 +473,14 @@ variable data-parse$
 	else
 	    s\" {\"quantity\":" search false = if data-quantity-er throw then
 	    ':' scan ':' skip temp$ $!
+	    ."  **a:" .s cr
 	    temp$ $@ ',' scan swap drop temp$ $@len swap -
 	    temp$ $@ rot swap drop s>unumber?
-	    true <> if data-quantity-er throw then
-	    d>s to data-quantity
+	    ."  **b:" .s cr
+	    true <> if 2drop data-quantity-er throw else d>s to data-quantity then
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
+	    ."  **c:" .s cr
+	    data-parse$ $@ type cr ."  **D:" .s cr
 	    data-parse$ ',' ['] (parse-json-data) $iter
 	    pname$s swap drop data-quantity <> if data-quantity-er throw then
 	    pvalue$s swap drop data-quantity <> if data-quantity-er throw then
@@ -523,13 +526,13 @@ variable data-parse$
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
     try
-	pname$s-$off
-	pvalue$s-$off
+	pname$s-$off  ."  pname$s-$off ok" cr
+	pvalue$s-$off ."  pvalue$s-$off ok" cr
 	2swap 2dup
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
-	2swap 
-	(parse-data-table) throw
-	(parsed-data!) throw 
+	2swap .s ." before parse-data-table" cr 2dup type cr 
+	(parse-data-table) dup . throw ."  parse-data-table finished ok" cr
+	(parsed-data!) dup . throw   ."  parsed-data! finished ok" cr
 	false
     restore dup if >r 2drop 2drop r> then 
     endtry ;
