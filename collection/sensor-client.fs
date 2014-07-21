@@ -130,7 +130,7 @@ variable socketjunk$
     try   \ flag is false for reading of sensor was ok any other value is some error
 	theconxtinfo$s 2drop  \ start string iterator at beginning
 	theconxtinfo$s-$@     \ ip address string
-	theconxtinfo$s-$@ s>unumber? true <> if portnumber-err throw else d>s then
+	theconxtinfo$s-$@ s>unumber? true <> if 2drop portnumber-err throw else d>s then
 	socket-client throw
 	mystrings http$ $@ search
 	if
@@ -164,13 +164,13 @@ variable socketjunk$
     restore 
     endtry ;
 
-: get-sensor-data ( caddrdevice u -- flag ) \ takes a device name gets data from device then parse data and put into database
+: get-sensor-data ( caddrdevice u -- nflag ) \ takes a device name gets data from device then parse data and put into database
     \ note theconxtinfo$s needs to be setup this codes takes data from there!
     \ nflag will be false if data retrieved and ok
     \ nflag could return any type of issue from socket problems to database problems
     try
-	socket@ throw
-	parse-data-table! throw
+	socket@ dup . ."  socket@ throw " cr throw
+	parse-data-table! dup . ."  parse-data-table! throw " cr throw
 	false
     restore dup if swap drop swap drop then
     endtry ;
