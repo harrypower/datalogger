@@ -55,18 +55,8 @@ s" ErrorList query for an error did not return expected number!"                
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
-    \ initsqlall
-    ." ****start of setupsqlite3!" cr
-    s" " sqlmessg dbname-$ dup $off z$!
-    s" " sqlmessg dbcmds-$ dup $off z$!
-    s" ," sqlmessg fseparator-$ dup $off z$!   \ set field separator to a comma
-    s\" \n" sqlmessg rseparator-$ dup $off z$! \ set record seperatore to linefeed
-    ." ****before initsqlbuffers" cr
-    initsqlbuffers
-    ." ****after initsqlbuffers" cr
-    db-path$ $@ dbname
-    ." ****** after dbname" cr
-;
+    initsqlall
+    db-path$ $@ dbname ;
 
 : dberrorthrow ( nerror -- ) \ locked database type errors and buffer overflow error will cause a wait and a resend
     \ if a resend sqlite3 cmd fails then that error is thrown

@@ -24,7 +24,7 @@
 
 require gforth-misc-tools.fs
 require string.fs
-require ../socket.fs  \ note this is the socket.fs included in this git rep
+require unix/socket.fs  \ note this is the socket.fs included in this git rep
 \ this socket.fs is a version for gforth but it is not compatable with version 0.7.0 that comes with apt-get install gforth
 \ this socket.fs works in this code and the version 0.7.0 unix/socket.fs does not work with this code
 require sqlite3-stuff.fs
@@ -199,7 +199,7 @@ variable socketjunk$
     endtry ;
 
 : mytest ( -- ) \ just a small test to look for issues
-    begin get-allsensors-data . ."  get-allsensor-data  " cr 5000 ms again ;
+    begin get-allsensors-data . ."  get-allsensor-data  " .s cr 5000 ms again ;
 
 : main_loop ( -- )
     begin

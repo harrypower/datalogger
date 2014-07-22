@@ -9,3 +9,4 @@ sudo rm /root/.gforth/libcc-named/socket.c
 sudo rm /root/.gforth/libcc-named/socket.la
 sudo rm /root/.gforth/libcc-named/socket.lo
 sudo rm /root/.gforth/libcc-named/socket.o
+
