@@ -55,7 +55,9 @@ s" ErrorList query for an error did not return expected number!"                
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
+    ." **********initsqlall before"  cr
     initsqlall
+    ." **********sqlite library ok !" cr
     db-path$ $@ dbname ;
 
 : dberrorthrow ( nerror -- ) \ locked database type errors and buffer overflow error will cause a wait and a resend
@@ -461,7 +463,6 @@ variable parsejunk$
 : (parse-json-data) ( caddr u -- )
     ':' $split
     2swap s" pjsdata-" parsejunk$ $! parsejunk$ $+! parsejunk$ $@
-    2dup type ."  parsed name to exceute" cr
     find-name name>int execute ;
 
 0 value data-quantity
@@ -476,16 +477,11 @@ variable data-parse$
 	else
 	    s\" {\"quantity\":" search false = if data-quantity-er throw then
 	    ':' scan ':' skip temp$ $!
-	    ."  **a:" .s cr
 	    temp$ $@ ',' scan swap drop temp$ $@len swap -
 	    temp$ $@ rot swap drop s>unumber?
-	    ."  **b:" .s cr
 	    true <> if 2drop data-quantity-er throw else d>s to data-quantity then
 	    temp$ $@ '{' scan  '{' skip '}' $split 2drop data-parse$ $! \ this removes the { at front of string and }} at end of string
-	    ."  **c:" .s cr
-	    data-parse$ $@ type cr ."  **D:" .s cr
 	    data-parse$ ',' ['] (parse-json-data)
-	    ."  **E:" .s cr
 	    iter$
 	    pname$s swap drop data-quantity <> if data-quantity-er throw then
 	    pvalue$s swap drop data-quantity <> if data-quantity-er throw then
@@ -496,7 +492,9 @@ variable data-parse$
 
 : (parsed-data!) ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
     try
+	." before setupsqlite3" cr
 	setupsqlite3
+	." after setupsqlite3" cr
 	s" " dbfieldseparator
 	s" " dbrecordseparator
 	2dup s" select quantity from devices where data_table = '" temp$ $!
@@ -531,15 +529,15 @@ variable data-parse$
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
     try
-	pname$s-$off  ."  pname$s-$off ok" cr
-	pvalue$s-$off ."  pvalue$s-$off ok" cr
+	pname$s-$off
+	pvalue$s-$off
 	2swap 2dup
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
-	2swap .s ." before parse-data-table" cr 2dup type cr 
-	(parse-data-table) dup . throw ."  parse-data-table finished ok" cr
-	(parsed-data!) dup . throw   ."  parsed-data! finished ok" cr
+	2swap
+	(parse-data-table) dup . throw ."  parse-data-table finished ok " .s cr
+	(parsed-data!) dup . throw   ."  parsed-data! finished ok " .s cr
 	false
-    restore dup if >r 2drop 2drop r> then 
+    restore dup if -rot 2drop -rot 2drop then 
     endtry ;
 
 list$: devices$
