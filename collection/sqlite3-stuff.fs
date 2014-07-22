@@ -85,6 +85,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     restore 
     endtry ;
 
+variable table$
 2159 constant table-yes
 2158 constant table-no
 : sqlite-table? ( caddr u -- nflag ) \ will search db for the string as a table name.  
@@ -93,16 +94,17 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is some error either  +1 to +110 for some sqlite3 error
     \ nflag is some error either -1 to -x for some system error or other returned error defined with exception
     try
-	{ caddr u }
+	table$ $!
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select name from sqlite_master where name = '" temp$ $! caddr u temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select name from sqlite_master where name = '" temp$ $! table$ $@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow 
-	dbret$ caddr u search -rot 2drop true = if table-yes throw else table-no throw then
+	dbret$ table$ $@ search -rot 2drop true = if table-yes throw else table-no throw then
     restore swap drop swap drop   
     endtry ;
 
+variable iplocal$
 2160 constant ip-yes
 2161 constant ip-no
 : sqlite-ip? ( caddrip u -- nflag ) \ search device table for the ip addr in the string.
@@ -110,16 +112,16 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is ip-yes (2160) if ip address is registered now
     \ nflag can return other numbers indicating sqlite3 errors or system errors
     try
-	{ caddr u }
+	iplocal$ $!
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select ip from devices where ip = '" temp$ $! caddr u temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select ip from devices where ip = '" temp$ $! iplocal$ $@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
-	dbret$ caddr u search -rot 2drop true = if ip-yes throw else ip-no throw then
+	dbret$ iplocal$ $@ search -rot 2drop true = if ip-yes throw else ip-no throw then
     restore swap drop swap drop  
     endtry ;
-
+variable devicename$
 2162 constant dname-yes
 2163 constant dname-no
 : sqlite-devicename? ( caddrname u -- nflag ) \ search device table and database for device name or table name
@@ -127,17 +129,17 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is dname-no  (2163) if there is no named device registered
     \ nflag can return other numbers indicating sqlite3 errors or system errors
     try
-	{ caddr u }
+	devicename$ $!
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select data_table from devices where data_table = '" temp$ $! caddr u temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select data_table from devices where data_table = '" temp$ $! devicename$ $@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
-	dbret$ caddr u search -rot 2drop true = if dname-yes else dname-no then
+	dbret$ devicename$ $@ search -rot 2drop true = if dname-yes else dname-no then
 	dup dname-no =
 	if
 	    drop
-	    caddr u sqlite-table? dup table-yes =
+	    devicename$ $@ sqlite-table? dup table-yes =
 	    if drop dname-yes throw else dup table-no = if drop dname-no throw else throw  then then 
 	then
 	false
@@ -412,8 +414,10 @@ variable makedn$
     new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
+variable regdevice$
 : register-device-$ ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
+	regdevice$ $! regdevice$ $@
 	new-device data-node off   \ note every time this code runs to parse a new device there will be small memory leak
 	new-device dt_added$ dup $off init$
 	new-device ip$ dup $off init$
@@ -438,9 +442,10 @@ variable makedn$
 	    swap drop swap drop \ clean up after error
 	then
     endtry ;
-
+variable getreg$
 : get-register-$ ( caddr-ip u -- nflag ) \ takes a string that has ip and port numbers to get registration data from
     \ eg s" 192.168.0.126:4445" could be used to talk to a sensor at that ip address and that port number
+    getreg$ $! getreg$ $@
     s" sudo wget --output-document=" temp$ $! path$ $@ temp$ $+! s" /collection/wg-reg-device.data " temp$ $+! 
     temp$ $+! s" /regdev" temp$ $+! temp$ $@ system
     path$ $@ temp$ $! s" /collection/wg-reg-device.data" temp$ $+! temp$ $@ slurp-file dup 0 >
@@ -458,17 +463,22 @@ list$: pvalue$s
 : pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
 variable parsejunk$
+variable parsejunk2$
 : (parse-json-data) ( caddr u -- )
+    parsejunk2$ $! parsejunk2$ $@
     ':' $split
     2swap s" pjsdata-" parsejunk$ $! parsejunk$ $+! parsejunk$ $@
     find-name name>int execute ;
 
 0 value data-quantity
 variable data-parse$
+variable pdt$
 : (parse-data-table) ( caddr u -- nflag )  \ nflag is false if the data was parsed and in data nodes now
     \ note parsing will work as long as quantity reported in json is same as quantity sent in json.
     \ no checking is done to see if data matches what should be stored
     try
+	pdt$ $!
+	pdt$ $@
 	dup 0 =
 	if
 	    no-data-er throw
@@ -488,11 +498,12 @@ variable data-parse$
     restore   dup if swap drop swap drop then   \ errors will be returned
     endtry ;
 
+variable parsedtable$
 : (parsed-data!) ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
     try
-	." before setupsqlite3" cr
+	parsedtable$ $!
+	parsedtable$ $@
 	setupsqlite3
-	." after setupsqlite3" cr
 	s" " dbfieldseparator
 	s" " dbrecordseparator
 	2dup s" select quantity from devices where data_table = '" temp$ $!
@@ -523,17 +534,31 @@ variable data-parse$
     restore dup if swap drop swap drop then
     endtry ;
 
+: viewparsed ( -- )
+    pname$s swap drop pvalue$s swap drop = true <> if quantity-retreave-er throw then 
+    pname$s swap drop 0 ?do
+	i . ." :  " 
+	pname$s-$@ type ." :" 
+	pvalue$s-$@ type cr
+    loop cr ;
+
+list$: tabledata
 : parse-data-table! ( caddr-table ut caddr-data ud -- nflag ) \ caddr-data is a string that needs to be parsed and stored into
     \ database at the table named in the string caddr-table.
     \ nflag is false if data was parsed correctly and data then stored into table of database correctly
     try
+	tabledata-$!
+	tabledata-$!
+	tabledata-$@
+	tabledata-$@ 2swap 
 	pname$s-$off
 	pvalue$s-$off
 	2swap 2dup
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
 	2swap
-	(parse-data-table) dup . throw ."  parse-data-table finished ok " .s cr
-	(parsed-data!) dup . throw   ."  parsed-data! finished ok " .s cr
+	(parse-data-table) throw 
+	viewparsed 2drop 
+	\ (parsed-data!) throw  
 	false
     restore dup if -rot 2drop -rot 2drop then 
     endtry ;
@@ -556,7 +581,9 @@ list$: devices$
 
 list$: connection$s
 
+variable named-device$
 : named-device-connection$ ( caddr-dname u -- ) \ from a registered device name produce connection$s strings! 
+    named-device$ $! named-device$ $@
     setupsqlite3
     connection$s-$off
     s" select ip,port,method from devices where data_table ='" temp$ $!
@@ -567,7 +594,7 @@ list$: connection$s
     44 $split 2swap connection$s-$! \ port number in a string from
     44 $split 2drop connection$s-$! \ method string to talk to sensor
     ;
-
+\ fix from here on ***************
 list$: field$s
 variable fieldtable$    
 : get-table>fields ( caddr-table ut -- nflag )  \ will get the field names of a table.  nflag is false if the field names are valid

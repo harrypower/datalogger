@@ -24,9 +24,18 @@
 
 require gforth-misc-tools.fs
 require string.fs
-require unix/socket.fs  \ note this is the socket.fs included in this git rep
-\ this socket.fs is a version for gforth but it is not compatable with version 0.7.0 that comes with apt-get install gforth
-\ this socket.fs works in this code and the version 0.7.0 unix/socket.fs does not work with this code
+require ../socket.fs  \ this is the socket.fs included in this repo.  It is not compatable with 0.7.0 or 0.7.3 gforth version
+\ The socket.fs on your system if it is 0.7.0 or 0.7.3 will need to be removed... you can keep the socket.fs file but the shared
+\ library that is made with that file when gforth was installed needs to be removed.
+\ This is how you remove it in linux at command line:
+\ sudo find / -name socket.*
+\ this will make a list of files and any .so or .o or .a or others that are part of gforth stuff and are shared libary stuff
+\ in this list need to be removed.  Just go through the list one at a time and remove them
+\ Now the first time this code gets run it will create the shared library in /root directory
+\ If this newly created shared library needs to be removed just use the included clean_socket_gforth_lib bash type file
+\ this file if run from command line as follows will remove the newly installed library :
+\ sudo ./clean_socket_gforth_lib
+
 require sqlite3-stuff.fs
 
 decimal
@@ -170,9 +179,8 @@ variable socketjunk$
     \ nflag will be false if data retrieved and ok
     \ nflag could return any type of issue from socket problems to database problems
     try
-	socket@ dup . ."  socket@ throw " cr throw
-	.s ."  stack:" cr 2dup type cr
-	parse-data-table! dup . ."  parse-data-table! throw " cr throw
+	socket@ throw
+	parse-data-table! throw
 	false
     restore dup if swap drop swap drop then
     endtry ;
