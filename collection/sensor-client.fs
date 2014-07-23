@@ -179,8 +179,8 @@ variable socketjunk$
     \ nflag will be false if data retrieved and ok
     \ nflag could return any type of issue from socket problems to database problems
     try
-	socket@ .s dup . ."  socket@" cr throw
-	parse-data-table! .s dup . ." parse-data-table!" cr throw
+	socket@ throw
+	parse-data-table! throw
 	false
     restore dup if swap drop swap drop then
     endtry ;
