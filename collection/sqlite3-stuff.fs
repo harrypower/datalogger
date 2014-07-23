@@ -442,6 +442,7 @@ variable regdevice$
 	    swap drop swap drop \ clean up after error
 	then
     endtry ;
+
 variable getreg$
 : get-register-$ ( caddr-ip u -- nflag ) \ takes a string that has ip and port numbers to get registration data from
     \ eg s" 192.168.0.126:4445" could be used to talk to a sensor at that ip address and that port number
@@ -477,8 +478,7 @@ variable pdt$
     \ note parsing will work as long as quantity reported in json is same as quantity sent in json.
     \ no checking is done to see if data matches what should be stored
     try
-	pdt$ $!
-	pdt$ $@
+	pdt$ $!	pdt$ $@
 	dup 0 =
 	if
 	    no-data-er throw
@@ -501,8 +501,7 @@ variable pdt$
 variable parsedtable$
 : (parsed-data!) ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
     try
-	parsedtable$ $!
-	parsedtable$ $@
+	parsedtable$ $!	parsedtable$ $@
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
@@ -534,7 +533,7 @@ variable parsedtable$
     restore dup if swap drop swap drop then
     endtry ;
 
-: viewparsed ( -- )
+: viewparsed ( -- ) \ used to test the parsed data inline
     pname$s swap drop pvalue$s swap drop = true <> if quantity-retreave-er throw then 
     pname$s swap drop 0 ?do
 	i . ." :  " 
@@ -557,8 +556,8 @@ list$: tabledata
 	sqlite-table? dup table-no = if datatable-name-er throw else dup table-yes <> if throw else drop then then
 	2swap
 	(parse-data-table) throw 
-	viewparsed 2drop 
-	\ (parsed-data!) throw  
+	\ viewparsed 2drop 
+	(parsed-data!) throw  
 	false
     restore dup if -rot 2drop -rot 2drop then 
     endtry ;
@@ -596,10 +595,12 @@ variable named-device$
     ;
 \ fix from here on ***************
 list$: field$s
-variable fieldtable$    
+variable fieldtable$
+variable tempfieldtable$    
 : get-table>fields ( caddr-table ut -- nflag )  \ will get the field names of a table.  nflag is false if the field names are valid
     \ field$s will contain the names if nflag is false or will be 
     try
+	tempfieldtable$ $! tempfieldtable$ $@
 	2dup sqlite-table? dup table-yes =
 	if
 	    drop 
@@ -624,7 +625,9 @@ variable fieldtable$
     restore dup if swap drop swap drop then
     endtry ;
 
+variable tabletemp$
 : max(rowid)$ ( caddr-table u -- caddr-max umax ) \ gets the max(rowid) of a sqlite3 named table and returns the string
+    tabletemp$ $! tabletemp$ $@
     setupsqlite3
     s" " dbfieldseparator
     s" " dbrecordseparator
@@ -717,8 +720,10 @@ variable errjnk$
 	until
     then ;
 
+variable lasttable$
 list$: lastrecord$s
 : last-record ( caddr-table u -- )
+    lasttable$ $! lasttable$ $@
     2dup
     setupsqlite3
     s" ," dbfieldseparator

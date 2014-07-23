@@ -179,8 +179,8 @@ variable socketjunk$
     \ nflag will be false if data retrieved and ok
     \ nflag could return any type of issue from socket problems to database problems
     try
-	socket@ throw
-	parse-data-table! throw
+	socket@ .s dup . ."  socket@" cr throw
+	parse-data-table! .s dup . ." parse-data-table!" cr throw
 	false
     restore dup if swap drop swap drop then
     endtry ;
@@ -207,7 +207,7 @@ variable socketjunk$
     endtry ;
 
 : mytest ( -- ) \ just a small test to look for issues
-    begin get-allsensors-data . ."  get-allsensor-data  " .s cr 5000 ms again ;
+    begin utime d. cr get-allsensors-data . ."  get-allsensor-data  " .s cr 5000 ms again ;
 
 : main_loop ( -- )
     begin
