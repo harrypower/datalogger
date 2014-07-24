@@ -37,6 +37,7 @@ $>
 <body>
 <h1><p> The Registered Sensors: </p></h1>
 <table > 
+
 <$ listdevices $>
 </table>
 
