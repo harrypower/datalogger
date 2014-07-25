@@ -576,9 +576,8 @@ list$: devices$
 
 list$: connection$s
 
-variable named-device$
 : named-device-connection$ ( caddr-dname u -- ) \ from a registered device name produce connection$s strings! 
-    named-device$ $! named-device$ $@
+    bufferA
     setupsqlite3
     connection$s-$off
     s" select ip,port,method from devices where data_table ='" temp$ $!
