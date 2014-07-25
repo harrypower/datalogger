@@ -328,6 +328,7 @@ variable register_device$
 variable register_data$
 : parse-new-device-json ( caddr u - nflag ) \ string is the json to register this sensor. nflag is false when json data parsed correctly and in structure now
     try
+	bufferA
 	dup 0 =
 	if
 	    parse-new-er throw
