@@ -714,10 +714,9 @@ variable errjnk$
 	until
     then ;
 
-variable lasttable$
 list$: lastrecord$s
 : last-record ( caddr-table u -- )
-    lasttable$ $! lasttable$ $@
+    bufferA
     2dup
     setupsqlite3
     s" ," dbfieldseparator
