@@ -28,6 +28,7 @@ decimal
 
 variable db-path$ 
 variable temp$
+bufr$: bufferA
 
 100 constant sqlite3-resend-time    \ this codes sqlite3 routines will wait for this time in ms if a locked database is found befor resending cmds
 
@@ -85,7 +86,6 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     restore 
     endtry ;
 
-variable table$
 2159 constant table-yes
 2158 constant table-no
 : sqlite-table? ( caddr u -- nflag ) \ will search db for the string as a table name.  
@@ -94,17 +94,16 @@ variable table$
     \ nflag is some error either  +1 to +110 for some sqlite3 error
     \ nflag is some error either -1 to -x for some system error or other returned error defined with exception
     try
-	table$ $!
+	bufferA 2drop 
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select name from sqlite_master where name = '" temp$ $! table$ $@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select name from sqlite_master where name = '" temp$ $! bufferA$@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow 
-	dbret$ table$ $@ search -rot 2drop true = if table-yes throw else table-no throw then
+	dbret$ bufferA$@ search -rot 2drop true = if table-yes throw else table-no throw then
     restore swap drop swap drop   
     endtry ;
 
-variable iplocal$
 2160 constant ip-yes
 2161 constant ip-no
 : sqlite-ip? ( caddrip u -- nflag ) \ search device table for the ip addr in the string.
@@ -112,16 +111,16 @@ variable iplocal$
     \ nflag is ip-yes (2160) if ip address is registered now
     \ nflag can return other numbers indicating sqlite3 errors or system errors
     try
-	iplocal$ $!
+	bufferA 2drop 
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select ip from devices where ip = '" temp$ $! iplocal$ $@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select ip from devices where ip = '" temp$ $! bufferA$@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
-	dbret$ iplocal$ $@ search -rot 2drop true = if ip-yes throw else ip-no throw then
+	dbret$ bufferA$@ search -rot 2drop true = if ip-yes throw else ip-no throw then
     restore swap drop swap drop  
     endtry ;
-variable devicename$
+
 2162 constant dname-yes
 2163 constant dname-no
 : sqlite-devicename? ( caddrname u -- nflag ) \ search device table and database for device name or table name
@@ -129,17 +128,17 @@ variable devicename$
     \ nflag is dname-no  (2163) if there is no named device registered
     \ nflag can return other numbers indicating sqlite3 errors or system errors
     try
-	devicename$ $!
+	bufferA 2drop 
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
-	s" select data_table from devices where data_table = '" temp$ $! devicename$ $@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
+	s" select data_table from devices where data_table = '" temp$ $! bufferA$@ temp$ $+! s" ';" temp$ $+! temp$ $@ dbcmds
 	sendsqlite3cmd dberrorthrow
-	dbret$ devicename$ $@ search -rot 2drop true = if dname-yes else dname-no then
+	dbret$ bufferA$@ search -rot 2drop true = if dname-yes else dname-no then
 	dup dname-no =
 	if
 	    drop
-	    devicename$ $@ sqlite-table? dup table-yes =
+	    bufferA$@ sqlite-table? dup table-yes =
 	    if drop dname-yes throw else dup table-no = if drop dname-no throw else throw  then then 
 	then
 	false
