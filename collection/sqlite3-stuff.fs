@@ -495,10 +495,9 @@ variable data-parse$
     restore   dup if swap drop swap drop then   \ errors will be returned
     endtry ;
 
-variable parsedtable$
 : (parsed-data!) ( caddr-table ut -- nflag ) \ form sql query from data nodes and issue to sqlite3 with response of nflag
     try
-	parsedtable$ $!	parsedtable$ $@
+	bufferA 
 	setupsqlite3
 	s" " dbfieldseparator
 	s" " dbrecordseparator
