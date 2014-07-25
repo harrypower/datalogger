@@ -414,10 +414,9 @@ variable makedn$
     new-device data-quantity$ $@ temp$ $+! s" );" temp$ $+! \ data_quantity$ is interger in the database so no ' are needed!
     temp$ $@ dbcmds sendsqlite3cmd dberrorthrow ;
 
-variable regdevice$
 : register-device-$ ( caddr u -- nflag ) \ will register a new device into database device table if there are no conflics
     try  \ nflag will be false if new device registered and is now in database to be used
-	regdevice$ $! regdevice$ $@
+	bufferA 
 	new-device data-node off   \ note every time this code runs to parse a new device there will be small memory leak
 	new-device dt_added$ dup $off init$
 	new-device ip$ dup $off init$
