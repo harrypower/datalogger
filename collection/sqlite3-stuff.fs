@@ -471,12 +471,11 @@ variable parsejunk$
 
 0 value data-quantity
 variable data-parse$
-variable pdt$
 : (parse-data-table) ( caddr u -- nflag )  \ nflag is false if the data was parsed and in data nodes now
     \ note parsing will work as long as quantity reported in json is same as quantity sent in json.
     \ no checking is done to see if data matches what should be stored
     try
-	pdt$ $!	pdt$ $@
+	bufferA
 	dup 0 =
 	if
 	    no-data-er throw
