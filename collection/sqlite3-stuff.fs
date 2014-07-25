@@ -442,10 +442,10 @@ variable makedn$
 	then
     endtry ;
 
-variable getreg$
+
 : get-register-$ ( caddr-ip u -- nflag ) \ takes a string that has ip and port numbers to get registration data from
     \ eg s" 192.168.0.126:4445" could be used to talk to a sensor at that ip address and that port number
-    getreg$ $! getreg$ $@
+    bufferA
     s" sudo wget --output-document=" temp$ $! path$ $@ temp$ $+! s" /collection/wg-reg-device.data " temp$ $+! 
     temp$ $+! s" /regdev" temp$ $+! temp$ $@ system
     path$ $@ temp$ $! s" /collection/wg-reg-device.data" temp$ $+! temp$ $@ slurp-file dup 0 >
