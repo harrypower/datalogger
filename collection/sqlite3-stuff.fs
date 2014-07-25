@@ -29,6 +29,7 @@ decimal
 variable db-path$ 
 variable temp$
 bufr$: bufferA
+bufr$: bufferB
 
 100 constant sqlite3-resend-time    \ this codes sqlite3 routines will wait for this time in ms if a locked database is found befor resending cmds
 
@@ -588,14 +589,13 @@ list$: connection$s
     44 $split 2swap connection$s-$! \ port number in a string from
     44 $split 2drop connection$s-$! \ method string to talk to sensor
     ;
-\ fix from here on ***************
+
 list$: field$s
 variable fieldtable$
-variable tempfieldtable$    
 : get-table>fields ( caddr-table ut -- nflag )  \ will get the field names of a table.  nflag is false if the field names are valid
     \ field$s will contain the names if nflag is false or will be 
     try
-	tempfieldtable$ $! tempfieldtable$ $@
+	bufferB
 	2dup sqlite-table? dup table-yes =
 	if
 	    drop 
@@ -620,9 +620,8 @@ variable tempfieldtable$
     restore dup if swap drop swap drop then
     endtry ;
 
-variable tabletemp$
 : max(rowid)$ ( caddr-table u -- caddr-max umax ) \ gets the max(rowid) of a sqlite3 named table and returns the string
-    tabletemp$ $! tabletemp$ $@
+    bufferA
     setupsqlite3
     s" " dbfieldseparator
     s" " dbrecordseparator
