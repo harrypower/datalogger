@@ -463,9 +463,8 @@ list$: pvalue$s
 : pjsdata-           ( caddr u -- ) data-parse-er throw ;
 
 variable parsejunk$
-variable parsejunk2$
 : (parse-json-data) ( caddr u -- )
-    parsejunk2$ $! parsejunk2$ $@
+    bufferA
     ':' $split
     2swap s" pjsdata-" parsejunk$ $! parsejunk$ $+! parsejunk$ $@
     find-name name>int execute ;
