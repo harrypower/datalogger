@@ -156,3 +156,21 @@ variable mytemppad$
     (list$>$!) ;         \ set doer for name string copier
 
 \ ************************************************************************
+
+: stringbuffer: ( runtime: caddr u -- caddr1 u1 ) \ will take a string from stack then return it back to stack
+    ( compiletime: "name" -- ) 
+    \ the point of this is it acts as a fifo buffer with only one space
+    \ The main use is to put strings into new allocated memory to prevent s" use causing invalid memory errors
+    \ and free the old string memory so there is no leaks
+    create 0 , 0 ,
+  does>
+    dup 2swap                         ( caddr u -- sa sa caddr u )
+    dup allocate throw                ( sa sa caddr u -- sa sa caddr u anew )
+    dup 2swap                         ( sa sa caddr u anew  -- sa sa anew anew caddr u )
+    rot swap dup >r move              ( sa sa anew anew caddr u -- sa sa anew  )
+    rot dup @ 0 <>                    ( sa sa anew -- sa anew sa f )
+    if @ free throw else drop then    ( sa anew sa -- sa anew  )
+    over ! dup cell +                 ( sa anew -- sa sa+4 )
+    r> swap ! dup @ swap cell + @  ;  ( sa sa+4 -- sa@ sa+4@ )
+
+
