@@ -1,5 +1,3 @@
-\ This Gforth code are miscellaneous tools
-
 \    Copyright (C) 2014  Philip K. Smith
 
 \    This program is free software: you can redistribute it and/or modify
@@ -14,6 +12,8 @@
 
 \    You should have received a copy of the GNU General Public License
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+\ This code is miscellaneous tools for Gforth
 
 require string.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
@@ -42,7 +42,7 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 : dto$ ( d -- caddr u )  \ convert double signed to a string
     swap over dabs <<# #s rot sign #> #>> ;
 
-: #to$ ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
+: #to$ ( n -- c-addr u1 ) \ convert n to string 
     s>d
     swap over dabs
     <<# #s rot sign #> #>> ;
