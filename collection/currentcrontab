@@ -26,7 +26,7 @@
 0 *  * * * /home/pi/git/datalogger/collection/sendsmtp.fs >/dev/null 2>&1
 
 @reboot /home/pi/git/datalogger/collection/usbcopydb.fs &
-@reboot /home/pi/git/datalogger/collection/sensor-client.fs -r &
+@reboot /home/pi/git/datalogger/collection/mbed-sensor-client.fs -r &
 
 # 0  3 * * * /sbin/shutdown -r +1
 
