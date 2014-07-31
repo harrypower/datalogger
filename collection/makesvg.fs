@@ -15,10 +15,75 @@
 \    You should have received a copy of the GNU General Public License
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-\ This code has words to create svg line charts from data strings
-
+\ This code has words to create svg code that can be used
+\ directly inside html 
 
 require gforth-misc-tools.fs
+require string.fs
 
+list$: lineattrn
+s" fill="           lineattrn-$!
+s" fill-opacity="   lineattrn-$!
+s" stroke="         lineattrn-$!
+s" stroke-opacity=" lineattrn-$!
+s" stroke-width="   lineattrn-$!
 
+list$: lineattrv
+s\" \"rgb(255,0,0)\""   lineattrv-$!
+s\" \"0.0\""            lineattrv-$!
+s\" \"rgb(120,255,0)\"" lineattrv-$!
+s\" \"1.0\""            lineattrv-$!
+s\" \"2.0\""            lineattrv-$!
 
+list$: headern
+s" width="       headern-$!
+s" height="      headern-$!
+s" viewBox="     headern-$!
+
+list$: headerv
+s\" \"100\""         headerv-$!
+s\" \"100\""         headerv-$!
+s\" \"0 0 100 100\"" headerv-$!
+
+list$: pathdata$
+s" M 0 30" pathdata$-$!
+s" L 1 35" pathdata$-$!
+s" L 2 40" pathdata$-$!
+s" L 3 50" pathdata$-$!
+s" L 4 20" pathdata$-$!
+
+variable svgoutput$
+
+: svgmakehead ( -- )  \ start with this word to make svg start tag
+    svgoutput$ $off
+    s" <svg " svgoutput$ $!
+    headerv 2drop 
+    headern swap drop 0 do
+	headern-$@ svgoutput$ $+!
+	headerv-$@ svgoutput$ $+!
+	s"  " svgoutput$ $+!
+    loop
+    s\" >\n" svgoutput$ $+! ;
+
+: svgmakepath ( -- ) \ will start path tag with lineattr.h1 attrabutes
+    s" <path " svgoutput$ $+!
+    lineattrv 2drop
+    lineattrn swap drop 0 do
+	lineattrn-$@ svgoutput$ $+!
+	lineattrv-$@ svgoutput$ $+!
+	s"  " svgoutput$ $+!
+    loop
+    s\" d=\" " svgoutput$ $+!
+;
+    
+: svgpathdata ( -- ) \ use this directly after svgmakepath to put data into the path statement
+    pathdata$ swap drop 0 do
+	pathdata$-$@ svgoutput$ $+!
+	s"  " svgoutput$ $+!
+    loop
+    s\" \"> </path>\n" svgoutput$ $+!
+;
+
+: svgend ( -- addr u ) \ to finish the svg tag in the output string and deliver string
+    s" </svg>" svgoutput$ $+!
+    svgoutput$ $@ ;

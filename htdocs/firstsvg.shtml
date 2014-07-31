@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Some svg stuff</title>
+</head>
+<$
+\ require ../collection/sqlite3-stuff.fs
+require ../collection/makesvg.fs
+decimal
+
+: svgtest ( -- caddr u )
+    svgmakehead
+    svgmakepath
+    svgpathdata
+    svgend type ;
+$>
+<body>
+<$ svgtest $>
+</body>
+</html>
