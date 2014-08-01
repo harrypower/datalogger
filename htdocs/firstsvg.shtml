@@ -8,14 +8,8 @@
 \ require ../collection/sqlite3-stuff.fs
 require ../collection/makesvg.fs
 decimal
-
-: svgtest ( -- caddr u )
-    svgmakehead
-    svgmakepath
-    svgpathdata
-    svgend type ;
 $>
 <body>
-<$ svgtest $>
+<$ makesvg type $>
 </body>
 </html>

@@ -22,18 +22,21 @@ require gforth-misc-tools.fs
 require string.fs
 
 list$: lineattrn  \ svg attributes names to work with a line
-s" fill="           lineattrn-$!
-s" fill-opacity="   lineattrn-$!
-s" stroke="         lineattrn-$!
-s" stroke-opacity=" lineattrn-$!
-s" stroke-width="   lineattrn-$!
-
 list$: lineattrv  \ svg attribute values to work with a line but are paired with linattrn names
+
+: init-svg-attributes ( -- ) \ initalizes lineattrn to default values
+    s" fill="           lineattrn-$!
+    s" fill-opacity="   lineattrn-$!
+    s" stroke="         lineattrn-$!
+    s" stroke-opacity=" lineattrn-$!
+    s" stroke-width="   lineattrn-$!
+    
 s\" \"rgb(255,0,0)\""   lineattrv-$!
 s\" \"0.0\""            lineattrv-$!
 s\" \"rgb(120,255,0)\"" lineattrv-$!
 s\" \"1.0\""            lineattrv-$!
 s\" \"2.0\""            lineattrv-$!
+;
 
 list$: headern    \ header for svg .. normaly width and height 
 s" width="       headern-$!
