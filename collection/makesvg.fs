@@ -21,38 +21,38 @@
 require gforth-misc-tools.fs
 require string.fs
 
-list$: lineattrn
+list$: lineattrn  \ svg attributes names to work with a line
 s" fill="           lineattrn-$!
 s" fill-opacity="   lineattrn-$!
 s" stroke="         lineattrn-$!
 s" stroke-opacity=" lineattrn-$!
 s" stroke-width="   lineattrn-$!
 
-list$: lineattrv
+list$: lineattrv  \ svg attribute values to work with a line but are paired with linattrn names
 s\" \"rgb(255,0,0)\""   lineattrv-$!
 s\" \"0.0\""            lineattrv-$!
 s\" \"rgb(120,255,0)\"" lineattrv-$!
 s\" \"1.0\""            lineattrv-$!
 s\" \"2.0\""            lineattrv-$!
 
-list$: headern
+list$: headern    \ header for svg .. normaly width and height 
 s" width="       headern-$!
 s" height="      headern-$!
 s" viewBox="     headern-$!
 
-list$: headerv
+list$: headerv    \ header values that are paired with headern names
 s\" \"100\""         headerv-$!
 s\" \"100\""         headerv-$!
 s\" \"0 0 100 100\"" headerv-$!
 
-list$: pathdata$
+list$: pathdata$  \ the data values used in path... M,m,l,L and other path values 
 s" M 0 30" pathdata$-$!
 s" L 1 35" pathdata$-$!
 s" L 2 40" pathdata$-$!
 s" L 3 50" pathdata$-$!
 s" L 4 20" pathdata$-$!
 
-variable svgoutput$
+variable svgoutput$  \ the primary output of the assembled svg string output
 
 : svgmakehead ( -- )  \ start with this word to make svg start tag
     svgoutput$ $off
@@ -84,6 +84,12 @@ variable svgoutput$
     s\" \"> </path>\n" svgoutput$ $+!
 ;
 
-: svgend ( -- addr u ) \ to finish the svg tag in the output string and deliver string
+: svgend ( -- caddr u ) \ to finish the svg tag in the output string and deliver string
     s" </svg>" svgoutput$ $+!
     svgoutput$ $@ ;
+
+: makesvg ( -- caddr u )  \ put all the parts together and output the final svg string
+    svgmakehead
+    svgmakepath
+    svgpathdata
+    svgend ;
