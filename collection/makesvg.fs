@@ -25,28 +25,35 @@ list$: lineattrn  \ svg attributes names to work with a line
 list$: lineattrv  \ svg attribute values to work with a line but are paired with linattrn names
 
 : init-svg-attributes ( -- ) \ initalizes lineattrn to default values
+    lineattrn-$off
     s" fill="           lineattrn-$!
     s" fill-opacity="   lineattrn-$!
     s" stroke="         lineattrn-$!
     s" stroke-opacity=" lineattrn-$!
     s" stroke-width="   lineattrn-$!
-    
-s\" \"rgb(255,0,0)\""   lineattrv-$!
-s\" \"0.0\""            lineattrv-$!
-s\" \"rgb(120,255,0)\"" lineattrv-$!
-s\" \"1.0\""            lineattrv-$!
-s\" \"2.0\""            lineattrv-$!
+    lineattrv-$off
+    s\" \"rgb(255,0,0)\""   lineattrv-$!
+    s\" \"1.0\""            lineattrv-$!
+    s\" \"rgb(120,255,0)\"" lineattrv-$!
+    s\" \"1.0\""            lineattrv-$!
+    s\" \"2.0\""            lineattrv-$!
 ;
+init-svg-attributes
 
 list$: headern    \ header for svg .. normaly width and height 
-s" width="       headern-$!
-s" height="      headern-$!
-s" viewBox="     headern-$!
-
 list$: headerv    \ header values that are paired with headern names
-s\" \"100\""         headerv-$!
-s\" \"100\""         headerv-$!
-s\" \"0 0 100 100\"" headerv-$!
+
+: init-svg-header ( -- ) \ default svg header
+    headern-$off
+    s" width="       headern-$!
+    s" height="      headern-$!
+    s" viewBox="     headern-$!
+    headerv-$off
+    s\" \"100\""         headerv-$!
+    s\" \"100\""         headerv-$!
+    s\" \"0 0 100 100\"" headerv-$!
+;
+init-svg-header
 
 list$: pathdata$  \ the data values used in path... M,m,l,L and other path values 
 s" M 0 30" pathdata$-$!
