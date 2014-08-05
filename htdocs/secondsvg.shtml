@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Some svg stuff</title>
+</head>
+<$
+\ require ../collection/sqlite3-stuff.fs
+require ../collection/makesvg.fs
+decimal
+
+list$: somedata
+s" 30" somedata-$!
+s" 40" somedata-$!
+s" 25" somedata-$!
+s" 50" somedata-$!
+s" 35" somedata-$!
+s" 100" somedata-$!
+s" -20" somedata-$!
+s" 0" somedata-$!
+
+$>
+<body>
+<$
+somedata makesvg2 type 
+$>
+</body>
+</html>
