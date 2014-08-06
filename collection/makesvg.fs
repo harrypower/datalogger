@@ -143,7 +143,8 @@ list$: circlesvg$
 
 list$: localdata
 : findminmaxdata ( -- nmin nmax )
-    1000000 -1000000 { nmin nmax } 
+    0 0 { nmin nmax } 
+    localdata-$@ s>number? if d>s dup to nmin to nmax then 
     localdata swap drop 0 do
 	localdata-$@ s>number? if d>s dup nmin min to nmin nmax max to nmax then
     loop nmin nmax ;
@@ -151,41 +152,47 @@ list$: localdata
 0 value mymin
 0 value mymax
 0 value xstep
-500 constant xmaxchart
+80 value xlablesize
+3000 constant xmaxchart
+100 value ylablesize
+20 value ytoplablesize
+6 constant xminstep
+xmaxchart xminstep / constant xmaxpoints
 variable working$
 
 : makesvg2 ( ndata-index ndata-addr -- caddr u )
+    localdata-$off
     localdata->$!  
     findminmaxdata to mymax to mymin
-    xmaxchart localdata swap drop / to xstep
+    xmaxchart localdata swap drop xmaxpoints min / to xstep
     \ make header size for svg
     \ note need to add the border top and the text bottom size also later
     headerv-$off
     s\" \"" working$ $!
-    xmaxchart #to$ working$ $+!
+    xmaxchart xlablesize + #to$ working$ $+!
     s\" \"" working$ $+!
     working$ $@ headerv-$!
     s\" \"" working$ $!
-    mymax mymin - #to$ working$ $+!
+    mymax mymin - ylablesize + #to$ working$ $+!
     s\" \"" working$ $+!
     working$ $@ headerv-$!
     s\" \"0 0 " working$ $!
-    xmaxchart #to$ working$ $+!
+    xmaxchart xlablesize + #to$ working$ $+!
     s"  " working$ $+!
-    mymax mymin - #to$ working$ $+!
+    mymax mymin - ylablesize + #to$ working$ $+!
     s\" \"" working$ $+!
     working$ $@ headerv-$!
     \ recalculate data and form the path data statement for the ploted line
     pathdata$-$off
     localdata 2drop 
-    s" M 0 " working$ $!
-    localdata-$@ s>number? if d>s mymax swap - #to$ else 2drop s" 0" then
+    s" M " working$ $! xlablesize #to$  working$ $+! s"  " working$ $+!
+    localdata-$@ s>number? if d>s mymax swap - ytoplablesize + #to$ else 2drop s" 0" then
     working$ $+! working$ $@ pathdata$-$!
     localdata swap drop 1 localdata-$@ 2drop 
     do
 	s" L " working$ $!
-	i xstep * #to$ working$ $+! s"  " working$ $+!
-	localdata-$@ s>number? if d>s mymax swap - #to$ working$ $+! working$ $@ pathdata$-$! else drop then 
+	i xstep * xlablesize + #to$ working$ $+! s"  " working$ $+!
+	localdata-$@ s>number? if d>s mymax swap - ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$! else drop then 
     loop
     svgmakehead
     svgmakepath

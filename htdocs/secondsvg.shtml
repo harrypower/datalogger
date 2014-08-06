@@ -5,7 +5,7 @@
 <title>Some svg stuff</title>
 </head>
 <$
-\ require ../collection/sqlite3-stuff.fs
+require ../collection/sqlite3-stuff.fs
 require ../collection/makesvg.fs
 decimal
 
@@ -18,11 +18,49 @@ s" 35" somedata-$!
 s" 100" somedata-$!
 s" -20" somedata-$!
 s" 0" somedata-$!
+s" -100" somedata-$!
 
 $>
 <body>
 <$
-somedata makesvg2 type 
+somedata makesvg2 type
+setupsqlite3
+s"  " dbrecordseparator 
+s" " dbfieldseparator
+64000 mkretbuff
+list$: dataholder
+: getstuff 
+\ s" select temperature from mbedA where (row(id) > ( select max(rowid) from mbedA - 100 ));"  dbcmds
+s" select nh3raw from mbedA;" dbcmds
+    sendsqlite3cmd . ."   db errors "
+dbret$ 
+begin
+  32 $split
+  2swap dataholder-$!
+  dup 0 = 
+until
+;
+getstuff
+: outputstuff
+    dataholder swap drop 0 do
+	dataholder-$@ type s" :" type
+    loop ;
+dataholder swap drop . 
+\ outputstuff
+dataholder makesvg2 type
+xmaxpoints .
+ s" mbedA" get-table>fields throw 
+ field$s-$@ type ."  "
+ field$s-$@ type ."  " 
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+
+
 $>
+
 </body>
 </html>
