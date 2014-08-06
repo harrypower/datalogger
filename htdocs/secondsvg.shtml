@@ -23,7 +23,7 @@ s" -100" somedata-$!
 $>
 <body>
 <$
-somedata makesvg2 type
+somedata makesvgchart type
 setupsqlite3
 s"  " dbrecordseparator 
 s" " dbfieldseparator
@@ -47,7 +47,7 @@ getstuff
     loop ;
 dataholder swap drop . 
 \ outputstuff
-dataholder makesvg2 type
+dataholder makesvgchart type
 xmaxpoints .
  s" mbedA" get-table>fields throw 
  field$s-$@ type ."  "
