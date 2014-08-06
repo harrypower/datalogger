@@ -53,7 +53,22 @@ svg-attr#1
     s\" \"rgb(120,255,0)\"" lineattrv-$!
     s\" \"1.0\""            lineattrv-$!
     s\" \"3.0\""            lineattrv-$!
-;    
+;
+
+: svg-attr#3 ( -- ) \ second set of attributes
+    lineattrn-$off
+    s" fill="           lineattrn-$!
+    s" fill-opacity="   lineattrn-$!
+    s" stroke="         lineattrn-$!
+    s" stroke-opacity=" lineattrn-$!
+    s" stroke-width="   lineattrn-$!
+    lineattrv-$off
+    s\" \"rgb(0,0,255)\""   lineattrv-$!
+    s\" \"0.0\""            lineattrv-$!
+    s\" \"rgb(0,100,200)\"" lineattrv-$!
+    s\" \"1.0\""            lineattrv-$!
+    s\" \"5.0\""            lineattrv-$!
+;
 
 list$: headern    \ header for svg .. normaly width and height 
 list$: headerv    \ header values that are paired with headern names
@@ -100,14 +115,15 @@ variable attribute$
 	s"  " attribute$ $+!
     loop attribute$ $@ ;
 
-: svgmakepath ( -- ) \ will start path tag with lineattr.h1 attrabutes
-    svg-attr#1
+: svgmakepath ( -- ) \ will start path tag with lineattr attrabutes
+    \ svg-attr#1 \ still need to figure best way to pass these attributes *****
     s" <path " svgoutput$ $+!
     svgattrout svgoutput$ $+!
     s\" d=\" " svgoutput$ $+!
 ;
     
 : svgpathdata ( -- ) \ use this directly after svgmakepath to put data into the path statement
+    \ data comes from pathdat$ string array
     pathdata$ swap drop 0 do
 	pathdata$-$@ svgoutput$ $+!
 	s"  " svgoutput$ $+!
@@ -121,6 +137,7 @@ variable attribute$
 
 : makesvg ( -- caddr u )  \ put all the parts together and output the final svg string
     svgmakehead
+    svg-attr#1
     svgmakepath
     svgpathdata
     svgend ;
@@ -129,7 +146,7 @@ variable circlejunk$
 list$: circlesvg$
 : makecirclefrompathdata ( -- )
     circlesvg$-$off
-    svg-attr#2
+    svg-attr#2   \ will need to figure out best way for attributes to be passed here!  *****
     svgattrout 2drop
     pathdata$ swap drop 0 do
 	s\" <circle cx=\"" circlejunk$ $!
@@ -139,6 +156,9 @@ list$: circlesvg$
 	attribute$ $@ circlejunk$ $+!
 	s" />" circlejunk$ $+!
 	circlejunk$ $@ circlesvg$-$!
+    loop
+    circlesvg$ swap drop 0 do
+	circlesvg$-$@ svgoutput$ $+! 
     loop ;
 
 list$: localdata
@@ -146,15 +166,20 @@ list$: localdata
 0 value mymin           \ will contain the chart data min absolute value
 0 value mymax           \ will contain the chart data max absolute value
 0 value xstep           \ how many x px absolute values to skip between data point plots
-80 value xlablesize     \ the size taken up by the xlabel on the right side for chart
-1400 value xmaxchart    \ the max x absolute px of the chart .. change this value to make chart larger in x
+140 value xlablesize    \ the size taken up by the xlabel on the right side for chart
+1300 value xmaxchart    \ the max x absolute px of the chart .. change this value to make chart larger in x
 600 value ymaxchart     \ the max y absolute px of the chart .. change this value to make chart larger in y
-100 value ylablesize    \ the y label at bottom of chart size in absolute px
+140 value ylablesize    \ the y label at bottom of chart size in absolute px
 70 value ytoplablesize  \ the y label at top of chart size in absolute px
 0 value yscale          \ this is the scaling factor of the y values to be placed on chart
 6 constant xminstep     \ the min distance in px between x ploted points 
-xmaxchart xminstep / constant xmaxpoints  \ this will be the max allowed points to be placed on the chart 
-variable working$       
+xmaxchart xminstep /
+constant xmaxpoints     \ this will be the max allowed points to be placed on the chart 
+70 value ylableskippx   \ the px to skip to calculate how many y lables will be made
+10 value xlableoffset   \ the offset to place lable from xlabelsize edge
+10 value ylableoffset   \ the offset to place lable from ( ymaxchart + ytoplablesize )
+variable working$
+10 value ylableamounts  \ how many y lablelines and or text spots
 bufr$: somejunk$
 
 : findminmaxdata ( -- nmin nmax )
@@ -181,8 +206,7 @@ bufr$: somejunk$
     s"  " working$ $+!
     ymaxchart ylablesize + ytoplablesize + #to$ working$ $+!
     s\" \"" working$ $+!
-    working$ $@ headerv-$!
-;
+    working$ $@ headerv-$! ;
 
 : svgchartmakepath ( -- ) \ will prduce the pathdata$ string array stuff for the chart
     \ recalculate data and form the path data statement for the ploted line
@@ -208,7 +232,22 @@ bufr$: somejunk$
 	else
 	    drop
 	then
-    loop
+    loop ;
+
+: svgchartmakeylable ( -- )
+    \ make the y lable line
+    pathdata$-$off
+    svg-attr#3  \ need to figure this attribute thing out!  *****
+    svgmakepath
+    s" M " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
+    ytoplablesize #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
+    s" L " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
+    ymaxchart ytoplablesize + ylableoffset + #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
+    \ make the x lable line
+    s" L " working$ $! xmaxchart xlablesize + #to$ working$ $+! s"  " working$ $+!
+    ymaxchart ytoplablesize + ylableoffset + #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
+    svgpathdata
+    
 ;
 
 : makesvgchart ( ndata-index ndata-addr -- caddr u )
@@ -226,12 +265,11 @@ bufr$: somejunk$
     svgchartheader
     svgchartmakepath
     svgmakehead
+    svg-attr#1
     svgmakepath
     svgpathdata
     \ draw circle from the path data just made
     makecirclefrompathdata
-    circlesvg$ swap drop 0 do
-	circlesvg$-$@ svgoutput$ $+! 
-    loop
+    svgchartmakeylable
     svgend
 ;
