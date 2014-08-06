@@ -142,29 +142,29 @@ list$: circlesvg$
     loop ;
 
 list$: localdata
+
+0 value mymin           \ will contain the chart data min absolute value
+0 value mymax           \ will contain the chart data max absolute value
+0 value xstep           \ how many x px absolute values to skip between data point plots
+80 value xlablesize     \ the size taken up by the xlabel on the right side for chart
+1400 value xmaxchart    \ the max x absolute px of the chart .. change this value to make chart larger in x
+600 value ymaxchart     \ the max y absolute px of the chart .. change this value to make chart larger in y
+100 value ylablesize    \ the y label at bottom of chart size in absolute px
+20 value ytoplablesize  \ the y label at top of chart size in absolute px
+0 value yscale          \ this is the scaling factor of the y values to be placed on chart
+6 constant xminstep     \ the min distance in px between x ploted points 
+xmaxchart xminstep / constant xmaxpoints  \ this will be the max allowed points to be placed on the chart 
+variable working$       
+bufr$: somejunk$
+
 : findminmaxdata ( -- nmin nmax )
-    0 0 { nmin nmax } 
-    localdata-$@ s>number? if d>s dup to nmin to nmax then 
-    localdata swap drop 0 do
+    0 0 { nmin nmax }
+    localdata-$@ s>number? if d>s dup to nmin to nmax then
+    localdata swap drop xmaxpoints min 0 do
 	localdata-$@ s>number? if d>s dup nmin min to nmin nmax max to nmax then
     loop nmin nmax ;
 
-0 value mymin
-0 value mymax
-0 value xstep
-80 value xlablesize
-3000 constant xmaxchart
-100 value ylablesize
-20 value ytoplablesize
-6 constant xminstep
-xmaxchart xminstep / constant xmaxpoints
-variable working$
-
-: makesvg2 ( ndata-index ndata-addr -- caddr u )
-    localdata-$off
-    localdata->$!  
-    findminmaxdata to mymax to mymin
-    xmaxchart localdata swap drop xmaxpoints min / to xstep
+: chartsvgheader ( -- ) \ will produce the headerv string array stuff for the chart 
     \ make header size for svg
     \ note need to add the border top and the text bottom size also later
     headerv-$off
@@ -173,26 +173,53 @@ variable working$
     s\" \"" working$ $+!
     working$ $@ headerv-$!
     s\" \"" working$ $!
-    mymax mymin - ylablesize + #to$ working$ $+!
+    ymaxchart ylablesize + ytoplablesize + #to$ working$ $+!
     s\" \"" working$ $+!
     working$ $@ headerv-$!
     s\" \"0 0 " working$ $!
     xmaxchart xlablesize + #to$ working$ $+!
     s"  " working$ $+!
-    mymax mymin - ylablesize + #to$ working$ $+!
+    ymaxchart ylablesize + ytoplablesize + #to$ working$ $+!
     s\" \"" working$ $+!
     working$ $@ headerv-$!
+;
+
+: makesvg2 ( ndata-index ndata-addr -- caddr u )
+    localdata-$off
+    localdata->$!  
+    findminmaxdata to mymax to mymin
+    xmaxchart localdata swap drop xmaxpoints min / to xstep
+    ymaxchart mymax mymin - > 
+    if
+	ymaxchart mymax mymin - / to yscale
+    else
+	drop
+	mymax mymin - ymaxchart / to yscale
+    then
+    chartsvgheader
     \ recalculate data and form the path data statement for the ploted line
     pathdata$-$off
     localdata 2drop 
     s" M " working$ $! xlablesize #to$  working$ $+! s"  " working$ $+!
-    localdata-$@ s>number? if d>s mymax swap - ytoplablesize + #to$ else 2drop s" 0" then
+    localdata-$@ s>number?
+    if d>s mymax ymaxchart >
+	if yscale / else yscale * then
+	mymax yscale * swap - ytoplablesize + #to$
+    else
+	2drop s" 0"
+    then
     working$ $+! working$ $@ pathdata$-$!
     localdata swap drop 1 localdata-$@ 2drop 
     do
 	s" L " working$ $!
 	i xstep * xlablesize + #to$ working$ $+! s"  " working$ $+!
-	localdata-$@ s>number? if d>s mymax swap - ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$! else drop then 
+	localdata-$@ s>number?
+	if d>s mymax ymaxchart >
+	    if yscale / else yscale * then
+	    mymax yscale * swap - ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$!
+	else
+	    drop
+	then 
     loop
     svgmakehead
     svgmakepath
