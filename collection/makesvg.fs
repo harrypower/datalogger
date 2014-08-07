@@ -134,9 +134,10 @@ variable attribute$
     s" </svg>" svgoutput$ $+!
     svgoutput$ $@ ;
 
-: makesvg ( -- caddr u )  \ put all the parts together and output the final svg string
+: makpathsvg ( -- caddr u )  \ put all the parts together and output the final svg string
+    \ the attributes and path data need to be setup before calling
     svgmakehead
-    svg-attr#1
+\    svg-attr#1
     svgmakepath
     svgpathdata
     svgend ;
@@ -205,7 +206,7 @@ variable working$
     s\" \"" working$ $+!
     working$ $@ headerv-$! ;
 
-: svgchartmakepath ( -- ) \ will prduce the pathdata$ string array stuff for the chart
+: svgchartmakepath ( -- ) \ will produce the pathdata$ string array stuff for the chart
     \ recalculate data and form the path data statement for the ploted line
     pathdata$-$off
     localdata 2drop
@@ -231,7 +232,7 @@ variable working$
 	then
     loop ;
 
-: svgchartmakeylable ( -- ) \ makes the lable lines for x and y on the chart
+: svgchartmakelables ( -- ) \ makes the lable lines for x and y on the chart
     \ make the y lable line
     pathdata$-$off
     svgmakepath
@@ -273,6 +274,6 @@ variable working$
     makecirclefrompathdata
     svg-attr#3  
     \ this is lable attribute 
-    svgchartmakeylable
+    svgchartmakelables
     svgend
 ;
