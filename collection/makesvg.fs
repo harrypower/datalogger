@@ -174,13 +174,12 @@ list$: localdata
 0 value yscale          \ this is the scaling factor of the y values to be placed on chart
 6 constant xminstep     \ the min distance in px between x ploted points 
 xmaxchart xminstep /
-constant xmaxpoints     \ this will be the max allowed points to be placed on the chart 
-70 value ylableskippx   \ the px to skip to calculate how many y lables will be made
+value xmaxpoints        \ this will be the max allowed points to be placed on the chart 
 10 value xlableoffset   \ the offset to place lable from xlabelsize edge
 10 value ylableoffset   \ the offset to place lable from ( ymaxchart + ytoplablesize )
-variable working$
 10 value ylableamounts  \ how many y lablelines and or text spots
-bufr$: somejunk$
+
+variable working$
 
 : findminmaxdata ( -- nmin nmax )
     0 0 { nmin nmax }
@@ -221,7 +220,7 @@ bufr$: somejunk$
 	2drop s" 0"
     then
     working$ $+! working$ $@ pathdata$-$!
-    localdata swap drop 1 localdata-$@ 2drop
+    localdata swap drop xmaxpoints min 1 localdata-$@ 2drop  
     do
 	s" L " working$ $!
 	i xstep * xlablesize + #to$ working$ $+! s"  " working$ $+!
@@ -246,13 +245,15 @@ bufr$: somejunk$
     \ make the x lable line
     s" L " working$ $! xmaxchart xlablesize + #to$ working$ $+! s"  " working$ $+!
     ymaxchart ytoplablesize + ylableoffset + #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
+    
     svgpathdata
     
 ;
 
 : makesvgchart ( ndata-index ndata-addr -- caddr u )
     localdata-$off
-    localdata->$!  
+    localdata->$!
+    xmaxchart xminstep / to xmaxpoints    
     findminmaxdata to mymax to mymin
     xmaxchart localdata swap drop xmaxpoints min / to xstep
     ymaxchart mymax mymin - > 

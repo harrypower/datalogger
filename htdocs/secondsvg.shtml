@@ -41,14 +41,9 @@ begin
 until
 ;
 getstuff
-: outputstuff
-    dataholder swap drop 0 do
-	dataholder-$@ type s" :" type
-    loop ;
 dataholder swap drop . 
-\ outputstuff
 dataholder makesvgchart type
-xmaxpoints .
+
  s" mbedA" get-table>fields throw 
  field$s-$@ type ."  "
  field$s-$@ type ."  " 
