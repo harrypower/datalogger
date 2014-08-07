@@ -106,7 +106,9 @@ variable svgoutput$  \ the primary output of the assembled svg string output
     s\" >\n" svgoutput$ $+! ;
 
 variable attribute$
-: svgattrout ( -- caddr u )
+: svgattrout ( -- caddr u )  \ this will take attributes from lineattrn and lineattrv string arrays
+    \ note the lineaatrn and lineattrv string arrays are paired so ensure proper matching in pairs
+    \ attribute$ can be used as an output of the last svgattrout command issued and is a string
     attribute$ init$
     lineattrv 2drop
     lineattrn swap drop 0 do
@@ -115,19 +117,26 @@ variable attribute$
 	s"  " attribute$ $+!
     loop attribute$ $@ ;
 
-: svgmakepath ( -- ) \ will start path tag with lineattr attrabutes
-    \ svg-attr#1 \ still need to figure best way to pass these attributes *****
+: svgmakepath ( -- ) \ will make path tag with lineattrn and lineattrv attributes
+    \ pathdata$ needs to be populated at call time for the path data
     s" <path " svgoutput$ $+!
     svgattrout svgoutput$ $+!
     s\" d=\" " svgoutput$ $+!
-;
-    
-: svgpathdata ( -- ) \ use this directly after svgmakepath to put data into the path statement
     pathdata$ swap drop 0 do
 	pathdata$-$@ svgoutput$ $+!
 	s"  " svgoutput$ $+!
     loop
-    s\" \"> </path>\n" svgoutput$ $+!
+    s\" \"> </path>\n" svgoutput$ $+! ;
+
+: svgtext ( nx ny caddr u -- ) \ will start svg text tag and put lineattr attributes into it
+    \ nx is x possition
+    \ ny is y possition
+    \ caddr u is the counted string to place in the text 
+    s\" <text x=\"" svgoutput$ $+! 2swap swap #to$ svgoutput$ $+! s\" \" y=\"" svgoutput$ $+!
+    #to$ svgoutput$ $+! s\" \" " svgoutput$ $+!
+    svgattrout svgoutput$ $+!
+    s" >" svgoutput$ $+! svgoutput$ $+!
+    s" <\text>" svgoutput$ $+!
 ;
 
 : svgend ( -- caddr u ) \ to finish the svg tag in the output string and deliver string
@@ -139,7 +148,6 @@ variable attribute$
     svgmakehead
 \    svg-attr#1
     svgmakepath
-    svgpathdata
     svgend ;
 
 variable circlejunk$
@@ -176,8 +184,9 @@ xmaxchart xminstep /
 value xmaxpoints        \ this will be the max allowed points to be placed on the chart 
 10 value xlableoffset   \ the offset to place lable from xlabelsize edge
 10 value ylableoffset   \ the offset to place lable from ( ymaxchart + ytoplablesize )
-10 value ylableamounts  \ how many y lablelines and or text spots
-
+11 value ylableqty      \ how many y lablelines and or text spots
+20 value ymarksize      \ the size of the y lable marks
+0 value ylabletxtpos    \ the offset of y lable text from svg window
 variable working$
 
 : findminmaxdata ( -- nmin nmax )
@@ -232,19 +241,28 @@ variable working$
 	then
     loop ;
 
+variable lableref$
+variable lablemark$
 : svgchartmakelables ( -- ) \ makes the lable lines for x and y on the chart
     \ make the y lable line
     pathdata$-$off
-    svgmakepath
     s" M " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
-    ytoplablesize #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
+    ytoplablesize #to$ working$ $+! s"  " working$ $+! working$ $@ 2dup lableref$ $! pathdata$-$!
     s" L " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
     ymaxchart ytoplablesize + ylableoffset + #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
     \ make the x lable line
     s" L " working$ $! xmaxchart xlablesize + #to$ working$ $+! s"  " working$ $+!
     ymaxchart ytoplablesize + ylableoffset + #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
-    
-    svgpathdata
+    \ make y lable line marks
+    lableref$ $@ pathdata$-$!
+    s" l " working$ $! ymarksize -1 *  #to$ working$ $+! s"  " working$ $+! 0 #to$ working$ $+!
+    working$ $@ 2dup lablemark$ $! pathdata$-$!
+    ylableqty 1 do
+	lableref$ $@ pathdata$-$!
+	s" m " working$ $! 0 #to$ working$ $+! s"  " working$ $+! ymaxchart ylableqty / i * #to$ working$ $+!
+	working$ $@ pathdata$-$!
+	lablemark$ $@ pathdata$-$!
+    loop
     
 ;
 
@@ -264,16 +282,13 @@ variable working$
     svgchartheader
     svgchartmakepath
     svgmakehead
-    svg-attr#1  
-    \ this is the line attribute
+    svg-attr#1     \ this is the line attribute 
     svgmakepath
-    svgpathdata
     \ draw circle from the path data just made
-    svg-attr#2   
-    \ this is the circle attribute 
+    svg-attr#2     \ this is the circle attribute 
     makecirclefrompathdata
-    svg-attr#3  
-    \ this is lable attribute 
+    svg-attr#3     \ this is lable attribute 
     svgchartmakelables
+    svgmakepath
     svgend
 ;
