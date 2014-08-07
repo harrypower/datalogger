@@ -123,7 +123,6 @@ variable attribute$
 ;
     
 : svgpathdata ( -- ) \ use this directly after svgmakepath to put data into the path statement
-    \ data comes from pathdat$ string array
     pathdata$ swap drop 0 do
 	pathdata$-$@ svgoutput$ $+!
 	s"  " svgoutput$ $+!
@@ -146,7 +145,6 @@ variable circlejunk$
 list$: circlesvg$
 : makecirclefrompathdata ( -- )
     circlesvg$-$off
-    svg-attr#2   \ will need to figure out best way for attributes to be passed here!  *****
     svgattrout 2drop
     pathdata$ swap drop 0 do
 	s\" <circle cx=\"" circlejunk$ $!
@@ -172,7 +170,7 @@ list$: localdata
 140 value ylablesize    \ the y label at bottom of chart size in absolute px
 70 value ytoplablesize  \ the y label at top of chart size in absolute px
 0 value yscale          \ this is the scaling factor of the y values to be placed on chart
-6 constant xminstep     \ the min distance in px between x ploted points 
+10 constant xminstep     \ the min distance in px between x ploted points 
 xmaxchart xminstep /
 value xmaxpoints        \ this will be the max allowed points to be placed on the chart 
 10 value xlableoffset   \ the offset to place lable from xlabelsize edge
@@ -233,10 +231,9 @@ variable working$
 	then
     loop ;
 
-: svgchartmakeylable ( -- )
+: svgchartmakeylable ( -- ) \ makes the lable lines for x and y on the chart
     \ make the y lable line
     pathdata$-$off
-    svg-attr#3  \ need to figure this attribute thing out!  *****
     svgmakepath
     s" M " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
     ytoplablesize #to$ working$ $+! s"  " working$ $+! working$ $@ pathdata$-$!
@@ -266,11 +263,16 @@ variable working$
     svgchartheader
     svgchartmakepath
     svgmakehead
-    svg-attr#1
+    svg-attr#1  
+    \ this is the line attribute
     svgmakepath
     svgpathdata
     \ draw circle from the path data just made
+    svg-attr#2   
+    \ this is the circle attribute 
     makecirclefrompathdata
+    svg-attr#3  
+    \ this is lable attribute 
     svgchartmakeylable
     svgend
 ;
