@@ -155,8 +155,7 @@ bufr$: textbuff$
     #to$ svgoutput$ $+! s\" \" " svgoutput$ $+!
     svgattrout svgoutput$ $+! s" >" svgoutput$ $+! 
     svgoutput$ $+! 
-    s" </text>" svgoutput$ $+!
-;
+    s" </text>" svgoutput$ $+! ;
 
 : svgend ( -- caddr u ) \ to finish the svg tag in the output string and deliver string
     s" </svg>" svgoutput$ $+!
@@ -294,8 +293,7 @@ variable lablemark$
 	    mymax mymin - s>f ymaxchart s>f f/ mymax mymin - s>f ylableqty s>f f/ fswap f/ f>s 
 	then i * + 
 	mymax mymin - s>f ylableqty s>f f/ f>s i * mymax swap -  #to$ svgmaketext
-    loop 
-;
+    loop ;
 
 : makesvgchart ( ndata-index ndata-addr -- caddr u )
     localdata-$off
@@ -314,5 +312,4 @@ variable lablemark$
     makecirclefrompathdata
     svg-attr#3     \ this is lable attribute 
     svgchartmakelables
-    svgend
-;
+    svgend ;
