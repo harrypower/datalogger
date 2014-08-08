@@ -33,17 +33,18 @@ list$: dataholder
 \ s" select temperature from mbedA where (row(id) > ( select max(rowid) from mbedA - 100 ));"  dbcmds
 s" select nh3raw from mbedA;" dbcmds
     sendsqlite3cmd . ."   db errors "
-dbret$ 
+    dbret$
 begin
   32 $split
   2swap dataholder-$!
   dup 0 = 
 until
+2drop
 ;
 getstuff
-dataholder swap drop . 
+dataholder swap drop .
 dataholder makesvgchart type
-
+mymin . ."  " mymax . ."  " 
  s" mbedA" get-table>fields throw 
  field$s-$@ type ."  "
  field$s-$@ type ."  " 

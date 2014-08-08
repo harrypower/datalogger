@@ -1,4 +1,3 @@
-
 \ This Gforth code is a Raspberry Pi Data logging code
 \    Copyright (C) 2014  Philip K. Smith
 
@@ -70,6 +69,23 @@ svg-attr#1
     s\" \"5.0\""            lineattrv-$!
 ;
 
+: svg-attrtext ( -- ) \ basic text attributes
+    lineattrn-$off
+    s" fill="           lineattrn-$!
+    s" fill-opacity="   lineattrn-$!
+    s" stroke="         lineattrn-$!
+    s" stroke-opacity=" lineattrn-$!
+    s" stroke-width="   lineattrn-$!
+    s" font-size="      lineattrn-$!
+    lineattrv-$off
+    s\" \"rgb(0,0,255)\""   lineattrv-$!
+    s\" \"1.0\""            lineattrv-$!
+    s\" \"rgb(0,100,200)\"" lineattrv-$!
+    s\" \"0.0\""            lineattrv-$!
+    s\" \"2.0\""            lineattrv-$!
+    s\" \"20px\""           lineattrv-$!
+;
+
 list$: headern    \ header for svg .. normaly width and height 
 list$: headerv    \ header values that are paired with headern names
 
@@ -95,6 +111,7 @@ s" L 4 20" pathdata$-$!
 variable svgoutput$  \ the primary output of the assembled svg string output
 
 : svgmakehead ( -- )  \ start with this word to make svg start tag
+    \ headern and headerv need to be setup before calling this word
     svgoutput$ $off
     s" <svg " svgoutput$ $!
     headerv 2drop 
@@ -128,46 +145,30 @@ variable attribute$
     loop
     s\" \"> </path>\n" svgoutput$ $+! ;
 
-: svgtext ( nx ny caddr u -- ) \ will start svg text tag and put lineattr attributes into it
+bufr$: textbuff$
+: svgmaketext ( nx ny caddr u -- ) \ will start svg text tag and put lineattr attributes into it
     \ nx is x possition
     \ ny is y possition
     \ caddr u is the counted string to place in the text 
+    textbuff$
     s\" <text x=\"" svgoutput$ $+! 2swap swap #to$ svgoutput$ $+! s\" \" y=\"" svgoutput$ $+!
     #to$ svgoutput$ $+! s\" \" " svgoutput$ $+!
-    svgattrout svgoutput$ $+!
-    s" >" svgoutput$ $+! svgoutput$ $+!
-    s" <\text>" svgoutput$ $+!
+    svgattrout svgoutput$ $+! s" >" svgoutput$ $+! 
+    svgoutput$ $+! 
+    s" </text>" svgoutput$ $+!
 ;
 
 : svgend ( -- caddr u ) \ to finish the svg tag in the output string and deliver string
     s" </svg>" svgoutput$ $+!
     svgoutput$ $@ ;
 
-: makpathsvg ( -- caddr u )  \ put all the parts together and output the final svg string
+: make-a-pathsvg ( -- caddr u )  \ put all the parts together and output the final svg string
     \ the attributes and path data need to be setup before calling
     svgmakehead
-\    svg-attr#1
     svgmakepath
     svgend ;
 
-variable circlejunk$
-list$: circlesvg$
-: makecirclefrompathdata ( -- )
-    circlesvg$-$off
-    svgattrout 2drop
-    pathdata$ swap drop 0 do
-	s\" <circle cx=\"" circlejunk$ $!
-	pathdata$-$@ 32 $split 2swap 2drop 32 $split 2swap circlejunk$ $+!
-	s\" \" cy=\"" circlejunk$ $+! circlejunk$ $+!
-	s\" \" r=\"4\"" circlejunk$ $+!
-	attribute$ $@ circlejunk$ $+!
-	s" />" circlejunk$ $+!
-	circlejunk$ $@ circlesvg$-$!
-    loop
-    circlesvg$ swap drop 0 do
-	circlesvg$-$@ svgoutput$ $+! 
-    loop ;
-
+\  ***** the stuff below here is to produce a chart using the above svg words ****
 list$: localdata
 
 0 value mymin           \ will contain the chart data min absolute value
@@ -179,15 +180,29 @@ list$: localdata
 140 value ylablesize    \ the y label at bottom of chart size in absolute px
 70 value ytoplablesize  \ the y label at top of chart size in absolute px
 0 value yscale          \ this is the scaling factor of the y values to be placed on chart
-10 constant xminstep     \ the min distance in px between x ploted points 
+9 constant xminstep     \ the min distance in px between x ploted points 
 xmaxchart xminstep /
 value xmaxpoints        \ this will be the max allowed points to be placed on the chart 
 10 value xlableoffset   \ the offset to place lable from xlabelsize edge
 10 value ylableoffset   \ the offset to place lable from ( ymaxchart + ytoplablesize )
-11 value ylableqty      \ how many y lablelines and or text spots
+8 value ylableqty      \ how many y lablelines and or text spots
 20 value ymarksize      \ the size of the y lable marks
 0 value ylabletxtpos    \ the offset of y lable text from svg window
+4 value circleradius    \ the radius of the circle used on charts for lines
 variable working$
+
+: makecirclefrompathdata ( -- )
+    svgattrout 2drop
+    pathdata$ swap drop 0 do
+	s\" <circle cx=\"" svgoutput$ $+! 
+	pathdata$-$@ 32 $split 2swap 2drop 32 $split 2swap svgoutput$ $+! 
+	s\" \" cy=\"" svgoutput$ $+! svgoutput$ $+! 
+	s\" \" r=\"" svgoutput$ $+! 
+	circleradius #to$ svgoutput$ $+! 
+	s\" \"" svgoutput$ $+! 
+	attribute$ $@ svgoutput$ $+! 
+	s" />" svgoutput$ $+! 
+    loop ;
 
 : findminmaxdata ( -- nmin nmax )
     0 0 { nmin nmax }
@@ -263,7 +278,18 @@ variable lablemark$
 	working$ $@ pathdata$-$!
 	lablemark$ $@ pathdata$-$!
     loop
-    
+    svgmakepath
+    \ make y lable text
+    svg-attrtext
+    ylableqty 0 do
+	ylabletxtpos ytoplablesize ymaxchart mymax mymin - >
+	if
+	    ymaxchart s>d d>f mymax mymin - s>d d>f f/ mymax mymin - s>d d>f ylableqty s>d d>f f/ f* f>d d>s
+	else
+	    mymax mymin - s>d d>f ymaxchart s>d d>f f/ mymax mymin - s>d d>f ylableqty s>d d>f f/ fswap f/ f>d d>s
+	then i * + 
+	mymax mymin - s>d d>f ylableqty s>d d>f f/ f>d d>s i * mymax swap -  #to$ svgmaketext
+    loop 
 ;
 
 : makesvgchart ( ndata-index ndata-addr -- caddr u )
@@ -289,6 +315,5 @@ variable lablemark$
     makecirclefrompathdata
     svg-attr#3     \ this is lable attribute 
     svgchartmakelables
-    svgmakepath
     svgend
 ;
