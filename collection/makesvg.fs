@@ -215,11 +215,11 @@ variable working$
 
 : makecirclefrompathdata ( -- )
     pathdata$ swap drop 0 do
-	pathdata$-$@ 32 $split 2swap 2drop 32 $split 2swap s>number?
+	pathdata$-$@ 32 $split 2swap 2drop 32 $split >float 
 	if
-	    d>s -rot s>number? if d>s circleradius svgmakecircle else 2drop drop then   
+	    >float if f>s f>s circleradius svgmakecircle else fdrop fdrop then   
 	else
-	    2drop 2drop 
+	    fdrop 2drop 
 	then
     loop ;
 
@@ -254,22 +254,22 @@ variable working$
     pathdata$-$off
     localdata 2drop
     s" M " working$ $! xlablesize #to$  working$ $+! s"  " working$ $+!
-    localdata-$@ s>number?
-    if d>f yscale f@ f* 
-	mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$
+    localdata-$@ >float \ s>number?
+    if
+	yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$
     else
-	2drop s" 0"
+	fdrop s" 0"
     then
     working$ $+! working$ $@ pathdata$-$!
     localdata swap drop xmaxpoints min 1 localdata-$@ 2drop  
     do
 	s" L " working$ $!
 	i s>f xstep f@ f* f>s xlablesize + #to$ working$ $+! s"  " working$ $+!
-	localdata-$@ s>number?
-	if d>f yscale f@ f*
-	    mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$!
+	localdata-$@ >float \ s>number?
+	if
+	    yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$!
 	else
-	    2drop
+	    fdrop
 	then
     loop ;
 
