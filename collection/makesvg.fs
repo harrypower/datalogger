@@ -223,12 +223,12 @@ variable working$
 	then
     loop ;
 
-: findminmaxdata ( f: -- rmin rmax )  \ finds the min and max values of the localdata strings
-    \ note this is returned on floating stack and stored in mymax and mymin floating variables
+: findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
+    \ note stored in mymax and mymin floating variables
     localdata-$@ >float if fdup  mymax f! mymin f! then
     localdata swap drop xmaxpoints min 0 do
 	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! then
-    loop mymin f@ mymax f@ ;
+    loop ;
 
 : svgchartheader ( -- ) \ will produce the headerv string array stuff for the chart 
     \ make header size for svg
@@ -315,8 +315,8 @@ variable lablemark$
     findminmaxdata 
     xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
     ymaxchart s>f mymax f@ mymin f@ f- f/ yscale f!
-    svgchartheader
-    svgchartmakepath
+    svgchartheader  
+    svgchartmakepath 
     svgmakehead
     svg-attr#1     \ this is the line attribute 
     svgmakepath
