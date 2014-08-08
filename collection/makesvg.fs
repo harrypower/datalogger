@@ -145,6 +145,18 @@ variable attribute$
     loop
     s\" \"> </path>\n" svgoutput$ $+! ;
 
+: svgmakecircle ( nx ny nr -- ) \ will make circle tage with lineattrn and lineattrv attributes
+    \ nx is cx in circle svg
+    \ ny is cy in circle svg
+    \ nr is r in circle svg
+    s\" <circle cx=\"" svgoutput$ $+!
+    rot #to$ svgoutput$ $+!
+    s\" \" cy=\"" svgoutput$ $+! swap #to$ svgoutput$ $+!
+    s\" \" r=\"" svgoutput$ $+! #to$ svgoutput$ $+!
+    s\" \" " svgoutput$ $+!
+    svgattrout svgoutput$ $+! 
+    s" />" svgoutput$ $+! ;
+
 bufr$: textbuff$
 : svgmaketext ( nx ny caddr u -- ) \ will start svg text tag and put lineattr attributes into it
     \ nx is x possition
@@ -198,16 +210,13 @@ variable working$
     s>d d>f ;
 
 : makecirclefrompathdata ( -- )
-    svgattrout 2drop
     pathdata$ swap drop 0 do
-	s\" <circle cx=\"" svgoutput$ $+! 
-	pathdata$-$@ 32 $split 2swap 2drop 32 $split 2swap svgoutput$ $+! 
-	s\" \" cy=\"" svgoutput$ $+! svgoutput$ $+! 
-	s\" \" r=\"" svgoutput$ $+! 
-	circleradius #to$ svgoutput$ $+! 
-	s\" \"" svgoutput$ $+! 
-	attribute$ $@ svgoutput$ $+! 
-	s" />" svgoutput$ $+! 
+	pathdata$-$@ 32 $split 2swap 2drop 32 $split 2swap s>number?
+	if
+	    d>s -rot s>number? if d>s circleradius svgmakecircle else 2drop drop then   
+	else
+	    2drop 2drop 
+	then
     loop ;
 
 : findminmaxdata ( -- nmin nmax )
