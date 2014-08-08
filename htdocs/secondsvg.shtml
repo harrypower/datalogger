@@ -45,6 +45,12 @@ getstuff
 dataholder swap drop .
 dataholder makesvgchart type
 mymin . ."  " mymax . ."  " 
+dataholder 2drop 
+: looksee ( ncount -- )
+    0 do
+	dataholder-$@ type ." :" 
+    loop ;
+   
  s" mbedA" get-table>fields throw 
  field$s-$@ type ."  "
  field$s-$@ type ."  " 
@@ -55,6 +61,7 @@ mymin . ."  " mymax . ."  "
  field$s-$@ type ."  "
  field$s-$@ type ."  "
 
+xmaxpoints looksee
 
 $>
 

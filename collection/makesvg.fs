@@ -173,23 +173,30 @@ list$: localdata
 
 0 value mymin           \ will contain the chart data min absolute value
 0 value mymax           \ will contain the chart data max absolute value
-0 value xstep           \ how many x px absolute values to skip between data point plots
+variable xstep          \ how many x px absolute values to skip between data point plots
+0.0e xstep f!
 140 value xlablesize    \ the size taken up by the xlabel on the right side for chart
 1300 value xmaxchart    \ the max x absolute px of the chart .. change this value to make chart larger in x
 600 value ymaxchart     \ the max y absolute px of the chart .. change this value to make chart larger in y
 140 value ylablesize    \ the y label at bottom of chart size in absolute px
 70 value ytoplablesize  \ the y label at top of chart size in absolute px
-0 value yscale          \ this is the scaling factor of the y values to be placed on chart
+variable yscale          \ this is the scaling factor of the y values to be placed on chart
+0.0e yscale f!
 9 constant xminstep     \ the min distance in px between x ploted points 
 xmaxchart xminstep /
 value xmaxpoints        \ this will be the max allowed points to be placed on the chart 
 10 value xlableoffset   \ the offset to place lable from xlabelsize edge
 10 value ylableoffset   \ the offset to place lable from ( ymaxchart + ytoplablesize )
-8 value ylableqty      \ how many y lablelines and or text spots
+10 value ylableqty      \ how many y lablelines and or text spots
 20 value ymarksize      \ the size of the y lable marks
 0 value ylabletxtpos    \ the offset of y lable text from svg window
 4 value circleradius    \ the radius of the circle used on charts for lines
 variable working$
+
+: f>s ( d: -- n ) ( f: r -- )
+    f>d d>s ;
+: s>f ( d: n -- ) ( f: -- r )
+    s>d d>f ;
 
 : makecirclefrompathdata ( -- )
     svgattrout 2drop
@@ -236,9 +243,8 @@ variable working$
     localdata 2drop
     s" M " working$ $! xlablesize #to$  working$ $+! s"  " working$ $+!
     localdata-$@ s>number?
-    if d>s mymax ymaxchart >
-	if yscale / else yscale * then
-	mymax yscale * swap - ytoplablesize + #to$
+    if d>f yscale f@ f* 
+	mymax s>f yscale f@ f* fswap f- f>s ytoplablesize + #to$
     else
 	2drop s" 0"
     then
@@ -246,13 +252,12 @@ variable working$
     localdata swap drop xmaxpoints min 1 localdata-$@ 2drop  
     do
 	s" L " working$ $!
-	i xstep * xlablesize + #to$ working$ $+! s"  " working$ $+!
+	i s>f xstep f@ f* f>s xlablesize + #to$ working$ $+! s"  " working$ $+!
 	localdata-$@ s>number?
-	if d>s mymax ymaxchart >
-	    if yscale / else yscale * then
-	    mymax yscale * swap - ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$!
+	if d>f yscale f@ f*
+	    mymax s>f yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$!
 	else
-	    drop
+	    2drop
 	then
     loop ;
 
@@ -274,7 +279,7 @@ variable lablemark$
     working$ $@ 2dup lablemark$ $! pathdata$-$!
     ylableqty 1 do
 	lableref$ $@ pathdata$-$!
-	s" m " working$ $! 0 #to$ working$ $+! s"  " working$ $+! ymaxchart ylableqty / i * #to$ working$ $+!
+	s" m " working$ $! 0 #to$ working$ $+! s"  " working$ $+! ymaxchart s>f ylableqty s>f f/ i s>f f* f>s #to$ working$ $+!
 	working$ $@ pathdata$-$!
 	lablemark$ $@ pathdata$-$!
     loop
@@ -284,11 +289,11 @@ variable lablemark$
     ylableqty 0 do
 	ylabletxtpos ytoplablesize ymaxchart mymax mymin - >
 	if
-	    ymaxchart s>d d>f mymax mymin - s>d d>f f/ mymax mymin - s>d d>f ylableqty s>d d>f f/ f* f>d d>s
+	    ymaxchart s>f mymax mymin - s>f f/ mymax mymin - s>f ylableqty s>f f/ f* f>s 
 	else
-	    mymax mymin - s>d d>f ymaxchart s>d d>f f/ mymax mymin - s>d d>f ylableqty s>d d>f f/ fswap f/ f>d d>s
+	    mymax mymin - s>f ymaxchart s>f f/ mymax mymin - s>f ylableqty s>f f/ fswap f/ f>s 
 	then i * + 
-	mymax mymin - s>d d>f ylableqty s>d d>f f/ f>d d>s i * mymax swap -  #to$ svgmaketext
+	mymax mymin - s>f ylableqty s>f f/ f>s i * mymax swap -  #to$ svgmaketext
     loop 
 ;
 
@@ -297,14 +302,8 @@ variable lablemark$
     localdata->$!
     xmaxchart xminstep / to xmaxpoints    
     findminmaxdata to mymax to mymin
-    xmaxchart localdata swap drop xmaxpoints min / to xstep
-    ymaxchart mymax mymin - > 
-    if
-	ymaxchart mymax mymin - / to yscale
-    else
-	drop
-	mymax mymin - ymaxchart / to yscale
-    then
+    xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
+    ymaxchart s>f mymax mymin - s>f f/ yscale f!
     svgchartheader
     svgchartmakepath
     svgmakehead
