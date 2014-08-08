@@ -102,11 +102,13 @@ list$: headerv    \ header values that are paired with headern names
 init-svg-header
 
 list$: pathdata$  \ the data values used in path... M,m,l,L and other path values 
-s" M 0 30" pathdata$-$!
-s" L 1 35" pathdata$-$!
-s" L 2 40" pathdata$-$!
-s" L 3 50" pathdata$-$!
-s" L 4 20" pathdata$-$!
+: init-test-path ( -- )
+    pathdata$-$off
+    s" M 10 30" pathdata$-$!
+    s" L 15 35" pathdata$-$!
+    s" L 27 40" pathdata$-$!
+    s" L 48 50" pathdata$-$!
+    s" L 97 20" pathdata$-$! ;
 
 variable svgoutput$  \ the primary output of the assembled svg string output
 
@@ -182,8 +184,10 @@ bufr$: textbuff$
 \  ***** the stuff below here is to produce a chart using the above svg words ****
 list$: localdata
 
-0 value mymin           \ will contain the chart data min absolute value
-0 value mymax           \ will contain the chart data max absolute value
+variable mymin           \ will contain the chart data min absolute value
+0.0e mymin f!
+variable mymax           \ will contain the chart data max absolute value
+0.0e mymax f!
 variable xstep          \ how many x px absolute values to skip between data point plots
 0.0e xstep f!
 140 value xlablesize    \ the size taken up by the xlabel on the right side for chart
@@ -219,12 +223,12 @@ variable working$
 	then
     loop ;
 
-: findminmaxdata ( -- nmin nmax )
-    0 0 { nmin nmax }
-    localdata-$@ s>number? if d>s dup to nmin to nmax then
+: findminmaxdata ( f: -- rmin rmax )  \ finds the min and max values of the localdata strings
+    \ note this is returned on floating stack and stored in mymax and mymin floating variables
+    localdata-$@ >float if fdup  mymax f! mymin f! then
     localdata swap drop xmaxpoints min 0 do
-	localdata-$@ s>number? if d>s dup nmin min to nmin nmax max to nmax then
-    loop nmin nmax ;
+	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! then
+    loop mymin f@ mymax f@ ;
 
 : svgchartheader ( -- ) \ will produce the headerv string array stuff for the chart 
     \ make header size for svg
@@ -252,7 +256,7 @@ variable working$
     s" M " working$ $! xlablesize #to$  working$ $+! s"  " working$ $+!
     localdata-$@ s>number?
     if d>f yscale f@ f* 
-	mymax s>f yscale f@ f* fswap f- f>s ytoplablesize + #to$
+	mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$
     else
 	2drop s" 0"
     then
@@ -263,7 +267,7 @@ variable working$
 	i s>f xstep f@ f* f>s xlablesize + #to$ working$ $+! s"  " working$ $+!
 	localdata-$@ s>number?
 	if d>f yscale f@ f*
-	    mymax s>f yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$!
+	    mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ pathdata$-$!
 	else
 	    2drop
 	then
@@ -295,22 +299,22 @@ variable lablemark$
     \ make y lable text
     svg-attrtext
     ylableqty 0 do
-	ylabletxtpos ytoplablesize ymaxchart mymax mymin - >
+	ylabletxtpos ytoplablesize ymaxchart mymax f@ mymin f@ f- f>s >
 	if
-	    ymaxchart s>f mymax mymin - s>f f/ mymax mymin - s>f ylableqty s>f f/ f* f>s 
+	    ymaxchart s>f mymax f@ mymin f@ f- f/ mymax f@ mymin f@ f- ylableqty s>f f/ f* f>s 
 	else
-	    mymax mymin - s>f ymaxchart s>f f/ mymax mymin - s>f ylableqty s>f f/ fswap f/ f>s 
+	    mymax f@ mymin f@ f- ymaxchart s>f f/ mymax f@ mymin f@ f- ylableqty s>f f/ fswap f/ f>s 
 	then i * + 
-	mymax mymin - s>f ylableqty s>f f/ f>s i * mymax swap -  #to$ svgmaketext
+	mymax f@ mymin f@ f- ylableqty s>f f/ i s>f f* mymax f@ fswap f- f>s #to$ svgmaketext
     loop ;
 
 : makesvgchart ( ndata-index ndata-addr -- caddr u )
     localdata-$off
     localdata->$!
     xmaxchart xminstep / to xmaxpoints    
-    findminmaxdata to mymax to mymin
+    findminmaxdata 
     xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
-    ymaxchart s>f mymax mymin - s>f f/ yscale f!
+    ymaxchart s>f mymax f@ mymin f@ f- f/ yscale f!
     svgchartheader
     svgchartmakepath
     svgmakehead
