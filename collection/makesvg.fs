@@ -301,7 +301,7 @@ variable lablemark$
     ylableqty 0 do
 	ylabletxtpos ytoplablesize
 	ymaxchart s>f mymax f@ mymin f@ f- f/ mymax f@ mymin f@ f- ylableqty s>f f/ f* i s>f f* f>s + 
-	mymax f@ mymin f@ f- ylableqty s>f f/ i s>f f* mymax f@ fswap f- f>s #to$ svgmaketext
+	mymax f@ mymin f@ f- ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
     loop ;
 
 : makesvgchart ( ndata-index ndata-addr -- caddr u )
