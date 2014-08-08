@@ -299,12 +299,8 @@ variable lablemark$
     \ make y lable text
     svg-attrtext
     ylableqty 0 do
-	ylabletxtpos ytoplablesize ymaxchart mymax f@ mymin f@ f- f>s >
-	if
-	    ymaxchart s>f mymax f@ mymin f@ f- f/ mymax f@ mymin f@ f- ylableqty s>f f/ f* f>s 
-	else
-	    mymax f@ mymin f@ f- ymaxchart s>f f/ mymax f@ mymin f@ f- ylableqty s>f f/ fswap f/ f>s 
-	then i * + 
+	ylabletxtpos ytoplablesize
+	ymaxchart s>f mymax f@ mymin f@ f- f/ mymax f@ mymin f@ f- ylableqty s>f f/ f* i s>f f* f>s + 
 	mymax f@ mymin f@ f- ylableqty s>f f/ i s>f f* mymax f@ fswap f- f>s #to$ svgmaketext
     loop ;
 

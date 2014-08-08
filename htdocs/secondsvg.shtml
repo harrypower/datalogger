@@ -81,6 +81,14 @@ s" 9.372" somedata-$!
 somedata makesvgchart type
 ." depth is: " depth .
 ." fdepth is: " fdepth .
+
+somedata-$off
+s" .308" somedata-$!
+s" .357" somedata-$!
+s" .808" somedata-$!
+s" .9372" somedata-$!
+somedata makesvgchart type
+
 $>
 
 </body>
