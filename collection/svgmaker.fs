@@ -137,7 +137,8 @@ list$: hvalue
 list$: attrname$
 list$: attrvalue$
 : svgattrout ( xt-atrname xt-atrvalue -- )  \ takes two xt of list$: type that contain name and value
-    \ attribute pair strings and pust those strings in the svgoutput$
+    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
+    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
     attrname$-$off
     attrvalue$-$off
     execute attrvalue$->$!
@@ -149,10 +150,11 @@ list$: attrvalue$
 	s"  " svgoutput$ $+! 
     loop ; 
 
-: svgmakepath ( xt-atrname xt-atrvalue -- ) \ will make path tag with svgattrn and svgattrv attributes
+: svgmakepath ( xt-atrname xt-atrvalue -- ) \ will make path tag
+    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
+    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
     \ svgdata$ needs to be populated at call time for the path data
     s" <path " svgoutput$ $+!
-    \ ['] svgattrn ['] svgattrv
     svgattrout 
     s\" d=\" " svgoutput$ $+!
     svgdata$ swap drop 0 do
@@ -161,7 +163,9 @@ list$: attrvalue$
     loop
     s\" \"> </path>\n" svgoutput$ $+! ;
 
-: svgmakecircle ( nx ny nr -- ) \ will make circle tage with svgattrn and svgattrv attributes
+: svgmakecircle ( xt-atrname xt-atrvalue nx ny nr -- ) \ will make circle tage with svgattrn and svgattrv attributes
+    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
+    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
     \ nx is cx in circle svg
     \ ny is cy in circle svg
     \ nr is r in circle svg
@@ -170,18 +174,20 @@ list$: attrvalue$
     s\" \" cy=\"" svgoutput$ $+! swap #to$ svgoutput$ $+!
     s\" \" r=\"" svgoutput$ $+! #to$ svgoutput$ $+!
     s\" \" " svgoutput$ $+!
-    ['] svgattrn ['] svgattrv svgattrout 
+    svgattrout 
     s" />" svgoutput$ $+! ;
 
 bufr$: textbuff$
-: svgmaketext ( nx ny caddr u -- ) \ will start svg text tag and put lineattr attributes into it
+: svgmaketext ( xt-atrname xt-atrvalue nx ny caddr u -- ) \ will start svg text tag and put lineattr attributes into it
+    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
+    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
     \ nx is x possition
     \ ny is y possition
     \ caddr u is the counted string to place in the text 
     textbuff$
     s\" <text x=\"" svgoutput$ $+! 2swap swap #to$ svgoutput$ $+! s\" \" y=\"" svgoutput$ $+!
     #to$ svgoutput$ $+! s\" \" " svgoutput$ $+!
-    ['] svgattrn ['] svgattrv svgattrout s" >" svgoutput$ $+! 
+    2swap svgattrout s" >" svgoutput$ $+! 
     svgoutput$ $+! 
     s" </text>" svgoutput$ $+! ;
 
@@ -227,16 +233,18 @@ variable working$
 : s>f ( d: n -- ) ( f: -- r )
     s>d d>f ;
 
-: makecirclefrompathdata ( -- ) \ makes circle data from the existing svgdata that was used to create chart lines
-    \ svgdata$ and svgattribute$ both need to be populated at call time
+: makecirclefrompathdata ( xt-atrname xt-atrvalue -- )
+    \ makes circle data from the existing svgdata that was used to create chart lines
+    \ svgdata$ need to be populated at call time
     svgdata$ swap drop 0 do
+	2dup
 	svgdata$-$@ 32 $split 2swap 2drop 32 $split >float 
 	if
 	    >float if f>s f>s circleradius svgmakecircle else fdrop fdrop then   
 	else
 	    fdrop 2drop 
 	then
-    loop ;
+    loop 2drop ;
 
 : findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
     \ note stored in mymax and mymin floating variables
@@ -290,7 +298,8 @@ variable working$
 
 variable lableref$
 variable lablemark$
-: svgchartmakelables ( -- ) \ makes the lable lines for x and y on the chart
+: svgchartmakelables (  xt-textatrname xt-textatrvalue xt-xylineatrname xt-xylinepathatrvalue -- )
+    \ makes the lable lines for x and y on the chart
     \ make the y lable line
     svgdata$-$off
     s" M " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
@@ -310,15 +319,16 @@ variable lablemark$
 	working$ $@ svgdata$-$!
 	lablemark$ $@ svgdata$-$!
     loop
-    ['] svgattrn ['] svgattrv svgmakepath
-    \ make y lable text
-    svg-attrtext
+    svgmakepath
     ylableqty 0 do
+	2dup 
 	ylabletxtpos ytoplablesize
 	ymaxchart s>f mymax f@ mymin f@ f- f/ mymax f@ mymin f@ f- ylableqty s>f f/ f* i s>f f* f>s + 
 	mymax f@ mymin f@ f- ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
-    loop ;
+    loop 2drop ;
 
+list$: tempattrn$
+list$: tempattrv$
 : makesvgchart ( ndata-index ndata-addr -- caddr u )
     localdata-$off
     localdata->$!
@@ -327,13 +337,13 @@ variable lablemark$
     xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
     ymaxchart s>f mymax f@ mymin f@ f- f/ yscale f!
     svgchartheader  
-    svgchartmakepath 
-    ['] svgheadern ['] svgheaderv svgmakehead
-    svg-attr#1     \ this is the line attribute 
-    ['] svgattrn ['] svgattrv svgmakepath
+    svgchartmakepath
+    ['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
+    svg-attr#1 ['] svgattrn ['] svgattrv svgmakepath  \ this is the line attribute 
     \ draw circle from the path data just made
-    svg-attr#2     \ this is the circle attribute 
-    makecirclefrompathdata
-    svg-attr#3     \ this is lable attribute 
+    svg-attr#2 ['] svgattrn ['] svgattrv makecirclefrompathdata  \ this is the circle attribute 
+    svg-attrtext svgattrn tempattrn$->$! svgattrv tempattrv$->$!
+    ['] tempattrn$ ['] tempattrv$   \ lable text attribute
+    svg-attr#3  ['] svgattrn ['] svgattrv   \ this is lable line attribute 
     svgchartmakelables
     svgend ;
