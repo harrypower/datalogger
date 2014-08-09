@@ -110,22 +110,32 @@ list$: svgdata$  \ the data values used in path... M,m,l,L and other path values
     s" L 48 50" svgdata$-$!
     s" L 97 20" svgdata$-$! ;
 
-variable svgoutput$  \ the primary output of the assembled svg string output
+\ The above words show example data to send the below words data and can be used to
+\ populate basic structures to pass the words below!
 
-: svgmakehead ( -- )  \ start with this word to make svg start tag
-    \ svgheadern and svgheaderv need to be setup before calling this word
-    svgoutput$ $off
+variable svgoutput$  \ the primary output of the assembled svg string 
+
+list$: hname
+list$: hvalue
+: svgmakehead ( xt-hname xt-hvalue -- )  \ start with this word to make svg start tag
+    \ xt-hname is the xt for a list$: of names used in header paired with values in xt-hvalue
+    \ xt-hvalue is the xt for a list$: of values used in header paired with names in xt-hname
+    hname-$off
+    hvalue-$off
+    execute hvalue->$!
+    execute hname->$!
+    svgoutput$ $off  \ start svgoutput empty
     s" <svg " svgoutput$ $!
-    svgheaderv 2drop 
-    svgheadern swap drop 0 do
-	svgheadern-$@ svgoutput$ $+!
-	svgheaderv-$@ svgoutput$ $+!
+    hvalue 2drop
+    hname swap drop 0 do
+	hname-$@ svgoutput$ $+!
+	hvalue-$@ svgoutput$ $+!
 	s"  " svgoutput$ $+!
     loop
     s\" >\n" svgoutput$ $+! ;
 
 variable svgattribute$
-: svgattrout ( -- caddr u )  \ this will take attributes from svgattrn and svgattrv string arrays
+: svgattrout ( xt-atrname xt-atrvalue -- caddr u )  \ this will take attributes from svgattrn and svgattrv string arrays
     \ note the lineaatrn and svgattrv string arrays are paired so ensure proper matching in pairs
     \ svgattribute$ can be used as an output of the last svgattrout command issued and is a string
     svgattribute$ init$
@@ -175,8 +185,7 @@ bufr$: textbuff$
     s" </svg>" svgoutput$ $+!
     svgoutput$ $@ ;
 
-: make-a-pathsvg ( -- caddr u )  \ put all the parts together and output the final svg string
-    \ the attributes and path data need to be setup before calling
+: make-a-pathsvg ( xt-hname xt-hvalue -- caddr u )  \ put all the parts together and output the final svg string
     svgmakehead
     svgmakepath
     svgend ;
@@ -233,6 +242,7 @@ variable working$
 
 : svgchartheader ( -- ) \ will produce the svgheaderv string array stuff for the chart 
     \ make header size for svg includes x and y lables 
+    init-svg-header
     svgheaderv-$off
     s\" \"" working$ $!
     xmaxchart xlablesize + #to$ working$ $+!
@@ -254,7 +264,7 @@ variable working$
     svgdata$-$off
     localdata 2drop
     s" M " working$ $! xlablesize #to$  working$ $+! s"  " working$ $+!
-    localdata-$@ >float \ s>number?
+    localdata-$@ >float 
     if
 	yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$
     else
@@ -265,7 +275,7 @@ variable working$
     do
 	s" L " working$ $!
 	i s>f xstep f@ f* f>s xlablesize + #to$ working$ $+! s"  " working$ $+!
-	localdata-$@ >float \ s>number?
+	localdata-$@ >float 
 	if
 	    yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$!
 	else
@@ -313,7 +323,7 @@ variable lablemark$
     ymaxchart s>f mymax f@ mymin f@ f- f/ yscale f!
     svgchartheader  
     svgchartmakepath 
-    svgmakehead
+    ['] svgheadern ['] svgheaderv svgmakehead
     svg-attr#1     \ this is the line attribute 
     svgmakepath
     \ draw circle from the path data just made
