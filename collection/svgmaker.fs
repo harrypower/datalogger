@@ -149,10 +149,11 @@ list$: attrvalue$
 	s"  " svgoutput$ $+! 
     loop ; 
 
-: svgmakepath ( -- ) \ will make path tag with svgattrn and svgattrv attributes
+: svgmakepath ( xt-atrname xt-atrvalue -- ) \ will make path tag with svgattrn and svgattrv attributes
     \ svgdata$ needs to be populated at call time for the path data
     s" <path " svgoutput$ $+!
-    ['] svgattrn ['] svgattrv svgattrout 
+    \ ['] svgattrn ['] svgattrv
+    svgattrout 
     s\" d=\" " svgoutput$ $+!
     svgdata$ swap drop 0 do
 	svgdata$-$@ svgoutput$ $+!
@@ -188,7 +189,8 @@ bufr$: textbuff$
     s" </svg>" svgoutput$ $+!
     svgoutput$ $@ ;
 
-: make-a-pathsvg ( xt-hname xt-hvalue -- caddr u )  \ put all the parts together and output the final svg string
+: make-a-pathsvg ( xt-atrname xt-atrvalue xt-hname xt-hvalue -- caddr u )
+    \ put all the parts together and output the final svg string
     svgmakehead
     svgmakepath
     svgend ;
@@ -308,7 +310,7 @@ variable lablemark$
 	working$ $@ svgdata$-$!
 	lablemark$ $@ svgdata$-$!
     loop
-    svgmakepath
+    ['] svgattrn ['] svgattrv svgmakepath
     \ make y lable text
     svg-attrtext
     ylableqty 0 do
@@ -328,7 +330,7 @@ variable lablemark$
     svgchartmakepath 
     ['] svgheadern ['] svgheaderv svgmakehead
     svg-attr#1     \ this is the line attribute 
-    svgmakepath
+    ['] svgattrn ['] svgattrv svgmakepath
     \ draw circle from the path data just made
     svg-attr#2     \ this is the circle attribute 
     makecirclefrompathdata
