@@ -82,7 +82,7 @@ svg-attr#1
     s\" \"1.0\""            svgattrv-$!
     s\" \"rgb(0,100,200)\"" svgattrv-$!
     s\" \"0.0\""            svgattrv-$!
-    s\" \"2.0\""            svgattrv-$!
+    s\" \"4.0\""            svgattrv-$!
     s\" \"20px\""           svgattrv-$!
 ;
 
@@ -150,14 +150,14 @@ list$: attrvalue$
 	s"  " svgoutput$ $+! 
     loop ; 
 
-: svgmakepath ( xt-atrname xt-atrvalue -- ) \ will make path tag
+: svgmakepath ( xt-atrname xt-atrvalue xt-pathdata -- ) \ will make path tag
     \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
     \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
-    \ svgdata$ needs to be populated at call time for the path data
+    \ xt-pathdata is an xt of list$: type containing the path data normaly in the d= part of path tag data
     s" <path " svgoutput$ $+!
-    svgattrout 
+    -rot svgattrout 
     s\" d=\" " svgoutput$ $+!
-    svgdata$ swap drop 0 do
+    execute swap drop 0 do
 	svgdata$-$@ svgoutput$ $+!
 	s"  " svgoutput$ $+!
     loop
@@ -195,9 +195,9 @@ bufr$: textbuff$
     s" </svg>" svgoutput$ $+!
     svgoutput$ $@ ;
 
-: make-a-pathsvg ( xt-atrname xt-atrvalue xt-hname xt-hvalue -- caddr u )
+: make-a-pathsvg ( xt-atrname xt-atrvalue xt-hname xt-hvalue xt-pathdata -- caddr u )
     \ put all the parts together and output the final svg string
-    svgmakehead
+    -rot svgmakehead
     svgmakepath
     svgend ;
 
@@ -319,7 +319,7 @@ variable lablemark$
 	working$ $@ svgdata$-$!
 	lablemark$ $@ svgdata$-$!
     loop
-    svgmakepath
+    ['] svgdata$ svgmakepath
     ylableqty 0 do
 	2dup 
 	ylabletxtpos ytoplablesize
@@ -337,9 +337,9 @@ list$: tempattrv$
     xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
     ymaxchart s>f mymax f@ mymin f@ f- f/ yscale f!
     svgchartheader  
-    svgchartmakepath
     ['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
-    svg-attr#1 ['] svgattrn ['] svgattrv svgmakepath  \ this is the line attribute 
+    svgchartmakepath
+    svg-attr#1 ['] svgattrn ['] svgattrv ['] svgdata$ svgmakepath  \ this is the line attribute 
     \ draw circle from the path data just made
     svg-attr#2 ['] svgattrn ['] svgattrv makecirclefrompathdata  \ this is the circle attribute 
     svg-attrtext svgattrn tempattrn$->$! svgattrv tempattrv$->$!

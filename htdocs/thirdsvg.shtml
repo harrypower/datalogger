@@ -24,6 +24,7 @@ $>
 <body>
 <$
 somedata makesvgchart type
+." depth is: " depth .
 ." fdepth is: " fdepth .
 setupsqlite3
 s"  " dbrecordseparator 
@@ -71,7 +72,7 @@ s" L 97 80.8" svgdata$-$!
 s" L 83 9.372" svgdata$-$!
 init-svg-header
 svg-attr#1
-' svgattrn ' svgattrv ' svgheadern ' svgheaderv make-a-pathsvg type
+' svgattrn ' svgattrv ' svgheadern ' svgheaderv ' svgdata$ make-a-pathsvg type
 
 somedata-$off
 s" 30.8" somedata-$!
@@ -88,6 +89,9 @@ s" .357" somedata-$!
 s" .808" somedata-$!
 s" .9372" somedata-$!
 somedata makesvgchart type
+
+." depth is: " depth .
+." fdepth is: " fdepth .
 
 $>
 
