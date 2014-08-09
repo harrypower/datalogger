@@ -134,22 +134,25 @@ list$: hvalue
     loop
     s\" >\n" svgoutput$ $+! ;
 
-variable svgattribute$
-: svgattrout ( xt-atrname xt-atrvalue -- caddr u )  \ this will take attributes from svgattrn and svgattrv string arrays
-    \ note the lineaatrn and svgattrv string arrays are paired so ensure proper matching in pairs
-    \ svgattribute$ can be used as an output of the last svgattrout command issued and is a string
-    svgattribute$ init$
-    svgattrv 2drop
-    svgattrn swap drop 0 do
-	svgattrn-$@ svgattribute$ $+!
-	svgattrv-$@ svgattribute$ $+!
-	s"  " svgattribute$ $+!
-    loop svgattribute$ $@ ;
+list$: attrname$
+list$: attrvalue$
+: svgattrout ( xt-atrname xt-atrvalue -- )  \ takes two xt of list$: type that contain name and value
+    \ attribute pair strings and pust those strings in the svgoutput$
+    attrname$-$off
+    attrvalue$-$off
+    execute attrvalue$->$!
+    execute attrname$->$!
+    attrvalue$ 2drop
+    attrname$ swap drop 0 do
+	attrname$-$@ svgoutput$ $+! 
+	attrvalue$-$@ svgoutput$ $+! 
+	s"  " svgoutput$ $+! 
+    loop ; 
 
 : svgmakepath ( -- ) \ will make path tag with svgattrn and svgattrv attributes
     \ svgdata$ needs to be populated at call time for the path data
     s" <path " svgoutput$ $+!
-    svgattrout svgoutput$ $+!
+    ['] svgattrn ['] svgattrv svgattrout 
     s\" d=\" " svgoutput$ $+!
     svgdata$ swap drop 0 do
 	svgdata$-$@ svgoutput$ $+!
@@ -166,7 +169,7 @@ variable svgattribute$
     s\" \" cy=\"" svgoutput$ $+! swap #to$ svgoutput$ $+!
     s\" \" r=\"" svgoutput$ $+! #to$ svgoutput$ $+!
     s\" \" " svgoutput$ $+!
-    svgattrout svgoutput$ $+! 
+    ['] svgattrn ['] svgattrv svgattrout 
     s" />" svgoutput$ $+! ;
 
 bufr$: textbuff$
@@ -177,7 +180,7 @@ bufr$: textbuff$
     textbuff$
     s\" <text x=\"" svgoutput$ $+! 2swap swap #to$ svgoutput$ $+! s\" \" y=\"" svgoutput$ $+!
     #to$ svgoutput$ $+! s\" \" " svgoutput$ $+!
-    svgattrout svgoutput$ $+! s" >" svgoutput$ $+! 
+    ['] svgattrn ['] svgattrv svgattrout s" >" svgoutput$ $+! 
     svgoutput$ $+! 
     s" </text>" svgoutput$ $+! ;
 
