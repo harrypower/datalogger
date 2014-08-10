@@ -209,6 +209,8 @@ variable mymin          \ will contain the chart data min absolute value
 0.0e mymin f!
 variable mymax          \ will contain the chart data max absolute value
 0.0e mymax f!
+variable myspread       \ will contain mymax - mymin 
+0.0e myspread f!
 variable xstep          \ how many x px absolute values to skip between data point plots
 0.0e xstep f!
 variable yscale         \ this is the scaling factor of the y values to be placed on chart
@@ -251,7 +253,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 
 : findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
     \ note results stored in mymax and mymin floating variables
-    0.0e mymax f! 0.0e mymin f!
+    0.0e mymax f! 0.0e mymin f!  \ note if the first string is not a number then in or max may end up 0.0 value 
     localdata-$@ >float if fdup  mymax f! mymin f! then
     localdata swap drop xmaxpoints min 0 do
 	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! then
@@ -259,7 +261,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 
 : svgchartheader ( -- ) \ will produce the svgheaderv string array stuff for the chart 
     \ make header size for svg including x and y lables
-    \ Note this uses the default header from init-svg-header and addes the correct size values
+    \ Note this uses the default header from init-svg-header and adds the correct size values
     init-svg-header
     svgheaderv-$off
     s\" \"" working$ $!
@@ -285,7 +287,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
     localdata-$@ >float 
     if
 	yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$!
-    else
+    else \ first string not a number so just plot it with mymin value 
 	 mymin f@ yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$! 
     then
     \ working$ $+! working$ $@ svgdata$-$!
@@ -296,7 +298,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 	localdata-$@ >float 
 	if
 	    yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$!
-	else
+	else \ if string is not a number plot it with mymin value 
 	    mymin f@ yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$!
 	then
     loop ;
@@ -328,8 +330,8 @@ variable lablemark$
     ylableqty 0 do
 	2dup 
 	ylabletxtpos ytoplablesize
-	ymaxchart s>f mymax f@ mymin f@ f- f/ mymax f@ mymin f@ f- ylableqty s>f f/ f* i s>f f* f>s + 
-	mymax f@ mymin f@ f- ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
+	yscale f@ myspread f@ ylableqty s>f f/ f* i s>f f* f>s + 
+	myspread f@ ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
     loop 2drop ;
 
 list$: tempattrn$
@@ -339,8 +341,9 @@ list$: tempattrv$
     localdata->$!
     xmaxchart xminstep / to xmaxpoints    
     findminmaxdata 
+    mymax f@ mymin f@ f- myspread f!
     xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
-    ymaxchart s>f mymax f@ mymin f@ f- f/ yscale f!
+    ymaxchart s>f myspread f@ f/ yscale f!
     svgchartheader  
     ['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
     svgchartmakepath
