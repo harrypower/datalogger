@@ -201,32 +201,35 @@ bufr$: textbuff$
     svgmakepath
     svgend ;
 
+\ ********************************************************************************
 \  ***** the stuff below here is to produce a chart using the above svg words ****
-list$: localdata
 
-variable mymin           \ will contain the chart data min absolute value
+\ these variables and values are calcuated or used in the following code
+variable mymin          \ will contain the chart data min absolute value
 0.0e mymin f!
-variable mymax           \ will contain the chart data max absolute value
+variable mymax          \ will contain the chart data max absolute value
 0.0e mymax f!
 variable xstep          \ how many x px absolute values to skip between data point plots
 0.0e xstep f!
+variable yscale         \ this is the scaling factor of the y values to be placed on chart
+0.0e yscale f!
+2 value xmaxpoints      \ this will be the max allowed points to be placed on the chart 
+list$: localdata        \ this is used by the chart making process for the data to be processed
+variable working$       \ this is used to work on strings temporarily in the chart code
+
+\ these values are inputs to the chart for changing its look or size
 140 value xlablesize    \ the size taken up by the xlabel on the right side for chart
-1300 value xmaxchart    \ the max x absolute px of the chart .. change this value to make chart larger in x
+1000 value xmaxchart     \ the max x absolute px of the chart .. change this value to make chart larger in x
 600 value ymaxchart     \ the max y absolute px of the chart .. change this value to make chart larger in y
 140 value ylablesize    \ the y label at bottom of chart size in absolute px
 70 value ytoplablesize  \ the y label at top of chart size in absolute px
-variable yscale          \ this is the scaling factor of the y values to be placed on chart
-0.0e yscale f!
-9 constant xminstep     \ the min distance in px between x ploted points 
-xmaxchart xminstep /
-value xmaxpoints        \ this will be the max allowed points to be placed on the chart 
+9 value xminstep        \ the min distance in px between x ploted points 
 10 value xlableoffset   \ the offset to place lable from xlabelsize edge
 10 value ylableoffset   \ the offset to place lable from ( ymaxchart + ytoplablesize )
 10 value ylableqty      \ how many y lablelines and or text spots
 20 value ymarksize      \ the size of the y lable marks
 0 value ylabletxtpos    \ the offset of y lable text from svg window
 4 value circleradius    \ the radius of the circle used on charts for lines
-variable working$
 
 : f>s ( d: -- n ) ( f: r -- )
     f>d d>s ;
@@ -240,21 +243,23 @@ variable working$
 	2dup
 	svgdata$-$@ 32 $split 2swap 2drop 32 $split >float 
 	if
-	    >float if f>s f>s circleradius svgmakecircle else fdrop fdrop then   
+	    >float if f>s f>s circleradius svgmakecircle then   
 	else
-	    fdrop 2drop 
+	    2drop 
 	then
     loop 2drop ;
 
 : findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
-    \ note stored in mymax and mymin floating variables
+    \ note results stored in mymax and mymin floating variables
+    0.0e mymax f! 0.0e mymin f!
     localdata-$@ >float if fdup  mymax f! mymin f! then
     localdata swap drop xmaxpoints min 0 do
 	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! then
     loop ;
 
 : svgchartheader ( -- ) \ will produce the svgheaderv string array stuff for the chart 
-    \ make header size for svg includes x and y lables 
+    \ make header size for svg including x and y lables
+    \ Note this uses the default header from init-svg-header and addes the correct size values
     init-svg-header
     svgheaderv-$off
     s\" \"" working$ $!
@@ -279,11 +284,11 @@ variable working$
     s" M " working$ $! xlablesize #to$  working$ $+! s"  " working$ $+!
     localdata-$@ >float 
     if
-	yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$
+	yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$!
     else
-	fdrop s" 0"
+	 mymin f@ yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$! 
     then
-    working$ $+! working$ $@ svgdata$-$!
+    \ working$ $+! working$ $@ svgdata$-$!
     localdata swap drop xmaxpoints min 1 localdata-$@ 2drop  
     do
 	s" L " working$ $!
@@ -292,7 +297,7 @@ variable working$
 	if
 	    yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$!
 	else
-	    fdrop
+	    mymin f@ yscale f@ f* mymax f@ yscale f@ f* fswap f- f>s ytoplablesize + #to$ working$ $+! working$ $@ svgdata$-$!
 	then
     loop ;
 

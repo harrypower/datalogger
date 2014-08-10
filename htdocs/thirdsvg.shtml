@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!Doctype html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -75,11 +75,16 @@ svg-attr#1
 ' svgattrn ' svgattrv ' svgheadern ' svgheaderv ' svgdata$ make-a-pathsvg type
 
 somedata-$off
+s" stuff" somedata-$!
 s" 30.8" somedata-$!
 s" 35.7" somedata-$!
 s" 80.8" somedata-$!
 s" 9.372" somedata-$!
+s" stuff" somedata-$!
+s" 48.32" somedata-$!
 somedata makesvgchart type
+." mymax is:" mymax f@ f.
+." mymin is:" mymin f@ f.
 ." depth is: " depth .
 ." fdepth is: " fdepth .
 
