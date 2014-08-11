@@ -220,8 +220,9 @@ list$: localdata        \ this is used by the chart making process for the data 
 variable working$       \ this is used to work on strings temporarily in the chart code
 
 \ these values are inputs to the chart for changing its look or size
+\ set these values to adjust the look of the size and positions of the chart 
 140 value xlablesize    \ the size taken up by the xlabel on the right side for chart
-1000 value xmaxchart     \ the max x absolute px of the chart .. change this value to make chart larger in x
+1000 value xmaxchart    \ the max x absolute px of the chart .. change this value to make chart larger in x
 600 value ymaxchart     \ the max y absolute px of the chart .. change this value to make chart larger in y
 140 value ylablesize    \ the y label at bottom of chart size in absolute px
 70 value ytoplablesize  \ the y label at top of chart size in absolute px
@@ -232,6 +233,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 20 value ymarksize      \ the size of the y lable marks
 0 value ylabletxtpos    \ the offset of y lable text from svg window
 4 value circleradius    \ the radius of the circle used on charts for lines
+
 
 : f>s ( d: -- n ) ( f: r -- )
     f>d d>s ;
@@ -334,11 +336,26 @@ variable lablemark$
 	myspread f@ ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
     loop 2drop ;
 
-list$: tempattrn$
-list$: tempattrv$
-: makesvgchart ( ndata-index ndata-addr -- caddr u )
+\ this structure contains xt's that are created with list$:
+\ this is the method to pass the chart data to makesvgchart
+struct
+    cell% field data-xt%
+    cell% field data-attr-name-xt%
+    cell% field data-attr-value-xt%
+    cell% field circle-attr-name-xt%
+    cell% field circle-attr-value-xt%
+end-struct chartdata%
+struct 
+    cell% field labtxt-attr-name-xt%
+    cell% field labtxt-attr-value-xt%
+    cell% field labline-attr-name-xt%
+    cell% field labline-attr-value-xt%
+end-struct chartattr%
+
+: makesvgchart ( nchartattr% nchartdata% -- caddr u )
+    { attr% data% }
     localdata-$off
-    localdata->$!
+    data% data-xt% @ execute localdata->$!
     xmaxchart xminstep / to xmaxpoints    
     findminmaxdata 
     mymax f@ mymin f@ f- myspread f!
@@ -347,11 +364,10 @@ list$: tempattrv$
     svgchartheader  
     ['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
     svgchartmakepath
-    svg-attr#1 ['] svgattrn ['] svgattrv ['] svgdata$ svgmakepath  \ this is the line attribute 
+    data% data-attr-name-xt% @ data% data-attr-value-xt% @ ['] svgdata$ svgmakepath  \ this is the line attribute 
     \ draw circle from the path data just made
-    svg-attr#2 ['] svgattrn ['] svgattrv makecirclefrompathdata  \ this is the circle attribute 
-    svg-attrtext svgattrn tempattrn$->$! svgattrv tempattrv$->$!
-    ['] tempattrn$ ['] tempattrv$   \ lable text attribute
-    svg-attr#3  ['] svgattrn ['] svgattrv   \ this is lable line attribute 
+    data% circle-attr-name-xt% @ data% circle-attr-value-xt% @ makecirclefrompathdata  \ this is the circle attribute 
+    attr% labtxt-attr-name-xt% @ attr% labtxt-attr-value-xt% @   \ lable text attribute
+    attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @ \ this is lable line attribute 
     svgchartmakelables
     svgend ;

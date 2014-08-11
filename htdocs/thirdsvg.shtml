@@ -23,7 +23,31 @@ s" -100" somedata-$!
 $>
 <body>
 <$
-somedata makesvgchart type
+create mydata chartdata% %allot drop
+create myattr chartattr% %allot drop
+list$: dattrn$
+list$: dattrv$
+list$: cattrn$
+list$: cattrv$
+list$: ltxtn$
+list$: ltxtv$
+list$: llinen$
+list$: llinev$
+
+' somedata mydata data-xt% !
+svg-attr#1 svgattrn dattrn$->$! svgattrv dattrv$->$!
+' dattrn$ mydata data-attr-name-xt% !
+' dattrv$ mydata data-attr-value-xt% !
+svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
+' cattrn$ mydata circle-attr-name-xt% !
+' cattrv$ mydata circle-attr-value-xt% !
+svg-attrtext svgattrn ltxtn$->$! svgattrv ltxtv$->$!
+' ltxtn$ myattr labtxt-attr-name-xt% !
+' ltxtv$ myattr labtxt-attr-value-xt% !
+svg-attr#3 svgattrn llinen$->$! svgattrv llinev$->$!
+' llinen$ myattr labline-attr-name-xt% !
+' llinev$ myattr labline-attr-value-xt% !
+myattr mydata makesvgchart type
 ." depth is: " depth .
 ." fdepth is: " fdepth .
 setupsqlite3
@@ -45,7 +69,8 @@ until
 ;
 getstuff
 dataholder swap drop .
-dataholder makesvgchart type
+' dataholder mydata data-xt% !
+myattr mydata makesvgchart type
 mymin . ."  " mymax . ."  " 
 dataholder 2drop 
 : looksee ( ncount -- )
@@ -82,7 +107,8 @@ s" 80.8" somedata-$!
 s" 9.372" somedata-$!
 s" stuff" somedata-$!
 s" -48.32" somedata-$!
-somedata makesvgchart type
+' somedata mydata data-xt% !
+myattr mydata makesvgchart type
 ." mymax is:" mymax f@ f.
 ." mymin is:" mymin f@ f.
 ." depth is: " depth .
@@ -93,7 +119,8 @@ s" .308" somedata-$!
 s" .357" somedata-$!
 s" .808" somedata-$!
 s" .9372" somedata-$!
-somedata makesvgchart type
+' somedata mydata data-xt% !
+myattr mydata makesvgchart type
 
 ." depth is: " depth .
 ." fdepth is: " fdepth .
