@@ -47,7 +47,7 @@ svg-attrtext svgattrn ltxtn$->$! svgattrv ltxtv$->$!
 svg-attr#3 svgattrn llinen$->$! svgattrv llinev$->$!
 ' llinen$ myattr labline-attr-name-xt% !
 ' llinev$ myattr labline-attr-value-xt% !
-myattr mydata 1 makesvgchart type
+myattr mydata 1 makesvgchart drop type
 ." depth is: " depth .
 ." fdepth is: " fdepth .
 setupsqlite3
@@ -70,7 +70,7 @@ until
 getstuff
 dataholder swap drop .
 ' dataholder mydata data-xt% !
-myattr mydata 1 makesvgchart type
+myattr mydata 1 makesvgchart drop type
 mymin . ."  " mymax . ."  " 
 dataholder 2drop 
 : looksee ( ncount -- )
@@ -108,7 +108,7 @@ s" 9.372" somedata-$!
 s" stuff" somedata-$!
 s" -48.32" somedata-$!
 ' somedata mydata data-xt% !
-myattr mydata 1 makesvgchart type
+myattr mydata 1 makesvgchart drop type
 ." mymax is:" mymax f@ f.
 ." mymin is:" mymin f@ f.
 ." depth is: " depth .
@@ -121,8 +121,9 @@ s" 1.457" somedata-$!
 s" stuff" somedata-$!
 s" 1.808" somedata-$!
 s" 1.9372" somedata-$!
+s" 1.7" somedata-$!
 ' somedata mydata data-xt% !
-myattr mydata 1 makesvgchart type
+myattr mydata 1 makesvgchart drop type
 
 ." depth is: " depth .
 ." fdepth is: " fdepth .
@@ -133,8 +134,6 @@ s" 5"   otherdata-$!
 s" 1.7" otherdata-$!
 s" 4"   otherdata-$!
 s" 4.5" otherdata-$!
-." depth2 is: " depth .
-." fdepth2 is: " fdepth .
 
 create mydata2 2 chartdata% %size * allot 
 list$: dattrn1$
@@ -156,7 +155,7 @@ svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
 svg-attr#2 svgattrn cattrn1$->$! svgattrv cattrv1$->$!
 ' cattrn1$ mydata2 circle-attr-name-xt% 1 chartdata% %size * + !
 ' cattrv1$ mydata2 circle-attr-value-xt% 1 chartdata% %size * + !
- myattr mydata2 2 makesvgchart type
+ myattr mydata2 2 makesvgchart drop type
 
 ." depth2 is: " depth .
 ." fdepth2 is: " fdepth .

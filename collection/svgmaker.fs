@@ -350,43 +350,43 @@ struct
     cell% field labline-attr-value-xt%
 end-struct chartattr%
 
-: makesvgchart ( nchartattr% nchartdata% nchartdataqty -- caddr u )
-    { attr% data% dataqty }
-    \ note first check if each data set has the same length **** if not bail
-    \ bail if dataqty is 0 indicating no datasets also limite data sets to 4 maybe at first
-    0.0e mymax f! 0.0e mymin f!  \ note if the first string is not a number then min or max may end up 0.0 value 
-    xmaxchart xminstep / to xmaxpoints    
-    localdata-$off
-    data% data-xt% 0 chartdata% %size * + @ execute localdata->$!
-    localdata-$@ >float if fdup  mymax f! mymin f! then \ start min max at the first value 
-    dataqty 0 do  \ find all datasets min and max values
+: makesvgchart ( nchartattr% nchartdata% nchartdataqty -- caddr u nflag )
+    \ note if each dataset has a different amount of data output will happen but the display will not show all the data
+    try
+	{ attr% data% dataqty }
+	dataqty 0 <= dataqty 6 > and throw  \ dataqty 1 to 6 only for now
+	0.0e mymax f! 0.0e mymin f!  \ note if the first string is not a number then min or max may end up 0.0 value 
+	xmaxchart xminstep / to xmaxpoints    
 	localdata-$off
-	data% data-xt% i chartdata% %size * + @ execute localdata->$!
-	findminmaxdata
-    loop
-    mymax f@ mymin f@ f- myspread f!
-    xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
-    ymaxchart s>f myspread f@ f/ yscale f!
-    svgchartheader  
-    ['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
-
-    \ now repopulate localdata with each dataset so svgchartmakepath can produce the correct data
-    dataqty 0 do
-	localdata-$off
-	data% data-xt% i chartdata% %size * + @ execute localdata->$!
-	svgchartmakepath
-	data% data-attr-name-xt% i chartdata% %size * + @
-	data% data-attr-value-xt% i chartdata% %size * + @
-	['] svgdata$ svgmakepath
-	\ data% data-attr-name-xt% @ data% data-attr-value-xt% @ ['] svgdata$ svgmakepath  \ this is the line attribute 
-	\ draw circle from the path data just made
-	\ ensure the cirle attribute data is from correct data set
-	data% circle-attr-name-xt% i chartdata% %size * + @
-	data% circle-attr-value-xt% i chartdata% %size * + @
-	makecirclefrompathdata
-	\ data% circle-attr-name-xt% @ data% circle-attr-value-xt% @ makecirclefrompathdata  \ this is the circle attribute 
-    loop
-    attr% labtxt-attr-name-xt% @ attr% labtxt-attr-value-xt% @   \ lable text attribute
-    attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @ \ this is lable line attribute 
-    svgchartmakelables
-    svgend ;
+	data% data-xt% 0 chartdata% %size * + @ execute localdata->$!
+	localdata-$@ >float if fdup  mymax f! mymin f! then \ start min max at the first value
+	\ note if this first value in first dataset is not a number then mymin and or mymax may be 0.0
+	dataqty 0 do     \ find all datasets min and max values
+	    localdata-$off
+	    data% data-xt% i chartdata% %size * + @ execute localdata->$!
+	    findminmaxdata
+	loop
+	mymax f@ mymin f@ f- myspread f!
+	xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
+	ymaxchart s>f myspread f@ f/ yscale f!
+	svgchartheader  
+	['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
+	dataqty 0 do
+	    localdata-$off
+	    data% data-xt% i chartdata% %size * + @ execute localdata->$!
+	    svgchartmakepath
+	    data% data-attr-name-xt% i chartdata% %size * + @
+	    data% data-attr-value-xt% i chartdata% %size * + @
+	    ['] svgdata$ svgmakepath  \ this is the line attribute 
+	    \ draw circle from the path data just made
+	    data% circle-attr-name-xt% i chartdata% %size * + @
+	    data% circle-attr-value-xt% i chartdata% %size * + @
+	    makecirclefrompathdata    \ this is the circle attribute 
+	loop
+	attr% labtxt-attr-name-xt% @ attr% labtxt-attr-value-xt% @   \ lable text attribute
+	attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @ \ this is lable line attribute 
+	svgchartmakelables
+	svgend
+	false
+    restore dup if swap drop then 
+    endtry ;
