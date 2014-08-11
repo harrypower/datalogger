@@ -255,8 +255,6 @@ variable working$       \ this is used to work on strings temporarily in the cha
 
 : findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
     \ note results stored in mymax and mymin floating variables
-    0.0e mymax f! 0.0e mymin f!  \ note if the first string is not a number then in or max may end up 0.0 value 
-    localdata-$@ >float if fdup  mymax f! mymin f! then
     localdata swap drop xmaxpoints min 0 do
 	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! then
     loop ;
@@ -337,7 +335,7 @@ variable lablemark$
     loop 2drop ;
 
 \ this structure contains xt's that are created with list$:
-\ this is the method to pass the chart data to makesvgchart
+\ this is the method to pass the chart data and chart attributes to makesvgchart
 struct
     cell% field data-xt%
     cell% field data-attr-name-xt%
@@ -352,21 +350,42 @@ struct
     cell% field labline-attr-value-xt%
 end-struct chartattr%
 
-: makesvgchart ( nchartattr% nchartdata% -- caddr u )
-    { attr% data% }
-    localdata-$off
-    data% data-xt% @ execute localdata->$!
+: makesvgchart ( nchartattr% nchartdata% nchartdataqty -- caddr u )
+    { attr% data% dataqty }
+    \ note first check if each data set has the same length **** if not bail
+    \ bail if dataqty is 0 indicating no datasets also limite data sets to 4 maybe at first
+    0.0e mymax f! 0.0e mymin f!  \ note if the first string is not a number then min or max may end up 0.0 value 
     xmaxchart xminstep / to xmaxpoints    
-    findminmaxdata 
+    localdata-$off
+    data% data-xt% 0 chartdata% %size * + @ execute localdata->$!
+    localdata-$@ >float if fdup  mymax f! mymin f! then \ start min max at the first value 
+    dataqty 0 do  \ find all datasets min and max values
+	localdata-$off
+	data% data-xt% i chartdata% %size * + @ execute localdata->$!
+	findminmaxdata
+    loop
     mymax f@ mymin f@ f- myspread f!
     xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
     ymaxchart s>f myspread f@ f/ yscale f!
     svgchartheader  
     ['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
-    svgchartmakepath
-    data% data-attr-name-xt% @ data% data-attr-value-xt% @ ['] svgdata$ svgmakepath  \ this is the line attribute 
-    \ draw circle from the path data just made
-    data% circle-attr-name-xt% @ data% circle-attr-value-xt% @ makecirclefrompathdata  \ this is the circle attribute 
+
+    \ now repopulate localdata with each dataset so svgchartmakepath can produce the correct data
+    dataqty 0 do
+	localdata-$off
+	data% data-xt% i chartdata% %size * + @ execute localdata->$!
+	svgchartmakepath
+	data% data-attr-name-xt% i chartdata% %size * + @
+	data% data-attr-value-xt% i chartdata% %size * + @
+	['] svgdata$ svgmakepath
+	\ data% data-attr-name-xt% @ data% data-attr-value-xt% @ ['] svgdata$ svgmakepath  \ this is the line attribute 
+	\ draw circle from the path data just made
+	\ ensure the cirle attribute data is from correct data set
+	data% circle-attr-name-xt% i chartdata% %size * + @
+	data% circle-attr-value-xt% i chartdata% %size * + @
+	makecirclefrompathdata
+	\ data% circle-attr-name-xt% @ data% circle-attr-value-xt% @ makecirclefrompathdata  \ this is the circle attribute 
+    loop
     attr% labtxt-attr-name-xt% @ attr% labtxt-attr-value-xt% @   \ lable text attribute
     attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @ \ this is lable line attribute 
     svgchartmakelables
