@@ -307,7 +307,7 @@ variable lableref$
 variable lablemark$
 : svgchartmakelables (  xt-textatrname xt-textatrvalue xt-xylineatrname xt-xylinepathatrvalue -- )
     \ makes the lable lines for x and y on the chart
-    \ make the y lable line
+    \ make the y lable text and the x lable text
     svgdata$-$off
     s" M " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
     ytoplablesize #to$ working$ $+! s"  " working$ $+! working$ $@ 2dup lableref$ $! svgdata$-$!
@@ -320,19 +320,21 @@ variable lablemark$
     lableref$ $@ svgdata$-$!
     s" l " working$ $! ymarksize -1 *  #to$ working$ $+! s"  " working$ $+! 0 #to$ working$ $+!
     working$ $@ 2dup lablemark$ $! svgdata$-$!
-    ylableqty 1 do
+    ylableqty 1 + 1 do
 	lableref$ $@ svgdata$-$!
 	s" m " working$ $! 0 #to$ working$ $+! s"  " working$ $+! ymaxchart s>f ylableqty s>f f/ i s>f f* f>s #to$ working$ $+!
 	working$ $@ svgdata$-$!
 	lablemark$ $@ svgdata$-$!
     loop
     ['] svgdata$ svgmakepath
-    ylableqty 0 do
+    \ generate y lable text 
+    ylableqty 1 + 0 do
 	2dup 
 	ylabletxtpos ytoplablesize
 	yscale f@ myspread f@ ylableqty s>f f/ f* i s>f f* f>s + 
 	myspread f@ ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
-    loop 2drop ;
+    loop
+    2drop  ;
 
 \ this structure contains xt's that are created with list$:
 \ this is the method to pass the chart data and chart attributes to makesvgchart
@@ -344,8 +346,11 @@ struct
     cell% field circle-attr-value-xt%
 end-struct chartdata%
 struct 
-    cell% field labtxt-attr-name-xt%
-    cell% field labtxt-attr-value-xt%
+    cell% field xlabel-data-xt%
+    cell% field xlabtxt-attr-name-xt%
+    cell% field xlabtxt-attr-name-xt%
+    cell% field ylabtxt-attr-name-xt%
+    cell% field ylabtxt-attr-value-xt%
     cell% field labline-attr-name-xt%
     cell% field labline-attr-value-xt%
 end-struct chartattr%
@@ -384,8 +389,8 @@ end-struct chartattr%
 	    data% circle-attr-value-xt% i chartdata% %size * + @
 	    makecirclefrompathdata    \ this is the circle attribute 
 	loop
-	attr% labtxt-attr-name-xt% @ attr% labtxt-attr-value-xt% @   \ lable text attribute
-	attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @ \ this is lable line attribute 
+	attr% ylabtxt-attr-name-xt% @ attr% ylabtxt-attr-value-xt% @   \ y lable text attribute
+	attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @   \ this is lable line attribute 
 	svgchartmakelables
 	svgend
 	false

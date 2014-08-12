@@ -42,8 +42,8 @@ svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
 ' cattrn$ mydata circle-attr-name-xt% !
 ' cattrv$ mydata circle-attr-value-xt% !
 svg-attrtext svgattrn ltxtn$->$! svgattrv ltxtv$->$!
-' ltxtn$ myattr labtxt-attr-name-xt% !
-' ltxtv$ myattr labtxt-attr-value-xt% !
+' ltxtn$ myattr ylabtxt-attr-name-xt% !
+' ltxtv$ myattr ylabtxt-attr-value-xt% !
 svg-attr#3 svgattrn llinen$->$! svgattrv llinev$->$!
 ' llinen$ myattr labline-attr-name-xt% !
 ' llinev$ myattr labline-attr-value-xt% !
