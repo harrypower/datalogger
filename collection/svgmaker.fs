@@ -229,6 +229,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 9 value xminstep        \ the min distance in px between x ploted points 
 10 value xlableoffset   \ the offset to place lable from xlabelsize edge
 10 value ylableoffset   \ the offset to place lable from ( ymaxchart + ytoplablesize )
+30 value ylabletextoff  \ the offset of the text from ( ymaxchart + ytoplablesize + ylabeloffset )
 10 value ylableqty      \ how many y lablelines and or text spots
 20 value ymarksize      \ the size of the y lable marks
 0 value ylabletxtpos    \ the offset of y lable text from svg window
@@ -305,9 +306,9 @@ variable working$       \ this is used to work on strings temporarily in the cha
 
 variable lableref$
 variable lablemark$
-: svgchartmakelables (  xt-textatrname xt-textatrvalue xt-xylineatrname xt-xylinepathatrvalue -- )
+: svgchartmakelables (  ylabtxt-attr-name-xt% ylabtxt-attr-value-xt% labline-attr-name-xt% labline-attr-value-xt% -- )
     \ makes the lable lines for x and y on the chart
-    \ make the y lable text and the x lable text
+    \ make the y lable text 
     svgdata$-$off
     s" M " working$ $! xlablesize xlableoffset - #to$ working$ $+! s"  " working$ $+!
     ytoplablesize #to$ working$ $+! s"  " working$ $+! working$ $@ 2dup lableref$ $! svgdata$-$!
@@ -336,6 +337,16 @@ variable lablemark$
     loop
     2drop  ;
 
+: svgchartXlabletext ( xlabtxt-attr-name-xt% xlabtxt-attr-value-xt% xlabel-data-xt% -- )
+    \ make x lable text from xlabel-data-xt% list$: string array
+    0 { xnxt xvxt xdxt xqty }
+    xdxt execute swap drop dup to xqty 0 do
+	xnxt xvxt  \ the attribute name value pairs
+	xlablesize xmaxchart s>f xqty s>f f/ i s>f f* f>s +  ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
+	s" ^" svgmaketext
+    loop
+;
+
 \ this structure contains xt's that are created with list$:
 \ this is the method to pass the chart data and chart attributes to makesvgchart
 struct
@@ -348,7 +359,7 @@ end-struct chartdata%
 struct 
     cell% field xlabel-data-xt%
     cell% field xlabtxt-attr-name-xt%
-    cell% field xlabtxt-attr-name-xt%
+    cell% field xlabtxt-attr-value-xt%
     cell% field ylabtxt-attr-name-xt%
     cell% field ylabtxt-attr-value-xt%
     cell% field labline-attr-name-xt%
@@ -392,6 +403,9 @@ end-struct chartattr%
 	attr% ylabtxt-attr-name-xt% @ attr% ylabtxt-attr-value-xt% @   \ y lable text attribute
 	attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @   \ this is lable line attribute 
 	svgchartmakelables
+	attr% ylabtxt-attr-name-xt% @ attr% ylabtxt-attr-value-xt% @   \ this is x lable text attributes
+	data% data-xt% @
+	svgchartXlabletext
 	svgend
 	false
     restore dup if swap drop then 
