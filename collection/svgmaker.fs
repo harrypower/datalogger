@@ -256,7 +256,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 : findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
     \ note results stored in mymax and mymin floating variables
     localdata swap drop xmaxpoints min 0 do
-	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! then
+	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! else true throw then
     loop ;
 
 : svgchartheader ( -- ) \ will produce the svgheaderv string array stuff for the chart 
@@ -352,15 +352,16 @@ end-struct chartattr%
 
 0 value xdataqty
 : makesvgchart ( nchartattr% nchartdata% nchartdataqty -- caddr u nflag )
-    \ note if each dataset has a different amount of data output will happen but the display will not show all the data
+    \ note if each dataset has a different amount of data nflag will be true
+    \ nflag will be false if svg generated for chart
+    \ nflag is true if the a data string is no a number
     try
 	{ attr% data% dataqty }
-	0.0e mymax f! 0.0e mymin f!  \ note if the first string is not a number then min or max may end up 0.0 value 
+	0.0e mymax f! 0.0e mymin f!
 	xmaxchart xminstep / to xmaxpoints    
 	localdata-$off
 	data% data-xt% 0 chartdata% %size * + @ execute dup to xdataqty localdata->$!
 	localdata-$@ >float if fdup  mymax f! mymin f! else true throw then \ start min max at the first value
-	\ note if this first value in first dataset is not a number then mymin and or mymax may be 0.0
 	dataqty 0 do     \ find all datasets min and max values
 	    localdata-$off
 	    data% data-xt% i chartdata% %size * + @ execute dup xdataqty <> throw localdata->$!

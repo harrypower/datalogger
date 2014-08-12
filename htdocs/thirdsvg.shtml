@@ -47,7 +47,7 @@ svg-attrtext svgattrn ltxtn$->$! svgattrv ltxtv$->$!
 svg-attr#3 svgattrn llinen$->$! svgattrv llinev$->$!
 ' llinen$ myattr labline-attr-name-xt% !
 ' llinev$ myattr labline-attr-value-xt% !
-myattr mydata 1 makesvgchart drop type
+myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 ." depth is: " depth .
 ." fdepth is: " fdepth .
 setupsqlite3
@@ -70,7 +70,7 @@ until
 getstuff
 dataholder swap drop .
 ' dataholder mydata data-xt% !
-myattr mydata 1 makesvgchart drop type
+myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 mymin . ."  " mymax . ."  " 
 dataholder 2drop 
 : looksee ( ncount -- )
@@ -108,7 +108,7 @@ s" 9.372" somedata-$!
 \ s" stuff" somedata-$!
 s" -48.32" somedata-$!
 ' somedata mydata data-xt% !
-myattr mydata 1 makesvgchart drop type
+myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 ." mymax is:" mymax f@ f.
 ." mymin is:" mymin f@ f.
 ." depth is: " depth .
@@ -116,14 +116,14 @@ myattr mydata 1 makesvgchart drop type
 
 somedata-$off
 \ s" stuff" somedata-$!
-s" 1.3" somedata-$!
+ s" 1.3" somedata-$!
 s" 1.457" somedata-$!
 \ s" stuff" somedata-$!
 s" 1.808" somedata-$!
 s" 1.9372" somedata-$!
  s" 1.7" somedata-$!
 ' somedata mydata data-xt% !
-myattr mydata 1 makesvgchart drop type
+myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 
 ." depth is: " depth .
 ." fdepth is: " fdepth .
@@ -132,8 +132,8 @@ list$:  otherdata
 s" 2.5" otherdata-$!
 s" 5"   otherdata-$!
 s" 1.7" otherdata-$!
-\ s" 4"   otherdata-$!
-s" 4.5" otherdata-$!
+ s" 4"   otherdata-$!
+\ s" 4.5" otherdata-$!
 s" 6.8" otherdata-$!
 \ s" 5.3" otherdata-$!
 create mydata2 2 chartdata% %size * allot 
