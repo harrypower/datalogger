@@ -64,7 +64,7 @@ svg-attr#3 svgattrn llinen$->$! svgattrv llinev$->$!
 ' llinev$    myattr labline-attr-value-xt% !
 svg-attrtext svgattrn xltxtn$->$! svgattrv xltxtv$->$!
 ' xltxtn$    myattr xlabtxt-attr-name-xt% !
-' xltxtn$    myattr xlabtxt-attr-value-xt% !
+' xltxtv$    myattr xlabtxt-attr-value-xt% !
 
 myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 
@@ -109,7 +109,7 @@ svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
 ' dataholder1 mydata data-xt% 0 chartdata% %size * + !
 ' dataholder2 mydata data-xt% 1 chartdata% %size * + !
 
-myattr mydata 2 makesvgchart false = [if] type [else] 2drop [then]
+myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 mymin f@ f. ."  " mymax f@ f. ."  " 
 dataholder1 2drop 
 : looksee ( ncount -- )

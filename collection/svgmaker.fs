@@ -337,13 +337,15 @@ variable lablemark$
     loop
     2drop  ;
 
+variable templable$
 : svgchartXlabletext ( xlabtxt-attr-name-xt% xlabtxt-attr-value-xt% xlable-data-xt% -- )
     \ make x lable text from xlable-data-xt% list$: string array
-    0 { xnxt xvxt xdxt xqty }
+    0 0 { xnxt xvxt xdxt xqty x$xt }
+    xdxt >name dup 0 = throw name>string templable$ $! s" -$@" templable$ $+! templable$ $@ find-name dup 0 = throw name>int to x$xt
     xdxt execute swap drop dup to xqty 0 do
 	xnxt xvxt  \ the attribute name value pairs
 	xlablesize xmaxchart s>f xqty s>f f/ i s>f f* f>s +  ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
-	s" ^" svgmaketext
+	x$xt execute svgmaketext
     loop
 ;
 
@@ -403,8 +405,8 @@ end-struct chartattr%
 	attr% ylabtxt-attr-name-xt% @ attr% ylabtxt-attr-value-xt% @   \ y lable text attribute
 	attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @   \ this is lable line attribute 
 	svgchartmakelables
-	attr% ylabtxt-attr-name-xt% @ attr% ylabtxt-attr-value-xt% @   \ this is x lable text attributes
-	data% data-xt% @
+	attr% xlabtxt-attr-name-xt% @ attr% xlabtxt-attr-value-xt% @   \ this is x lable text attributes
+	attr% xlable-data-xt% @
 	svgchartXlabletext
 	svgend
 	false
