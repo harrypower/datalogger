@@ -1,0 +1,144 @@
+<!Doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Some svg stuff</title>
+</head>
+<$
+require ../collection/sqlite3-stuff.fs
+require ../collection/svgmaker.fs
+decimal
+
+$>
+<body>
+<$
+
+list$: somedata
+list$: dataholder1
+list$: dataholder2
+list$: xlabledata
+
+create mydata 2 chartdata% %size * allot 
+create myattr chartattr% %allot drop
+
+list$: dattrn$
+list$: dattrv$
+list$: cattrn$
+list$: cattrv$
+list$: ltxtn$
+list$: ltxtv$
+list$: llinen$
+list$: llinev$
+list$: xltxtn$
+list$: xltxtv$
+
+s" 30" somedata-$!
+s" 40" somedata-$!
+s" 25" somedata-$!
+s" 50" somedata-$!
+s" 35" somedata-$!
+s" 100" somedata-$!
+s" -20" somedata-$!
+s" 0" somedata-$!
+s" -100" somedata-$!
+
+: fill-labletxt ( -- )
+    somedata swap drop 0 do
+	i #to$ xlabledata-$!
+    loop ;
+file-labletxt
+
+' somedata mydata data-xt% !
+' xlabledata myattr xlable-data-xt% !
+svg-attr#1 svgattrn dattrn$->$! svgattrv dattrv$->$!
+' dattrn$ mydata data-attr-name-xt% !
+' dattrv$ mydata data-attr-value-xt% !
+svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
+' cattrn$ mydata circle-attr-name-xt% !
+' cattrv$ mydata circle-attr-value-xt% !
+svg-attrtext svgattrn ltxtn$->$! svgattrv ltxtv$->$!
+' ltxtn$ myattr ylabtxt-attr-name-xt% !
+' ltxtv$ myattr ylabtxt-attr-value-xt% !
+svg-attr#3 svgattrn llinen$->$! svgattrv llinev$->$!
+' llinen$ myattr labline-attr-name-xt% !
+' llinev$ myattr labline-attr-value-xt% !
+svg-attr#3 svgattrn xltxtn$->$! svgattrv xltxtv$->$!
+' xltxtn$ myattr xlabtxt-attr-name-xt% !
+' xltxtn$ myattr xlabtxt-attr-value-xt% !
+
+myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
+
+." depth is: " depth .
+." fdepth is: " fdepth .
+setupsqlite3
+s"  " dbrecordseparator 
+s" " dbfieldseparator
+64000 mkretbuff
+: getstuff ( -- ) 
+    s" select temperature from mbedA;" dbcmds
+    sendsqlite3cmd . ."   db errors "
+    dbret$
+    begin
+	32 $split
+	2swap dataholder1-$!
+	dup 0 = 
+    until
+    2drop
+    s" select humidity from mbedA;" dbcmds
+    sendsqlite3cmd . ."  db errors "
+    dbret$
+    begin
+	32 $split
+	2swap dataholder2-$!
+	dup 0 =
+    until
+    2drop ;
+getstuff
+
+dataholder1 swap drop . ."  dh1 "
+dataholder2 swap drop . ."  dh2 "
+
+svg-attr#1 svgattrn dattrn$->$! svgattrv dattrv$->$!
+' dattrn$ mydata data-attr-name-xt% 1 chartdata% %size * + !
+' dattrv$ mydata data-attr-value-xt% 1 chartdata% %size * + !
+svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
+' cattrn$ mydata circle-attr-name-xt% 1 chartdata% %size * + !
+' cattrv$ mydata circle-attr-value-xt% 1 chartdata% %size * + !
+
+
+' dataholder1 mydata data-xt% 0 chartdata% %size * + !
+' dataholder2 mydata data-xt% 1 chartdata% %size * + !
+
+myattr mydata 2 makesvgchart false = [if] type [else] 2drop [then]
+mymin f@ f. ."  " mymax f@ f. ."  " 
+dataholder1 2drop 
+: looksee ( ncount -- )
+    0 do
+	dataholder1-$@ type ." :" 
+    loop ;
+   
+ s" mbedA" get-table>fields throw 
+ field$s-$@ type ."  "
+ field$s-$@ type ."  " 
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+ field$s-$@ type ."  "
+." depth is: " depth .
+." fdepth is: " fdepth .
+ xmaxpoints looksee
+svgdata$-$off
+s" M 10.3 30.8" svgdata$-$!
+s" L 15.8 35.7" svgdata$-$!
+s" L 97 80.8" svgdata$-$!
+s" L 83 9.372" svgdata$-$!
+init-svg-header
+svg-attr#1
+' svgattrn ' svgattrv ' svgheadern ' svgheaderv ' svgdata$ make-a-pathsvg type
+
+$>
+
+</body>
+</html>

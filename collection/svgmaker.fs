@@ -337,8 +337,8 @@ variable lablemark$
     loop
     2drop  ;
 
-: svgchartXlabletext ( xlabtxt-attr-name-xt% xlabtxt-attr-value-xt% xlabel-data-xt% -- )
-    \ make x lable text from xlabel-data-xt% list$: string array
+: svgchartXlabletext ( xlabtxt-attr-name-xt% xlabtxt-attr-value-xt% xlable-data-xt% -- )
+    \ make x lable text from xlable-data-xt% list$: string array
     0 { xnxt xvxt xdxt xqty }
     xdxt execute swap drop dup to xqty 0 do
 	xnxt xvxt  \ the attribute name value pairs
@@ -357,7 +357,7 @@ struct
     cell% field circle-attr-value-xt%
 end-struct chartdata%
 struct 
-    cell% field xlabel-data-xt%
+    cell% field xlable-data-xt%
     cell% field xlabtxt-attr-name-xt%
     cell% field xlabtxt-attr-value-xt%
     cell% field ylabtxt-attr-name-xt%
