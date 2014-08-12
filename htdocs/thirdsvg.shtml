@@ -100,12 +100,12 @@ svg-attr#1
 ' svgattrn ' svgattrv ' svgheadern ' svgheaderv ' svgdata$ make-a-pathsvg type
 
 somedata-$off
-s" stuff" somedata-$!
+\ s" stuff" somedata-$!
 s" 30.8" somedata-$!
 s" 35.7" somedata-$!
 s" 80.8" somedata-$!
 s" 9.372" somedata-$!
-s" stuff" somedata-$!
+\ s" stuff" somedata-$!
 s" -48.32" somedata-$!
 ' somedata mydata data-xt% !
 myattr mydata 1 makesvgchart drop type
@@ -118,10 +118,10 @@ somedata-$off
 \ s" stuff" somedata-$!
 s" 1.3" somedata-$!
 s" 1.457" somedata-$!
-s" stuff" somedata-$!
+\ s" stuff" somedata-$!
 s" 1.808" somedata-$!
 s" 1.9372" somedata-$!
-s" 1.7" somedata-$!
+ s" 1.7" somedata-$!
 ' somedata mydata data-xt% !
 myattr mydata 1 makesvgchart drop type
 
@@ -132,9 +132,10 @@ list$:  otherdata
 s" 2.5" otherdata-$!
 s" 5"   otherdata-$!
 s" 1.7" otherdata-$!
-s" 4"   otherdata-$!
+\ s" 4"   otherdata-$!
 s" 4.5" otherdata-$!
-
+s" 6.8" otherdata-$!
+\ s" 5.3" otherdata-$!
 create mydata2 2 chartdata% %size * allot 
 list$: dattrn1$
 list$: dattrv1$
@@ -155,7 +156,7 @@ svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
 svg-attr#2 svgattrn cattrn1$->$! svgattrv cattrv1$->$!
 ' cattrn1$ mydata2 circle-attr-name-xt% 1 chartdata% %size * + !
 ' cattrv1$ mydata2 circle-attr-value-xt% 1 chartdata% %size * + !
- myattr mydata2 2 makesvgchart drop type
+ myattr mydata2 2 makesvgchart false = [if] type [else] 2drop [then]  
 
 ." depth2 is: " depth .
 ." fdepth2 is: " fdepth .

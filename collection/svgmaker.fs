@@ -350,20 +350,20 @@ struct
     cell% field labline-attr-value-xt%
 end-struct chartattr%
 
+0 value xdataqty
 : makesvgchart ( nchartattr% nchartdata% nchartdataqty -- caddr u nflag )
     \ note if each dataset has a different amount of data output will happen but the display will not show all the data
     try
 	{ attr% data% dataqty }
-	dataqty 0 <= dataqty 6 > and throw  \ dataqty 1 to 6 only for now
 	0.0e mymax f! 0.0e mymin f!  \ note if the first string is not a number then min or max may end up 0.0 value 
 	xmaxchart xminstep / to xmaxpoints    
 	localdata-$off
-	data% data-xt% 0 chartdata% %size * + @ execute localdata->$!
-	localdata-$@ >float if fdup  mymax f! mymin f! then \ start min max at the first value
+	data% data-xt% 0 chartdata% %size * + @ execute dup to xdataqty localdata->$!
+	localdata-$@ >float if fdup  mymax f! mymin f! else true throw then \ start min max at the first value
 	\ note if this first value in first dataset is not a number then mymin and or mymax may be 0.0
 	dataqty 0 do     \ find all datasets min and max values
 	    localdata-$off
-	    data% data-xt% i chartdata% %size * + @ execute localdata->$!
+	    data% data-xt% i chartdata% %size * + @ execute dup xdataqty <> throw localdata->$!
 	    findminmaxdata
 	loop
 	mymax f@ mymin f@ f- myspread f!
