@@ -105,12 +105,25 @@ svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
 ' cattrn$ mydata circle-attr-name-xt% 1 chartdata% %size * + !
 ' cattrv$ mydata circle-attr-value-xt% 1 chartdata% %size * + !
 
-
 ' dataholder1 mydata data-xt% 0 chartdata% %size * + !
 ' dataholder2 mydata data-xt% 1 chartdata% %size * + !
 
-myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
-mymin f@ f. ."  " mymax f@ f. ."  " 
+s" style=" xltxtn$-$!
+s\" \"writing-mode: tb; glyph-orientation-vertical: 0;\"" xltxtv$-$!
+15 to xminstep
+1500 to xmaxchart
+xlabledata-$off
+: fill-nextlabletxt ( -- )
+    xmaxchart xminstep / 0 do
+	i #to$ xlabledata-$!
+    loop ;
+fill-nextlabletxt
+ ' xlabledata myattr xlable-data-xt% !
+
+xlabledata swap drop . ."  xlabledata" 
+myattr mydata 2 makesvgchart false = [if] type [else] 2drop [then]
+mymin f@ f. ."  " mymax f@ f. ."  " xmaxpoints . ."  maxpoints"
+
 dataholder1 2drop 
 : looksee ( ncount -- )
     0 do
