@@ -28,8 +28,7 @@ list$: svgattr  \ svg attributes names to work with a line
     s\" fill-opacity=\"0.0\""       svgattr-$!
     s\" stroke=\"rgb(120,255,0)\""  svgattr-$!
     s\" stroke-opacity=\"1.0\""     svgattr-$!
-    s\" stroke-width=\"2.0\""       svgattr-$!
-;
+    s\" stroke-width=\"2.0\""       svgattr-$! ;
 svg-attr#1
 
 : svg-attr#2 ( -- ) \ second set of attributes
@@ -38,8 +37,7 @@ svg-attr#1
     s\" fill-opacity=\"1.0\""       svgattr-$!
     s\" stroke=\"rgb(120,255,0)\""  svgattr-$!
     s\" stroke-opacity=\"1.0\""     svgattr-$!
-    s\" stroke-width=\"3.0\""       svgattr-$!
-;
+    s\" stroke-width=\"3.0\""       svgattr-$! ;
 
 : svg-attr#3 ( -- ) \ second set of attributes
     svgattr-$off
@@ -47,8 +45,7 @@ svg-attr#1
     s\" fill-opacity=\"0.0\""       svgattr-$!
     s\" stroke=\"rgb(0,100,200)\""  svgattr-$!
     s\" stroke-opacity=\"1.0\""     svgattr-$!
-    s\" stroke-width=\"5.0\""       svgattr-$!
-;
+    s\" stroke-width=\"5.0\""       svgattr-$! ;
 
 : svg-attrtext ( -- ) \ basic text attributes
     svgattr-$off
@@ -57,8 +54,7 @@ svg-attr#1
     s\" stroke=\"rgb(0,100,200)\""  svgattr-$!
     s\" stroke-opacity=\"0.0\""     svgattr-$!
     s\" stroke-width=\"4.0\""       svgattr-$!
-    s\" font-size=\"20px\""         svgattr-$!
-;
+    s\" font-size=\"20px\""         svgattr-$! ;
 
 list$: svgheader    \ header for svg .. normaly width and height 
 
@@ -66,8 +62,7 @@ list$: svgheader    \ header for svg .. normaly width and height
     svgheader-$off
     s\" width=\"100\""            svgheader-$!
     s\" height=\"100\""           svgheader-$!
-    s\" viewBox=\"0 0 100 100 \"" svgheader-$!
-;
+    s\" viewBox=\"0 0 100 100 \"" svgheader-$! ;
 init-svg-header
 
 list$: svgdata$  \ the data values used in path... M,m,l,L and other path values 
@@ -302,8 +297,7 @@ variable templable$
 	xaxt   \ the attribute name value 
 	xlablesize xmaxchart s>f xqty s>f f/ i s>f f* f>s +  ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
 	x$xt execute svgmaketext
-    loop
-;
+    loop ;
 
 \ this structure contains xt's that are created with list$:
 \ this is the method to pass the chart data and chart attributes to makesvgchart
