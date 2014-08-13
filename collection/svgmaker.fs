@@ -83,28 +83,24 @@ variable tempxt$
 : xt>list$:-$@ ( xt-list$: -- xt-list$:-$@ )  \ from an xt of list$: type the iterator name is found and xt of that is returned
     >name dup 0 = throw name>string tempxt$ $! s" -$@" tempxt$ $+! tempxt$ $@ find-name dup 0 = throw name>int ;
 
-list$: header$
 : svgmakehead ( xt-header -- )  \ start with this word to make svg start tag
     \ xt-header is the xt for a list$: of names used in header 
-    header$-$off
-    execute header$->$!
     svgoutput$ $off  \ start svgoutput empty
     s" <svg " svgoutput$ $!
-    header$ swap drop 0 do
-	header$-$@ svgoutput$ $+!
+    dup xt>list$:-$@ swap
+    execute swap drop 0 do
+	dup execute svgoutput$ $+!
 	s"  " svgoutput$ $+!
-    loop
+    loop drop 
     s\" >\n" svgoutput$ $+! ;
 
-list$: attribute$
 : svgattrout ( xt-atrname -- )  \ takes two xt of list$: type that contain name and value
     \ xt-atrname is an xt of list$: type containing attribute name and value strings
-    attribute$-$off
-    execute attribute$->$!
-    attribute$ swap drop 0 do
-	attribute$-$@ svgoutput$ $+! 
+    dup xt>list$:-$@ swap 
+    execute swap drop 0 do
+	dup execute svgoutput$ $+! 
 	s"  " svgoutput$ $+! 
-    loop ; 
+    loop drop ; 
 
 : svgmakepath ( xt-atrname xt-pathdata -- ) \ will make path tag
     \ xt-atrname is an xt of list$: type containing attribute name and value strings 
