@@ -38,6 +38,7 @@ s" -20" somedata-$!
 s" 0"   somedata-$!
 s" -100" somedata-$!
 
+variable art$
 : fill-labletxt ( -- )
     somedata swap drop 0 do
 	i #to$ xlabledata-$!
@@ -56,7 +57,7 @@ svg-attr#3 svgattr lline$->$!
 ' lline$    myattr labline-attr-xt% !
 svg-attrtext svgattr xltxt$->$!
 ' xltxt$    myattr xlabtxt-attr-xt% !
-
+65 to xlablerot 
 
 myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 
@@ -99,8 +100,13 @@ svg-attr#2 svgattr cattr$->$!
 
 ' dataholder1 mydata data-xt% 0 chartdata% %size * + !
 ' dataholder2 mydata data-xt% 1 chartdata% %size * + !
-
+-10 to xlablerot
+xltxt$-$off
+svg-attrtext svgattr xltxt$->$!
 s\" style=\"writing-mode: tb; glyph-orientation-vertical: 0;\"" xltxt$-$!
+
+' xltxt$    myattr xlabtxt-attr-xt% !
+
 15 to xminstep
 1500 to xmaxchart
 xlabledata-$off

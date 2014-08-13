@@ -82,6 +82,8 @@ variable svgoutput$  \ the primary output of the assembled svg string
 variable tempxt$
 : xt>list$:-$@ ( xt-list$: -- xt-list$:-$@ )  \ from an xt of list$: type the iterator name is found and xt of that is returned
     >name dup 0 = throw name>string tempxt$ $! s" -$@" tempxt$ $+! tempxt$ $@ find-name dup 0 = throw name>int ;
+: xt>list$:-$! ( xt-list$: -- xt-list$:-$! ) \ from an xt of list$: type the storage name is found and xt of that is returned
+    >name dup 0 = throw name>string tempxt$ $! s" -$!" tempxt$ $+! tempxt$ $@ find-name dup 0 = throw name>int ;
 
 : svgmakehead ( xt-header -- )  \ start with this word to make svg start tag
     \ xt-header is the xt for a list$: of names used in header 
@@ -133,13 +135,13 @@ bufr$: textbuff$
     \ xt-atrname is an xt of list$: type containing attribute name value strings
     \ nx is x possition
     \ ny is y possition
-    \ caddr u is the counted string to place in the text 
+    \ caddr u is the counted string to place in the text
     textbuff$
     s\" <text x=\"" svgoutput$ $+! 2swap swap #to$ svgoutput$ $+! s\" \" y=\"" svgoutput$ $+!
     #to$ svgoutput$ $+! s\" \" " svgoutput$ $+!
     rot svgattrout s" >" svgoutput$ $+! 
     svgoutput$ $+! 
-    s" </text>" svgoutput$ $+! ;
+    s\" </text>" svgoutput$ $+! ;
 
 : svgend ( -- caddr u ) \ to finish the svg tag in the output string and deliver string
     s" </svg>" svgoutput$ $+!
@@ -184,7 +186,8 @@ variable working$       \ this is used to work on strings temporarily in the cha
 20 value ymarksize      \ the size of the y lable marks
 0 value ylabletxtpos    \ the offset of y lable text from svg window
 4 value circleradius    \ the radius of the circle used on charts for lines
-
+0 value xlablerot       \ the value for rotation orientation of xlable text
+0 value ylablerot       \ the value for rotation orientation of ylable text
 
 : f>s ( d: -- n ) ( f: r -- )
     f>d d>s ;
@@ -253,6 +256,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 
 variable lableref$
 variable lablemark$
+list$: ytempattr$
 : svgchartmakelables (  ylabtxt-attr-xt%  labline-attr-xt%  -- )
     \ makes the lable lines for x and y on the chart
     \ make the y lable text 
@@ -277,7 +281,7 @@ variable lablemark$
     ['] svgdata$ svgmakepath
     \ generate y lable text 
     ylableqty 1 + 0 do
-	dup 
+	dup  \ attribute
 	ylabletxtpos ytoplablesize
 	yscale f@ myspread f@ ylableqty s>f f/ f* i s>f f* f>s + 
 	myspread f@ ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
@@ -285,13 +289,19 @@ variable lablemark$
     drop  ;
 
 variable templable$
+list$: xtempattr$
 : svgchartXlabletext ( xlabtxt-attr-xt% xlable-data-xt% -- )
     \ make x lable text from xlable-data-xt% list$: string array
-    0 0 { xaxt xdxt xqty x$xt }
-    xdxt xt>list$:-$@ to x$xt 
+    0 0 0 { xaxt xdxt xqty x$xt xa$xt }
+    xdxt xt>list$:-$@ to x$xt
     xdxt execute swap drop dup to xqty 0 do
-	xaxt   \ the attribute name value 
+	xtempattr$-$off
+	xaxt execute xtempattr$->$!
+	['] xtempattr$
 	xlablesize xmaxchart s>f xqty s>f f/ i s>f f* f>s +  ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
+	s\"  transform=\"rotate(" templable$ $! xlablerot #to$ templable$ $+! s" , " templable$ $+!
+	swap dup #to$ templable$ $+! s" , " templable$ $+! swap dup #to$ templable$ $+! s"  "
+	templable$ $+! s\" )\"" templable$ $+! templable$ $@ xtempattr$-$!
 	x$xt execute svgmaketext
     loop ;
 
