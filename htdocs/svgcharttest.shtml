@@ -21,16 +21,12 @@ list$: xlabledata
 create mydata 2 chartdata% %size * allot 
 create myattr chartattr% %allot drop
 
-list$: dattrn$
-list$: dattrv$
-list$: cattrn$
-list$: cattrv$
-list$: ltxtn$
-list$: ltxtv$
-list$: llinen$
-list$: llinev$
-list$: xltxtn$
-list$: xltxtv$
+list$: dattr$
+list$: cattr$
+list$: ltxt$
+list$: lline$
+list$: xltxt$
+
 
 s" 30" somedata-$!
 s" 40" somedata-$!
@@ -39,7 +35,7 @@ s" 50" somedata-$!
 s" 35" somedata-$!
 s" 100" somedata-$!
 s" -20" somedata-$!
-s" 0" somedata-$!
+s" 0"   somedata-$!
 s" -100" somedata-$!
 
 : fill-labletxt ( -- )
@@ -50,21 +46,17 @@ fill-labletxt
 
 ' somedata   mydata data-xt% !
 ' xlabledata myattr xlable-data-xt% !
-svg-attr#1 svgattrn dattrn$->$! svgattrv dattrv$->$!
-' dattrn$    mydata data-attr-name-xt% !
-' dattrv$    mydata data-attr-value-xt% !
-svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
-' cattrn$    mydata circle-attr-name-xt% !
-' cattrv$    mydata circle-attr-value-xt% !
-svg-attrtext svgattrn ltxtn$->$! svgattrv ltxtv$->$!
-' ltxtn$     myattr ylabtxt-attr-name-xt% !
-' ltxtv$     myattr ylabtxt-attr-value-xt% !
-svg-attr#3 svgattrn llinen$->$! svgattrv llinev$->$!
-' llinen$    myattr labline-attr-name-xt% !
-' llinev$    myattr labline-attr-value-xt% !
-svg-attrtext svgattrn xltxtn$->$! svgattrv xltxtv$->$!
-' xltxtn$    myattr xlabtxt-attr-name-xt% !
-' xltxtv$    myattr xlabtxt-attr-value-xt% !
+svg-attr#1 svgattr dattr$->$! 
+' dattr$    mydata data-attr-xt% !
+svg-attr#2 svgattr cattr$->$!
+' cattr$    mydata circle-attr-xt% !
+svg-attrtext svgattr ltxt$->$!
+' ltxt$     myattr ylabtxt-attr-xt% !
+svg-attr#3 svgattr lline$->$!
+' lline$    myattr labline-attr-xt% !
+svg-attrtext svgattr xltxt$->$!
+' xltxt$    myattr xlabtxt-attr-xt% !
+
 
 myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 
@@ -98,18 +90,17 @@ getstuff
 dataholder1 swap drop . ."  dh1 "
 dataholder2 swap drop . ."  dh2 "
 
-svg-attr#1 svgattrn dattrn$->$! svgattrv dattrv$->$!
-' dattrn$ mydata data-attr-name-xt% 1 chartdata% %size * + !
-' dattrv$ mydata data-attr-value-xt% 1 chartdata% %size * + !
-svg-attr#2 svgattrn cattrn$->$! svgattrv cattrv$->$!
-' cattrn$ mydata circle-attr-name-xt% 1 chartdata% %size * + !
-' cattrv$ mydata circle-attr-value-xt% 1 chartdata% %size * + !
+svg-attr#1 svgattr dattr$->$! 
+' dattr$ mydata data-attr-xt% 1 chartdata% %size * + !
+
+svg-attr#2 svgattr cattr$->$! 
+' cattr$ mydata circle-attr-xt% 1 chartdata% %size * + !
+
 
 ' dataholder1 mydata data-xt% 0 chartdata% %size * + !
 ' dataholder2 mydata data-xt% 1 chartdata% %size * + !
 
-s" style=" xltxtn$-$!
-s\" \"writing-mode: tb; glyph-orientation-vertical: 0;\"" xltxtv$-$!
+s\" style=\"writing-mode: tb; glyph-orientation-vertical: 0;\"" xltxt$-$!
 15 to xminstep
 1500 to xmaxchart
 xlabledata-$off

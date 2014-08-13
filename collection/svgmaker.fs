@@ -20,84 +20,53 @@
 require gforth-misc-tools.fs
 require string.fs
 
-list$: svgattrn  \ svg attributes names to work with a line
-list$: svgattrv  \ svg attribute values to work with a line but are paired with linattrn names
+list$: svgattr  \ svg attributes names to work with a line
 
-: svg-attr#1 ( -- ) \ initalizes svgattrn to default values
-    svgattrn-$off
-    s" fill="           svgattrn-$!
-    s" fill-opacity="   svgattrn-$!
-    s" stroke="         svgattrn-$!
-    s" stroke-opacity=" svgattrn-$!
-    s" stroke-width="   svgattrn-$!
-    svgattrv-$off
-    s\" \"rgb(255,0,0)\""   svgattrv-$!
-    s\" \"0.0\""            svgattrv-$!
-    s\" \"rgb(120,255,0)\"" svgattrv-$!
-    s\" \"1.0\""            svgattrv-$!
-    s\" \"2.0\""            svgattrv-$!
+: svg-attr#1 ( -- ) \ initalizes svgattr to default values
+    svgattr-$off
+    s\" fill=\"rgb(255,0,0)\""      svgattr-$!
+    s\" fill-opacity=\"0.0\""       svgattr-$!
+    s\" stroke=\"rgb(120,255,0)\""  svgattr-$!
+    s\" stroke-opacity=\"1.0\""     svgattr-$!
+    s\" stroke-width=\"2.0\""       svgattr-$!
 ;
 svg-attr#1
 
 : svg-attr#2 ( -- ) \ second set of attributes
-    svgattrn-$off
-    s" fill="           svgattrn-$!
-    s" fill-opacity="   svgattrn-$!
-    s" stroke="         svgattrn-$!
-    s" stroke-opacity=" svgattrn-$!
-    s" stroke-width="   svgattrn-$!
-    svgattrv-$off
-    s\" \"rgb(255,0,0)\""   svgattrv-$!
-    s\" \"1.0\""            svgattrv-$!
-    s\" \"rgb(120,255,0)\"" svgattrv-$!
-    s\" \"1.0\""            svgattrv-$!
-    s\" \"3.0\""            svgattrv-$!
+    svgattr-$off
+    s\" fill=\"rgb(255,0,0)\""      svgattr-$!
+    s\" fill-opacity=\"1.0\""       svgattr-$!
+    s\" stroke=\"rgb(120,255,0)\""  svgattr-$!
+    s\" stroke-opacity=\"1.0\""     svgattr-$!
+    s\" stroke-width=\"3.0\""       svgattr-$!
 ;
 
 : svg-attr#3 ( -- ) \ second set of attributes
-    svgattrn-$off
-    s" fill="           svgattrn-$!
-    s" fill-opacity="   svgattrn-$!
-    s" stroke="         svgattrn-$!
-    s" stroke-opacity=" svgattrn-$!
-    s" stroke-width="   svgattrn-$!
-    svgattrv-$off
-    s\" \"rgb(0,0,255)\""   svgattrv-$!
-    s\" \"0.0\""            svgattrv-$!
-    s\" \"rgb(0,100,200)\"" svgattrv-$!
-    s\" \"1.0\""            svgattrv-$!
-    s\" \"5.0\""            svgattrv-$!
+    svgattr-$off
+    s\" fill=\"rgb(0,0,255)\""      svgattr-$!
+    s\" fill-opacity=\"0.0\""       svgattr-$!
+    s\" stroke=\"rgb(0,100,200)\""  svgattr-$!
+    s\" stroke-opacity=\"1.0\""     svgattr-$!
+    s\" stroke-width=\"5.0\""       svgattr-$!
 ;
 
 : svg-attrtext ( -- ) \ basic text attributes
-    svgattrn-$off
-    s" fill="           svgattrn-$!
-    s" fill-opacity="   svgattrn-$!
-    s" stroke="         svgattrn-$!
-    s" stroke-opacity=" svgattrn-$!
-    s" stroke-width="   svgattrn-$!
-    s" font-size="      svgattrn-$!
-    svgattrv-$off
-    s\" \"rgb(0,0,255)\""   svgattrv-$!
-    s\" \"1.0\""            svgattrv-$!
-    s\" \"rgb(0,100,200)\"" svgattrv-$!
-    s\" \"0.0\""            svgattrv-$!
-    s\" \"4.0\""            svgattrv-$!
-    s\" \"20px\""           svgattrv-$!
+    svgattr-$off
+    s\" fill=\"rgb(0,0,255)\""      svgattr-$!
+    s\" fill-opacity=\"1.0\""       svgattr-$!
+    s\" stroke=\"rgb(0,100,200)\""  svgattr-$!
+    s\" stroke-opacity=\"0.0\""     svgattr-$!
+    s\" stroke-width=\"4.0\""       svgattr-$!
+    s\" font-size=\"20px\""         svgattr-$!
 ;
 
-list$: svgheadern    \ header for svg .. normaly width and height 
-list$: svgheaderv    \ header values that are paired with svgheadern names
+list$: svgheader    \ header for svg .. normaly width and height 
 
 : init-svg-header ( -- ) \ default svg header
-    svgheadern-$off
-    s" width="       svgheadern-$!
-    s" height="      svgheadern-$!
-    s" viewBox="     svgheadern-$!
-    svgheaderv-$off
-    s\" \"100\""         svgheaderv-$!
-    s\" \"100\""         svgheaderv-$!
-    s\" \"0 0 100 100 \"" svgheaderv-$!
+    svgheader-$off
+    s\" width=\"100\""            svgheader-$!
+    s\" height=\"100\""           svgheader-$!
+    s\" viewBox=\"0 0 100 100 \"" svgheader-$!
 ;
 init-svg-header
 
@@ -115,57 +84,48 @@ list$: svgdata$  \ the data values used in path... M,m,l,L and other path values
 
 variable svgoutput$  \ the primary output of the assembled svg string 
 
-list$: hname
-list$: hvalue
-: svgmakehead ( xt-hname xt-hvalue -- )  \ start with this word to make svg start tag
-    \ xt-hname is the xt for a list$: of names used in header paired with values in xt-hvalue
-    \ xt-hvalue is the xt for a list$: of values used in header paired with names in xt-hname
-    hname-$off
-    hvalue-$off
-    execute hvalue->$!
-    execute hname->$!
+variable tempxt$
+: xt>list$:-$@ ( xt-list$: -- xt-list$:-$@ )  \ from an xt of list$: type the iterator name is found and xt of that is returned
+    >name dup 0 = throw name>string tempxt$ $! s" -$@" tempxt$ $+! tempxt$ $@ find-name dup 0 = throw name>int ;
+
+list$: header$
+: svgmakehead ( xt-header -- )  \ start with this word to make svg start tag
+    \ xt-header is the xt for a list$: of names used in header 
+    header$-$off
+    execute header$->$!
     svgoutput$ $off  \ start svgoutput empty
     s" <svg " svgoutput$ $!
-    hvalue 2drop
-    hname swap drop 0 do
-	hname-$@ svgoutput$ $+!
-	hvalue-$@ svgoutput$ $+!
+    header$ swap drop 0 do
+	header$-$@ svgoutput$ $+!
 	s"  " svgoutput$ $+!
     loop
     s\" >\n" svgoutput$ $+! ;
 
-list$: attrname$
-list$: attrvalue$
-: svgattrout ( xt-atrname xt-atrvalue -- )  \ takes two xt of list$: type that contain name and value
-    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
-    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
-    attrname$-$off
-    attrvalue$-$off
-    execute attrvalue$->$!
-    execute attrname$->$!
-    attrvalue$ 2drop
-    attrname$ swap drop 0 do
-	attrname$-$@ svgoutput$ $+! 
-	attrvalue$-$@ svgoutput$ $+! 
+list$: attribute$
+: svgattrout ( xt-atrname -- )  \ takes two xt of list$: type that contain name and value
+    \ xt-atrname is an xt of list$: type containing attribute name and value strings
+    attribute$-$off
+    execute attribute$->$!
+    attribute$ swap drop 0 do
+	attribute$-$@ svgoutput$ $+! 
 	s"  " svgoutput$ $+! 
     loop ; 
 
-: svgmakepath ( xt-atrname xt-atrvalue xt-pathdata -- ) \ will make path tag
-    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
-    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
+: svgmakepath ( xt-atrname xt-pathdata -- ) \ will make path tag
+    \ xt-atrname is an xt of list$: type containing attribute name and value strings 
     \ xt-pathdata is an xt of list$: type containing the path data normaly in the d= part of path tag data
     s" <path " svgoutput$ $+!
-    -rot svgattrout 
+    swap svgattrout 
     s\" d=\" " svgoutput$ $+!
+    dup xt>list$:-$@ swap 
     execute swap drop 0 do
-	svgdata$-$@ svgoutput$ $+!
+	dup execute svgoutput$ $+!
 	s"  " svgoutput$ $+!
-    loop
+    loop drop 
     s\" \"> </path>\n" svgoutput$ $+! ;
 
-: svgmakecircle ( xt-atrname xt-atrvalue nx ny nr -- ) \ will make circle tage with svgattrn and svgattrv attributes
-    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
-    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
+: svgmakecircle ( xt-atrname nx ny nr -- ) \ will make circle tag with svgattr attributes
+    \ xt-atrname is an xt of list$: type containing attribute name value strings
     \ nx is cx in circle svg
     \ ny is cy in circle svg
     \ nr is r in circle svg
@@ -178,16 +138,15 @@ list$: attrvalue$
     s" />" svgoutput$ $+! ;
 
 bufr$: textbuff$
-: svgmaketext ( xt-atrname xt-atrvalue nx ny caddr u -- ) \ will start svg text tag and put lineattr attributes into it
-    \ xt-atrname is an xt of list$: type containing attribute name strings to be paired with xt-atrvalue
-    \ xt-atrvalue is an xt of list$: type containing attribute value strings to be paired with xt-atrname
+: svgmaketext ( xt-atrname nx ny caddr u -- ) \ will start svg text tag and put attributes into it
+    \ xt-atrname is an xt of list$: type containing attribute name value strings
     \ nx is x possition
     \ ny is y possition
     \ caddr u is the counted string to place in the text 
     textbuff$
     s\" <text x=\"" svgoutput$ $+! 2swap swap #to$ svgoutput$ $+! s\" \" y=\"" svgoutput$ $+!
     #to$ svgoutput$ $+! s\" \" " svgoutput$ $+!
-    2swap svgattrout s" >" svgoutput$ $+! 
+    rot svgattrout s" >" svgoutput$ $+! 
     svgoutput$ $+! 
     s" </text>" svgoutput$ $+! ;
 
@@ -195,9 +154,9 @@ bufr$: textbuff$
     s" </svg>" svgoutput$ $+!
     svgoutput$ $@ ;
 
-: make-a-pathsvg ( xt-atrname xt-atrvalue xt-hname xt-hvalue xt-pathdata -- caddr u )
+: make-a-pathsvg ( xt-atrname xt-header xt-pathdata -- caddr u )
     \ put all the parts together and output the final svg string
-    -rot svgmakehead
+    swap svgmakehead
     svgmakepath
     svgend ;
 
@@ -241,18 +200,18 @@ variable working$       \ this is used to work on strings temporarily in the cha
 : s>f ( d: n -- ) ( f: -- r )
     s>d d>f ;
 
-: makecirclefrompathdata ( xt-atrname xt-atrvalue -- )
+: makecirclefrompathdata ( xt-atrname  -- )
     \ makes circle data from the existing svgdata that was used to create chart lines
     \ svgdata$ need to be populated at call time
     svgdata$ swap drop 0 do
-	2dup
+	dup
 	svgdata$-$@ 32 $split 2swap 2drop 32 $split >float 
 	if
 	    >float if f>s f>s circleradius svgmakecircle then   
 	else
 	    2drop 
 	then
-    loop 2drop ;
+    loop drop ;
 
 : findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
     \ note results stored in mymax and mymin floating variables
@@ -263,22 +222,19 @@ variable working$       \ this is used to work on strings temporarily in the cha
 : svgchartheader ( -- ) \ will produce the svgheaderv string array stuff for the chart 
     \ make header size for svg including x and y lables
     \ Note this uses the default header from init-svg-header and adds the correct size values
-    init-svg-header
-    svgheaderv-$off
-    s\" \"" working$ $!
-    xmaxchart xlablesize + #to$ working$ $+!
-    s\" \"" working$ $+!
-    working$ $@ svgheaderv-$!
-    s\" \"" working$ $!
-    ymaxchart ylablesize + ytoplablesize + #to$ working$ $+!
-    s\" \"" working$ $+!
-    working$ $@ svgheaderv-$!
-    s\" \"0 0 " working$ $!
-    xmaxchart xlablesize + #to$ working$ $+!
-    s"  " working$ $+!
-    ymaxchart ylablesize + ytoplablesize + #to$ working$ $+!
-    s\" \"" working$ $+!
-    working$ $@ svgheaderv-$! ;
+    svgheader-$off
+    s\" width=" working$ $! s\" \"" working$ $+!
+    xmaxchart xlablesize + #to$ working$ $+! s\" \"" working$ $+!
+    working$ $@ svgheader-$!
+
+    s\" height=" working$ $! s\" \"" working$ $+!
+    ymaxchart ylablesize + ytoplablesize + #to$ working$ $+! s\" \"" working$ $+!
+    working$ $@ svgheader-$!
+    
+    s\" viewBox=" working$ $! s\" \"0 0 " working$ $+!
+    xmaxchart xlablesize + #to$ working$ $+! s"  " working$ $+!
+    ymaxchart ylablesize + ytoplablesize + #to$ working$ $+! s\" \"" working$ $+!
+    working$ $@ svgheader-$! ;
 
 : svgchartmakepath ( -- ) \ will produce the svgdata$ string array stuff for the chart
     \ recalculate data and form the path data statement for the ploted line
@@ -306,7 +262,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 
 variable lableref$
 variable lablemark$
-: svgchartmakelables (  ylabtxt-attr-name-xt% ylabtxt-attr-value-xt% labline-attr-name-xt% labline-attr-value-xt% -- )
+: svgchartmakelables (  ylabtxt-attr-xt%  labline-attr-xt%  -- )
     \ makes the lable lines for x and y on the chart
     \ make the y lable text 
     svgdata$-$off
@@ -330,20 +286,20 @@ variable lablemark$
     ['] svgdata$ svgmakepath
     \ generate y lable text 
     ylableqty 1 + 0 do
-	2dup 
+	dup 
 	ylabletxtpos ytoplablesize
 	yscale f@ myspread f@ ylableqty s>f f/ f* i s>f f* f>s + 
 	myspread f@ ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
     loop
-    2drop  ;
+    drop  ;
 
 variable templable$
-: svgchartXlabletext ( xlabtxt-attr-name-xt% xlabtxt-attr-value-xt% xlable-data-xt% -- )
+: svgchartXlabletext ( xlabtxt-attr-xt% xlable-data-xt% -- )
     \ make x lable text from xlable-data-xt% list$: string array
-    0 0 { xnxt xvxt xdxt xqty x$xt }
-    xdxt >name dup 0 = throw name>string templable$ $! s" -$@" templable$ $+! templable$ $@ find-name dup 0 = throw name>int to x$xt
+    0 0 { xaxt xdxt xqty x$xt }
+    xdxt xt>list$:-$@ to x$xt 
     xdxt execute swap drop dup to xqty 0 do
-	xnxt xvxt  \ the attribute name value pairs
+	xaxt   \ the attribute name value 
 	xlablesize xmaxchart s>f xqty s>f f/ i s>f f* f>s +  ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
 	x$xt execute svgmaketext
     loop
@@ -353,19 +309,14 @@ variable templable$
 \ this is the method to pass the chart data and chart attributes to makesvgchart
 struct
     cell% field data-xt%
-    cell% field data-attr-name-xt%
-    cell% field data-attr-value-xt%
-    cell% field circle-attr-name-xt%
-    cell% field circle-attr-value-xt%
+    cell% field data-attr-xt%
+    cell% field circle-attr-xt%
 end-struct chartdata%
 struct 
     cell% field xlable-data-xt%
-    cell% field xlabtxt-attr-name-xt%
-    cell% field xlabtxt-attr-value-xt%
-    cell% field ylabtxt-attr-name-xt%
-    cell% field ylabtxt-attr-value-xt%
-    cell% field labline-attr-name-xt%
-    cell% field labline-attr-value-xt%
+    cell% field xlabtxt-attr-xt%
+    cell% field ylabtxt-attr-xt%
+    cell% field labline-attr-xt%
 end-struct chartattr%
 
 0 value xdataqty
@@ -389,23 +340,21 @@ end-struct chartattr%
 	xmaxchart s>f localdata swap drop xmaxpoints min s>f f/ xstep f!
 	ymaxchart s>f myspread f@ f/ yscale f!
 	svgchartheader  
-	['] svgheadern ['] svgheaderv svgmakehead         \ this is the header base data
+	['] svgheader svgmakehead         \ this is the header data
 	dataqty 0 do
 	    localdata-$off
 	    data% data-xt% i chartdata% %size * + @ execute localdata->$!
 	    svgchartmakepath
-	    data% data-attr-name-xt% i chartdata% %size * + @
-	    data% data-attr-value-xt% i chartdata% %size * + @
+	    data% data-attr-xt% i chartdata% %size * + @
 	    ['] svgdata$ svgmakepath  \ this is the line attribute 
 	    \ draw circle from the path data just made
-	    data% circle-attr-name-xt% i chartdata% %size * + @
-	    data% circle-attr-value-xt% i chartdata% %size * + @
+	    data% circle-attr-xt% i chartdata% %size * + @
 	    makecirclefrompathdata    \ this is the circle attribute 
 	loop
-	attr% ylabtxt-attr-name-xt% @ attr% ylabtxt-attr-value-xt% @   \ y lable text attribute
-	attr% labline-attr-name-xt% @ attr% labline-attr-value-xt% @   \ this is lable line attribute 
+	attr% ylabtxt-attr-xt% @    \ y lable text attribute
+	attr% labline-attr-xt% @    \ this is lable line attribute 
 	svgchartmakelables
-	attr% xlabtxt-attr-name-xt% @ attr% xlabtxt-attr-value-xt% @   \ this is x lable text attributes
+	attr% xlabtxt-attr-xt% @    \ this is x lable text attributes
 	attr% xlable-data-xt% @
 	svgchartXlabletext
 	svgend
