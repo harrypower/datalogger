@@ -57,7 +57,8 @@ svg-attr#3 svgattr lline$->$!
 ' lline$    myattr labline-attr-xt% !
 svg-attrtext svgattr xltxt$->$!
 ' xltxt$    myattr xlabtxt-attr-xt% !
-90 to xlablerot 
+5 to ylablerot
+70 to xlablerot
 
 myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 

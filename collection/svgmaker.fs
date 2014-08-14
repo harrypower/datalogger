@@ -257,6 +257,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 variable lableref$
 variable lablemark$
 list$: ytempattr$
+variable ytransform$
 : svgchartmakelables (  ylabtxt-attr-xt%  labline-attr-xt%  -- )
     \ makes the lable lines for x and y on the chart
     \ make the y lable text 
@@ -279,12 +280,19 @@ list$: ytempattr$
 	lablemark$ $@ svgdata$-$!
     loop
     ['] svgdata$ svgmakepath
-    \ generate y lable text 
+    \ generate y lable text
     ylableqty 1 + 0 do
-	dup  \ attribute
-	ylabletxtpos ytoplablesize
-	yscale f@ myspread f@ ylableqty s>f f/ f* i s>f f* f>s + 
-	myspread f@ ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext
+	dup  ( ylabtxt-attr-xt% )
+	ytempattr$-$off
+	execute ytempattr$->$!  \ copied  ylabtxt-attr-xt% to ytempattr$ now ready to add the transformation to it
+	['] ytempattr$
+	ylabletxtpos ytoplablesize  
+	yscale f@ myspread f@ ylableqty s>f f/ f* i s>f f* f>s + ( nx-text ny-text )
+	\ add transformation for ylable rotation
+	s\"  transform=\"rotate(" ytransform$ $! ylablerot #to$ ytransform$ $+! s" , " ytransform$ $+!
+	swap dup #to$ ytransform$ $+! s" , " ytransform$ $+! swap dup #to$ ytransform$ $+! s"  "
+	ytransform$ $+! s\" )\"" ytransform$ $+! ytransform$ $@ ytempattr$-$! 
+	myspread f@ ylableqty s>f f/ i s>f f* mymax f@ fswap f- fto$ svgmaketext 
     loop
     drop  ;
 
