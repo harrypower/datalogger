@@ -13,6 +13,7 @@ $>
 <body>
 <$
 
+
 list$: somedata
 list$: dataholder1
 list$: dataholder2
@@ -26,6 +27,13 @@ list$: cattr$
 list$: ltxt$
 list$: lline$
 list$: xltxt$
+
+
+s\" fill=\"rgb(255,0,0)\""      dattr$-$!
+s\" fill-opacity=\"0.0\""       dattr$-$!
+s\" stroke=\"cyan\""  dattr$-$!
+s\" stroke-opacity=\"1.0\""     dattr$-$!
+s\" stroke-width=\"2.0\""       dattr$-$! 
 
 
 s" 30" somedata-$!
@@ -47,7 +55,7 @@ fill-labletxt
 
 ' somedata   mydata data-xt% !
 ' xlabledata myattr xlable-data-xt% !
-svg-attr#1 svgattr dattr$->$! 
+\ svg-attr#1 svgattr dattr$->$! 
 ' dattr$    mydata data-attr-xt% !
 svg-attr#2 svgattr cattr$->$!
 ' cattr$    mydata circle-attr-xt% !
@@ -60,7 +68,7 @@ svg-attrtext svgattr xltxt$->$!
 5 to ylablerot
 70 to xlablerot
 
-myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
+0 0 myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 
 ." depth is: " depth .
 ." fdepth is: " fdepth .
@@ -119,7 +127,7 @@ fill-nextlabletxt
  ' xlabledata myattr xlable-data-xt% !
 
 xlabledata swap drop . ."  xlabledata" 
-myattr mydata 2 makesvgchart false = [if] type [else] 2drop [then]
+0 0 myattr mydata 2 makesvgchart false = [if] type [else] 2drop [then]
 mymin f@ f. ."  " mymax f@ f. ."  " xmaxpoints . ."  maxpoints"
 
 dataholder1 2drop 

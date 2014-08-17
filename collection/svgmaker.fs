@@ -327,13 +327,20 @@ struct
     cell% field labline-attr-xt%
 end-struct chartattr%
 
+struct
+    cell% field text-xt%
+    cell% field text-x%
+    cell% field text-y%
+    cell% field text-attr-xt%
+end-struct charttext%
+
 0 value xdataqty
-: makesvgchart ( nchartattr% nchartdata% nchartdataqty -- caddr u nflag )
+: makesvgchart ( ncharttext% ncharttextqty nchartattr% nchartdata% nchartdataqty -- caddr u nflag )
     \ note if each dataset has a different amount of data nflag will be true
     \ nflag will be false if svg generated for chart
     \ nflag is true if the a data string is no a number
     try
-	{ attr% data% dataqty }
+	{ text% textqty attr% data% dataqty }
 	0.0e mymax f! 0.0e mymin f!
 	xmaxchart xminstep / to xmaxpoints    
 	localdata-$off
