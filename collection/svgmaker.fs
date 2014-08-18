@@ -327,7 +327,6 @@ struct
     cell% field ylabtxt-attr-xt%
     cell% field labline-attr-xt%
 end-struct chartattr%
-
 struct
     cell% field text-xt%
     cell% field text-x%

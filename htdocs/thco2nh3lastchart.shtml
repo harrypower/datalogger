@@ -1,0 +1,71 @@
+<!Doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Last 100 data chart</title>
+</head>
+<$
+require ../collection/sqlite3-stuff.fs
+require ../collection/svgmaker.fs
+decimal
+
+$>
+<body>
+<$
+
+list$: data1
+list$: data2
+list$: dataattr
+list$: datacirleattr
+
+list$: xlabdata
+list$: xlabtxtattr
+list$: ylabtxtattr
+list$: lablineattr
+
+list$: textdata
+list$: textattr
+
+create mydata 2 chartdata% %size * allot 
+create myattr chartattr% %allot drop
+create mytexts 2 charttext% %size * allot
+
+list$: tempdata$
+variable tempdb$
+bufr$: buffa$
+bufr$: buffb$
+: getlast100 ( caddr-colum u-colum caddr-table u-table -- data-xt )
+    { colum ucolum table utable }
+    tempdata$-$off
+    setupsqlite3
+    s"  " dbrecordseparator 
+    s" " dbfieldseparator
+    30000 mkretbuff
+    s" select " tempdb$ $!
+    colum ucolum tempdb$ $+! s"  " tempdb$ $+!
+    s" from " tempdb$ $+!
+    table utable tempdb$ $+! s"  where row >= " tempdb$ $+!
+    table utable max(rotid)$ s>number? true = if d>s 100 - #to$ tempdb$ $+! else true throw then
+    tempdb$ $@ dbcmds
+    sendsqlite3cmd dberrorthrow 
+    dbret$
+    begin
+	32 $split
+	2swap tempdata$-$!
+	dup 0 = 
+    until
+    ['] tempdata$
+;
+
+\ s" temperature" buffa$ s" mbedA" buffb$ getlast100 execute data1->$!
+
+: looksee ( -- )
+    data1 swap drop 0 do
+	data1-$@ type ." :"
+    loop ;
+\ looksee
+
+$>
+
+</body>
+</html>
