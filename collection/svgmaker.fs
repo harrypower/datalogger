@@ -90,7 +90,7 @@ variable tempxt$
     svgoutput$ $off  \ start svgoutput empty
     s" <svg " svgoutput$ $!
     dup xt>list$:-$@ swap
-    execute swap drop 0 do
+    execute swap drop 0 ?do
 	dup execute svgoutput$ $+!
 	s"  " svgoutput$ $+!
     loop drop 
@@ -99,7 +99,7 @@ variable tempxt$
 : svgattrout ( xt-atrname -- )  \ takes two xt of list$: type that contain name and value
     \ xt-atrname is an xt of list$: type containing attribute name and value strings
     dup xt>list$:-$@ swap 
-    execute swap drop 0 do
+    execute swap drop 0 ?do
 	dup execute svgoutput$ $+! 
 	s"  " svgoutput$ $+! 
     loop drop ; 
@@ -111,7 +111,7 @@ variable tempxt$
     swap svgattrout 
     s\" d=\" " svgoutput$ $+!
     dup xt>list$:-$@ swap 
-    execute swap drop 0 do
+    execute swap drop 0 ?do
 	dup execute svgoutput$ $+!
 	s"  " svgoutput$ $+!
     loop drop 
@@ -197,7 +197,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 : makecirclefrompathdata ( xt-atrname  -- )
     \ makes circle data from the existing svgdata that was used to create chart lines
     \ svgdata$ need to be populated at call time
-    svgdata$ swap drop 0 do
+    svgdata$ swap drop 0 ?do
 	dup
 	svgdata$-$@ 32 $split 2swap 2drop 32 $split >float 
 	if
@@ -209,7 +209,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
 
 : findminmaxdata ( -- )  \ finds the min and max values of the localdata strings
     \ note results stored in mymax and mymin floating variables
-    localdata swap drop xmaxpoints min 0 do
+    localdata swap drop xmaxpoints min 0 ?do
 	localdata-$@ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! else true throw then
     loop ;
 
@@ -243,7 +243,7 @@ variable working$       \ this is used to work on strings temporarily in the cha
     then
     \ working$ $+! working$ $@ svgdata$-$!
     localdata swap drop xmaxpoints min 1 localdata-$@ 2drop  
-    do
+    ?do
 	s" L " working$ $!
 	i s>f xstep f@ f* f>s xlablesize + #to$ working$ $+! s"  " working$ $+!
 	localdata-$@ >float 
@@ -273,7 +273,7 @@ variable ytransform$
     lableref$ $@ svgdata$-$!
     s" l " working$ $! ymarksize -1 *  #to$ working$ $+! s"  " working$ $+! 0 #to$ working$ $+!
     working$ $@ 2dup lablemark$ $! svgdata$-$!
-    ylableqty 1 + 1 do
+    ylableqty 1 + 1 ?do
 	lableref$ $@ svgdata$-$!
 	s" m " working$ $! 0 #to$ working$ $+! s"  " working$ $+! ymaxchart s>f ylableqty s>f f/ i s>f f* f>s #to$ working$ $+!
 	working$ $@ svgdata$-$!
@@ -281,7 +281,7 @@ variable ytransform$
     loop
     ['] svgdata$ svgmakepath
     \ generate y lable text
-    ylableqty 1 + 0 do
+    ylableqty 1 + 0 ?do
 	dup  ( ylabtxt-attr-xt% )
 	ytempattr$-$off
 	execute ytempattr$->$!  \ copied  ylabtxt-attr-xt% to ytempattr$ now ready to add the transformation to it
@@ -302,7 +302,7 @@ list$: xtempattr$
     \ make x lable text from xlable-data-xt% list$: string array
     0 0 0 { xaxt xdxt xqty x$xt xa$xt }
     xdxt xt>list$:-$@ to x$xt
-    xdxt execute swap drop dup to xqty 0 do
+    xdxt execute swap drop dup to xqty 0 ?do
 	xtempattr$-$off
 	xaxt execute xtempattr$->$!
 	['] xtempattr$
@@ -312,6 +312,7 @@ list$: xtempattr$
 	templable$ $+! s\" )\"" templable$ $+! templable$ $@ xtempattr$-$!
 	x$xt execute svgmaketext
     loop ;
+
 
 \ this structure contains xt's that are created with list$:
 \ this is the method to pass the chart data and chart attributes to makesvgchart
@@ -334,6 +335,18 @@ struct
     cell% field text-attr-xt%
 end-struct charttext%
 
+: svgcharttext ( charttext% textqty )
+    { text% textqty }
+   \ textqty 1 >= if
+    textqty 0 ?do
+	text% text-attr-xt% i charttext% %size * + @
+	text% text-x% i charttext% %size * + @
+	text% text-y% i charttext% %size * + @
+	text% text-xt% i charttext% %size * + @ xt>list$:-$@ execute
+	svgmaketext
+    loop \ then 
+;
+
 0 value xdataqty
 : makesvgchart ( ncharttext% ncharttextqty nchartattr% nchartdata% nchartdataqty -- caddr u nflag )
     \ note if each dataset has a different amount of data nflag will be true
@@ -346,7 +359,7 @@ end-struct charttext%
 	localdata-$off
 	data% data-xt% 0 chartdata% %size * + @ execute dup to xdataqty localdata->$!
 	localdata-$@ >float if fdup  mymax f! mymin f! else true throw then \ start min max at the first value
-	dataqty 0 do     \ find all datasets min and max values
+	dataqty 0 ?do    \ find all datasets min and max values
 	    localdata-$off
 	    data% data-xt% i chartdata% %size * + @ execute dup xdataqty <> throw localdata->$!
 	    findminmaxdata
@@ -356,7 +369,7 @@ end-struct charttext%
 	ymaxchart s>f myspread f@ f/ yscale f!
 	svgchartheader  
 	['] svgheader svgmakehead         \ this is the header data
-	dataqty 0 do
+	dataqty 0 ?do
 	    localdata-$off
 	    data% data-xt% i chartdata% %size * + @ execute localdata->$!
 	    svgchartmakepath
@@ -372,6 +385,7 @@ end-struct charttext%
 	attr% xlabtxt-attr-xt% @    \ this is x lable text attributes
 	attr% xlable-data-xt% @
 	svgchartXlabletext
+	text% textqty svgcharttext  \ this places text where ever the text% structure says to
 	svgend
 	false
     restore dup if swap drop then 

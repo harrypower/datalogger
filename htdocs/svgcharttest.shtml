@@ -21,13 +21,15 @@ list$: xlabledata
 
 create mydata 2 chartdata% %size * allot 
 create myattr chartattr% %allot drop
+create mytexts 2 charttext% %size * allot
 
 list$: dattr$
 list$: cattr$
 list$: ltxt$
 list$: lline$
 list$: xltxt$
-
+list$: othertxt$
+list$: othertxtattr$
 
 s\" fill=\"rgb(255,0,0)\""      dattr$-$!
 s\" fill-opacity=\"0.0\""       dattr$-$!
@@ -68,7 +70,15 @@ svg-attrtext svgattr xltxt$->$!
 5 to ylablerot
 70 to xlablerot
 
-0 0 myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
+ s" A chart random text test" othertxt$-$!
+ ' othertxt$ mytexts text-xt% !
+ xlableoffset 100 +  mytexts text-x% !
+ ytoplablesize 2 /  mytexts text-y% !
+ svg-attrtext svgattr othertxtattr$->$!
+ ' othertxtattr$ mytexts text-attr-xt% !
+s\" transform=\"rotate(5,10,10)\"" othertxtattr$-$!
+
+mytexts 1 myattr mydata 1 makesvgchart false = [if] type [else] 2drop [then]
 
 ." depth is: " depth .
 ." fdepth is: " fdepth .
