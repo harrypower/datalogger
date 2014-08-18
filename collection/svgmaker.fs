@@ -335,17 +335,18 @@ struct
     cell% field text-attr-xt%
 end-struct charttext%
 
-: svgcharttext ( charttext% textqty )
+: svgcharttext ( charttext% textqty )  \ will simply put text onto svg chart
+    \ charttext% is the structure address for the text data
+    \ textqty is how many strings to place.
+    \ Note text-xt% is of list$: type but only the first string is used even though that type can handle many strings
     { text% textqty }
-   \ textqty 1 >= if
     textqty 0 ?do
 	text% text-attr-xt% i charttext% %size * + @
 	text% text-x% i charttext% %size * + @
 	text% text-y% i charttext% %size * + @
 	text% text-xt% i charttext% %size * + @ xt>list$:-$@ execute
 	svgmaketext
-    loop \ then 
-;
+    loop ;
 
 0 value xdataqty
 : makesvgchart ( ncharttext% ncharttextqty nchartattr% nchartdata% nchartdataqty -- caddr u nflag )
