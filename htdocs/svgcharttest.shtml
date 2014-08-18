@@ -165,7 +165,7 @@ s" L 97 80.8" svgdata$-$!
 s" L 83 9.372" svgdata$-$!
 init-svg-header
 svg-attr#1
-' svgattrn ' svgattrv ' svgheadern ' svgheaderv ' svgdata$ make-a-pathsvg type
+' svgattr ' svgheader ' svgdata$ make-a-pathsvg type
 
 $>
 
