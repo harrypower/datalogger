@@ -205,8 +205,8 @@ mytexts 2 myattr  mydata 2 makesvgchart false = [if] type [else] 2drop [then]
 data1-$off
 data2-$off
 xlabdata-$off
-s" (co2rel * 0.1)" s" mbedA" getlast100 execute data1->$!
-s" (nh3rel * 0.1)" s" mbedA" getlast100 execute data2->$!
+s" co2rel" s" mbedA" getlast100 execute data1->$!
+s" nh3rel" s" mbedA" getlast100 execute data2->$!
 s" datetime(dtime,'unixepoch','localtime')" s" mbedA" getlast100 execute xlabdata->$!
 data-attr label-attr charttext-cn
 mytexts 2 myattr mydata 2 makesvgchart false = [if] type [else] 2drop [then]
