@@ -107,20 +107,20 @@ s" datetime(dtime,'unixepoch','localtime')" s" mbedA" getlast100 execute xlabdat
 
 : label-attr ( -- )
     xlabtxtattr-$off
-    s\" fill=\"red\""              xlabtxtattr-$!
-    s\" fill-opacity=\"0.7\""       xlabtxtattr-$!
-    s\" fill-width=\"1.5\""         xlabtxtattr-$!
-    s\" stroke=\"red\""            xlabtxtattr-$!
-    s\" stroke-opacity=\"0.9\""     xlabtxtattr-$!
-    s\" stroke-width=\"1.5\""       xlabtxtattr-$!
+    s\" fill=\"blue\""              xlabtxtattr-$!
+    s\" fill-opacity=\"0.9\""       xlabtxtattr-$!
+    s\" fill-width=\"1.3\""         xlabtxtattr-$!
+    s\" stroke=\"blue\""            xlabtxtattr-$!
+    s\" stroke-opacity=\"0.7\""     xlabtxtattr-$!
+    s\" stroke-width=\"1.1\""       xlabtxtattr-$!
     s\" font-size=\"17px\""         xlabtxtattr-$!
     ylabtxtattr-$off
     s\" fill=\"blue\""               ylabtxtattr-$!
-    s\" fill-opacity=\"0.7\""       ylabtxtattr-$!
-    s\" fill-width=\"1.5\""         xlabtxtattr-$!
+    s\" fill-opacity=\"0.9\""       ylabtxtattr-$!
+    s\" fill-width=\"1.3\""         xlabtxtattr-$!
     s\" stroke=\"blue\""             ylabtxtattr-$!
-    s\" stroke-opacity=\"1.0\""     ylabtxtattr-$!
-    s\" stroke-width=\"1.5\""       ylabtxtattr-$!
+    s\" stroke-opacity=\"0.7\""     ylabtxtattr-$!
+    s\" stroke-width=\"1.1\""       ylabtxtattr-$!
     s\" font-size=\"18px\""         ylabtxtattr-$!
     lablineattr-$off
     s\" fill=\"black\""             lablineattr-$!
@@ -134,25 +134,25 @@ s" datetime(dtime,'unixepoch','localtime')" s" mbedA" getlast100 execute xlabdat
     ['] ylabtxtattr myattr ylabtxt-attr-xt% !
     ['] lablineattr myattr labline-attr-xt% ! ;
 
-: charttext ( -- )
+: charttext-th ( -- )
     textdata1-$off
     s" mbedA sensor Temperature last 100 readings " textdata1-$!
     textattr1-$off
     s\" fill=\"red\""               textattr1-$!
-    s\" fill-opacity=\"0.7\""       textattr1-$!
-    s\" fill-width=\"1.7\""         textattr1-$!
+    s\" fill-opacity=\"0.9\""       textattr1-$!
+    s\" fill-width=\"1.5\""         textattr1-$!
     s\" stroke=\"red\""             textattr1-$!
-    s\" stroke-opacity=\"0.9\""      textattr1-$!
-    s\" stroke-width=\"1.4\""       textattr1-$!
+    s\" stroke-opacity=\"0.7\""      textattr1-$!
+    s\" stroke-width=\"1.3\""       textattr1-$!
     s\" font-size=\"28px\""         textattr1-$!
     textdata2-$off
     s" mbedA sensor Humidity last 100 readings " textdata2-$!
     s\" fill=\"green\""             textattr2-$!
-    s\" fill-opacity=\"0.7\""       textattr2-$!
-    s\" fill-width=\"1.7\""         textattr2-$!
+    s\" fill-opacity=\"0.9\""       textattr2-$!
+    s\" fill-width=\"1.5\""         textattr2-$!
     s\" stroke=\"green\""           textattr2-$!
-    s\" stroke-opacity=\"0.9\""      textattr2-$!
-    s\" stroke-width=\"1.4\""       textattr2-$!
+    s\" stroke-opacity=\"0.7\""      textattr2-$!
+    s\" stroke-width=\"1.3\""       textattr2-$!
     s\" font-size=\"28px\""         textattr2-$!
     ['] textdata1 mytexts text-xt% 0 charttext% %size * + !
     xlablesize 100 + mytexts text-x% 0 charttext% %size * + !
@@ -163,14 +163,53 @@ s" datetime(dtime,'unixepoch','localtime')" s" mbedA" getlast100 execute xlabdat
     70  mytexts text-y% 1 charttext% %size * + !
     ['] textattr2 mytexts text-attr-xt% 1 charttext% %size * + ! ;
 
+: charttext-cn ( -- )
+    textdata1-$off
+    s" mbedA sensor co2rel last 100 readings " textdata1-$!
+    textattr1-$off
+    s\" fill=\"red\""               textattr1-$!
+    s\" fill-opacity=\"0.9\""       textattr1-$!
+    s\" fill-width=\"1.5\""         textattr1-$!
+    s\" stroke=\"red\""             textattr1-$!
+    s\" stroke-opacity=\"0.7\""      textattr1-$!
+    s\" stroke-width=\"1.3\""       textattr1-$!
+    s\" font-size=\"28px\""         textattr1-$!
+    textdata2-$off
+    s" mbedA sensor nh3rel last 100 readings " textdata2-$!
+    s\" fill=\"green\""             textattr2-$!
+    s\" fill-opacity=\"0.9\""       textattr2-$!
+    s\" fill-width=\"1.5\""         textattr2-$!
+    s\" stroke=\"green\""           textattr2-$!
+    s\" stroke-opacity=\"0.7\""      textattr2-$!
+    s\" stroke-width=\"1.3\""       textattr2-$!
+    s\" font-size=\"28px\""         textattr2-$!
+    ['] textdata1 mytexts text-xt% 0 charttext% %size * + !
+    xlablesize 100 + mytexts text-x% 0 charttext% %size * + !
+    30  mytexts text-y% 0 charttext% %size * + !
+    ['] textattr1 mytexts text-attr-xt% 0 charttext% %size * + !
+    ['] textdata2 mytexts text-xt% 1 charttext% %size * + !
+    xlablesize 100 + mytexts text-x% 1 charttext% %size * + !
+    70  mytexts text-y% 1 charttext% %size * + !
+    ['] textattr2 mytexts text-attr-xt% 1 charttext% %size * + ! ;
+
+
 90 to xlablerot
 0 to ylablerot
 4 to circleradius
 2000 to xmaxchart
 300 to ylablesize
 100 to ytoplablesize
-data-attr label-attr charttext
+data-attr label-attr charttext-th
 mytexts 2 myattr  mydata 2 makesvgchart false = [if] type [else] 2drop [then]
+
+data1-$off
+data2-$off
+xlabdata-$off
+s" (co2rel * 0.1)" s" mbedA" getlast100 execute data1->$!
+s" (nh3rel * 0.1)" s" mbedA" getlast100 execute data2->$!
+s" datetime(dtime,'unixepoch','localtime')" s" mbedA" getlast100 execute xlabdata->$!
+data-attr label-attr charttext-cn
+mytexts 2 myattr mydata 2 makesvgchart false = [if] type [else] 2drop [then]
 
 $>
 
