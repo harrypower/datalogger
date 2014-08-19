@@ -20,7 +20,7 @@
 require gforth-misc-tools.fs
 require string.fs
 
-list$: svgattr  \ svg attributes names to work with a line
+list$: svgattr  \ svg attributes string array 
 
 : svg-attr#1 ( -- ) \ initalizes svgattr to default values
     svgattr-$off
@@ -39,7 +39,7 @@ svg-attr#1
     s\" stroke-opacity=\"1.0\""     svgattr-$!
     s\" stroke-width=\"3.0\""       svgattr-$! ;
 
-: svg-attr#3 ( -- ) \ second set of attributes
+: svg-attr#3 ( -- ) \ third set  of attributes
     svgattr-$off
     s\" fill=\"rgb(0,0,255)\""      svgattr-$!
     s\" fill-opacity=\"0.0\""       svgattr-$!
