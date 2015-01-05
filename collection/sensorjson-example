@@ -1,8 +1,0 @@
-{"quantity":8,"values":{"name":"temperature","value":302,"name":"humidity","value":358,"name":"co2raw","value":38174,"name":"nh3raw","value":28518,"name":"co2cal","value":38286,"name":"nh3cal","value":28299,"name":"co2rel","value":112,"name":"nh3rel","value":-219}}
-
-
-This is an example of the json from a sensor.
-Note the quantity is 8 in the example and there are 8 name value pairs.  This is checked when the socket gets the string to ensure it is complete.
-Note there is also a carrage return linefeed carrage return linefeed at the end of the data as a test for data sent completely.
-And last of all when the data is parsed to put into the database the names need to match the database table entry for the sensor and the quantity must match the database sensor registered quantity.
-If this all works out then the data is stored in the device table.  This helps to get most types of failures from causing database entrys from happening.
