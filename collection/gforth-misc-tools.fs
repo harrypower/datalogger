@@ -226,7 +226,7 @@ object class
     cell% inst-var qty
     cell% inst-var index
     cell% inst-var const-test
-    m: ( strings -- )
+    m: ( strings -- ) \ initalize object and deallocate memory if object was used 
 	const-test @ const-test  =
 	if  array @
 	    if  qty @ 0 ?do array @ i cell * + $off loop
@@ -242,7 +242,7 @@ object class
 	    const-test const-test !
 	then ;m overrides construct
 
-    m: ( caddr u strings -- )
+    m: ( caddr u strings -- ) \ store a string in handler
 	array @ 0 =
 	if  cell allocate throw array !
 	    1 qty !
@@ -253,9 +253,9 @@ object class
 	    array @ cell qty @ * + dup cell erase $!
 	    qty @ 1+ qty !
 	then
-	0 index ! ;m method $()!
+	0 index ! ;m method $!x
 
-    m: ( strings -- caddr u  )
+    m: ( strings -- caddr u  ) \ retrieve the strings iterativly
 	qty @ 0 >
 	if  array @ index @ cell * + $@
 	    index @ 1+ index !
@@ -263,20 +263,20 @@ object class
 	    if
 		0 index !
 	    then
-	else 0 0 then ;m method $()@
+	else 0 0 then ;m method $@x
 
-    m: ( nindex strings -- caddr u )
+    m: ( nindex strings -- caddr u ) \ retrieve string n from the strings that are stored
 	{ n } n 0 >=
 	n qty @ < and
-	if n cell * array @ + $@ else 0 0 then ;m method n$()@
+	if n cell * array @ + $@ else 0 0 then ;m method n$@x
 
-    m: ( strings -- )
-	this construct ;m method $()off
+    m: ( strings -- ) \ remove strings from list and deallocate memory used by removed strings
+	this construct ;m method $xoff
 
-    m: ( strings -- )
+    m: ( strings -- ) \ return amount of strings stored in list
 	qty @ ;m method $size
 
-    m: ( strings -- )
+    m: ( strings -- ) \ display some info of the object
 	this [parent] print
 	s"  array:" type array @ .
 	s"  size:" type qty @ .
@@ -285,11 +285,11 @@ end-class strings
 
 \ this is how you use this object
 \ strings heap-new constant mylist
-\ s" hello world" mylist $()!  \ store a string in mylist
-\ s" next string" mylist $()!  \ store another string
-\ mylist $()@ type cr  \ should type hello world
-\ mylist $()@ type cr  \ should type next string
-\ mylist $()@ type cr  \ should type hellow world
-\ s" third item" mylist $()! \ places a third string in the list
-\ 2 mylist n$()@ type cr  \ should type third item ... index starts at 0
+\ s" hello world" mylist $!x  \ store a string in mylist
+\ s" next string" mylist $!x  \ store another string
+\ mylist $@x type cr  \ should type hello world
+\ mylist $@x type cr  \ should type next string
+\ mylist $@x type cr  \ should type hellow world
+\ s" third item" mylist $!x \ places a third string in the list
+\ 2 mylist n$@x type cr  \ should type third item ... index starts at 0
 \ *****************************************************
