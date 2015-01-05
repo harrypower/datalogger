@@ -1,4 +1,4 @@
-\    Copyright (C) 2014  Philip K. Smith
+\    Copyright (C) 2015  Philip K. Smith
 
 \    This program is free software: you can redistribute it and/or modify
 \    it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ variable mytemppad$
 \ use this to initalize a string variable before accessing the string in the variable
 
 : iter$ ( $addr char xt --  )  
-    \ this is from like gforth verson 0.7.0 $iter but with out the bug
+    \ this is from gforth verson 0.7.0 $iter but with out the bug
     0 0 { char xt caddr u }
     $@ BEGIN   ( caddr1 u1 -- )
 	dup    ( caddr1 u1 u1 -- )
