@@ -215,3 +215,81 @@ variable mytemppad$
 \ in the buffer it will only be valid until a new string is made then it gets freed so do not keep
 \ the address rather use the buffer to get the address.
 \ ************************************************************************
+
+\ **************************************************************
+\ This is a string object handler like the above list$ but using object.fs instead
+
+require objects.fs
+
+object class
+    cell% inst-var array
+    cell% inst-var qty
+    cell% inst-var index
+    cell% inst-var const-test
+    m: ( strings -- )
+	const-test @ const-test  =
+	if  array @
+	    if  qty @ 0 ?do array @ i cell * + $off loop
+		array @ free throw
+	    then
+	    0 qty !
+	    0 index !
+	    0 array !
+	else
+	    0 qty !
+	    0 index !
+	    0 array !
+	    const-test const-test !
+	then ;m overrides construct
+
+    m: ( caddr u strings -- )
+	array @ 0 =
+	if  cell allocate throw array !
+	    1 qty !
+	    array @ cell erase
+	    array @ $!
+	else
+	    array @ cell qty @ 1 + * resize throw array !
+	    array @ cell qty @ * + dup cell erase $!
+	    qty @ 1+ qty !
+	then
+	0 index ! ;m method $()!
+
+    m: ( strings -- caddr u  )
+	qty @ 0 >
+	if  array @ index @ cell * + $@
+	    index @ 1+ index !
+	    index @ qty @ >=
+	    if
+		0 index !
+	    then
+	else 0 0 then ;m method $()@
+
+    m: ( nindex strings -- caddr u )
+	{ n } n 0 >=
+	n qty @ < and
+	if n cell * array @ + $@ else 0 0 then ;m method n$()@
+
+    m: ( strings -- )
+	this construct ;m method $()off
+
+    m: ( strings -- )
+	qty @ ;m method $size
+
+    m: ( strings -- )
+	this [parent] print
+	s"  array:" type array @ .
+	s"  size:" type qty @ .
+	s"  iterate index:" type index @ . ;m overrides print
+end-class strings
+
+\ this is how you use this object
+\ strings heap-new constant mylist
+\ s" hello world" mylist $()!  \ store a string in mylist
+\ s" next string" mylist $()!  \ store another string
+\ mylist $()@ type cr  \ should type hello world
+\ mylist $()@ type cr  \ should type next string
+\ mylist $()@ type cr  \ should type hellow world
+\ s" third item" mylist $()! \ places a third string in the list
+\ 2 mylist n$()@ type cr  \ should type third item ... index starts at 0
+\ *****************************************************
