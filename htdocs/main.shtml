@@ -5,37 +5,9 @@
 <title>Sensor Data info.</title>
 </head>
 <link rel="stylesheet" type="text/css" href="styleA.css">
-<$
 
-require ../collection/read-sensors.fs
-decimal
-
-variable tablename$
-
-: listdevices ( -- )
-   registered-devices@
-   devices$ swap drop 0 ?do
-       ." <tr><td>" devices$-$@ tablename$ $! tablename$ $@ type ." </td>"
-       tablename$ $@ get-table>fields throw
-       field$s swap drop 0 ?do
-	   ." <td>" field$s-$@ type ." </td>"
-       loop ." </tr>"
-       
-       ." <tr><td>" tablename$ $@ max(rowid)$ type ." </td>"
-       tablename$ $@ last-record lastrecord$s swap drop 0 ?do
-	   ." <td>" lastrecord$s-$@ type ." </td>"
-       loop ." </tr>"
-       
-       ." <tr>"
-       field$s swap drop 1 + 0 ?do
-	   ." <td><td>"
-       loop
-       ." </tr>"
-   loop ;
-
-$>
 <body>
 <h1><p> Sensor Data as follows: <p><h1>
-<h1><p> <$ require ../collection/read-sensors.fs $> </p></h1>
+
 </body>
 </html>

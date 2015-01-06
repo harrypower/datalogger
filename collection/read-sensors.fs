@@ -41,5 +41,5 @@ junk$ $@ cmdlist $!x  \ gas sensors
 : read+print ( -- )
     cmdlist $size 0 ?do cmdlist $@x shget throw type cr loop ;
 
-read+print
-bye
+\ read+print
+\ bye
