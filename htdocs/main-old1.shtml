@@ -2,12 +2,12 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Sensor Data info.</title>
+<title>Sensor Logged Data info.</title>
 </head>
 <link rel="stylesheet" type="text/css" href="styleA.css">
 <$
 
-require ../collection/read-sensors.fs
+require ../collection/sqlite3-stuff.fs
 decimal
 
 variable tablename$
@@ -35,7 +35,18 @@ variable tablename$
 
 $>
 <body>
-<h1><p> Sensor Data as follows: <p><h1>
-<h1><p> <$ require ../collection/read-sensors.fs $> </p></h1>
+<h1><p> The Registered Sensors: </p></h1>
+<table > 
+
+<$ listdevices $>
+</table>
+
+<$ \ <form action="data-table.shtml" method="get"><input type="submit" value="Last Data Points List"></form>
+$>
+
+<h1><p> The Errors: <$ totalerrors false = [if] type [else] ." DB busy at the moment try again!" 2drop [then] $> </p></h1>
+<$ \ <form class="errorbutton" action="errors-table.shtml" method="get"><input class="errorbutton" type="submit" value="Last errors"></form>
+$>
+
 </body>
 </html>
