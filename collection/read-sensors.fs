@@ -22,21 +22,26 @@ require gforth-misc-tools.fs
 require script.fs
 
 variable junk$
+variable sudo$
+s" sudo " sudo$ $!
 
 strings dict-new constant cmdlist
 
-path$ $@ junk$ $!
+sudo$ $@ junk$ $!
+path$ $@ junk$ $+!
 s" /BBB_Gforth_gpio/BMP180_i2c.fs" junk$ $+!
 junk$ $@ cmdlist $!x  \ pressure sensor
 
-path$ $@ junk$ $!
+sudo$ $@ junk$ $!
+path$ $@ junk$ $+!
 s" /BBB_Gforth_gpio/HTU21D_i2c.fs" junk$ $+!
 junk$ $@ cmdlist $!x  \ humidity tempertaure sensor
 
-s" node " junk$ $!
-path$ $@ junk$ $+!
-s" /collection/gas-reading.js" junk$ $+!
-junk$ $@ cmdlist $!x  \ gas sensors
+\ sudo$ $@ junk$ $!
+\ s" node " junk$ $+!
+\ path$ $@ junk$ $+!
+\ s" /collection/gas-reading.js" junk$ $+!
+\ junk$ $@ cmdlist $!x  \ gas sensors
 
 : read+print ( -- )
     cmdlist $size 0 ?do cmdlist $@x shget throw type cr loop ;
