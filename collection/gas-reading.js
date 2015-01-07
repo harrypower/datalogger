@@ -1,5 +1,5 @@
-var co2 = require('bonescript');
-var nh3 = require('bonescript');
+var co2 = require('/usr/local/lib/node_modules/bonescript');
+var nh3 = require('/usr/local/lib/node_modules/bonescript');
 
 co2.analogRead('P9_40', co2print);
 nh3.analogRead('P9_39', nh3print);

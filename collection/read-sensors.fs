@@ -37,14 +37,14 @@ path$ $@ junk$ $+!
 s" /BBB_Gforth_gpio/HTU21D_i2c.fs" junk$ $+!
 junk$ $@ cmdlist $!x  \ humidity tempertaure sensor
 
-\ sudo$ $@ junk$ $!
-\ s" node " junk$ $+!
-\ path$ $@ junk$ $+!
-\ s" /collection/gas-reading.js" junk$ $+!
-\ junk$ $@ cmdlist $!x  \ gas sensors
+ sudo$ $@ junk$ $!
+ s" node " junk$ $+!
+ path$ $@ junk$ $+!
+ s" /collection/gas-reading.js" junk$ $+!
+ junk$ $@ cmdlist $!x  \ gas sensors
 
 : read+print ( -- )
-    cmdlist $size 0 ?do cmdlist $@x shget throw type cr loop ;
+    cmdlist $size 0 ?do cmdlist $@x shget throw type s" <br>" type  loop ;
 
 \ read+print
 \ bye
