@@ -35,9 +35,8 @@ object class
 	if \ resize
 	    dup 0 >
 	    if
-		dup string-size @ + string-addr swap resize throw
-		dup string-addr ! string-size @ + swap dup string-size @ + string-size @
-		move
+		dup string-size @ + string-addr @ swap resize throw
+		dup string-addr ! string-size @ + swap dup string-size @ + string-size ! move
 	    else 2drop
 	    then
 	else
