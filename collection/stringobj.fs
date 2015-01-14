@@ -10,6 +10,9 @@ object class
 	0 valid !
 	0 string-addr !
 	0 string-size ! ;m overrides construct
+    m: ( string -- )     \ free allocated memory for this instance of object
+	this construct   \ note this will only work when object made with heap-new
+        this free ;m method destruct
     m: ( caddr u string -- ) \ store string
 	valid @ valid =
 	if
@@ -49,10 +52,13 @@ object class
 	    else 2drop
 	    then
 	then ;m method !+$
+    m: ( string -- u ) \ report string size
+	valid @ valide =
+	if this string-size @ ;m method $len
     m: ( string -- ) \ retrieve string object info
 	this [parent] print
 	s"  valid:" type valid @ valid = .
 	s"  addr:" type string-addr @ .
 	s"  size:" type string-size @ .
-	s"  string:" type string-addr @ string-size @ type ;m overrides print	
+	s"  string:" type string-addr @ string-size @ type ;m overrides print
     end-class string
