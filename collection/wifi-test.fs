@@ -33,5 +33,8 @@ require script.fs
     else ." Internet connection ok!" cr
     then ;
 
-test-connect
+: loop-test ( -- ) \ test wifi every 10 seconds
+    begin 10000 ms test-connect again ;
+
+loop-test
 bye
