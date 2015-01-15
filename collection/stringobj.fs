@@ -63,6 +63,48 @@ object class
 	s"  string:" type string-addr @ string-size @ type ;m overrides print
 end-class string
 
+object class
+    cell% inst-var array \ contains first address of allocated string object
+    cell% inst-var qty
+    cell% inst-var index
+    cell% inst-var valid
+    m: ( strings -- ) \ initalize strings object
+	valid @ valid =
+	if
+	    array @
+	    if \ deallocate memory allocateed for the array
+	    then
+	    0 qty !
+	    0 index !
+	    0 array !
+	else
+	    0 qty !
+	    0 index !
+	    0 array !
+	    valid valid !
+	then ;m overrides construct
+    m: ( caddr u strings -- ) \ store a string in handler
+	array @ 0 =
+	if
+	    cell allocate throw array !
+	    1 qty !
+	    string heap-new dup array @ ! !$
+	else
+	    array @ cell qty @ 1 + * resize throw dup array !
+	    cell qty @ * + dup 
+	    string heap-new swap ! @ !$
+	    qty @ 1+ qty !
+	then
+	0 index ! ;m method $!x
+    m: ( string -- ) \ print object for debugging
+	this [parent] print
+	s" array:" type array @ .
+	s" size:" type qty @ .
+	s" iterate index:" type index @ . ;m overrides print
+    
+end-class strings
+
+
 0 value testing
 0 value testb
 : stringtest
@@ -82,6 +124,6 @@ end-class string
 : dotesting
     1000 0 ?do stringtest loop ;
 
-	
+
 
 
