@@ -53,12 +53,35 @@ object class
 	    then
 	then ;m method !+$
     m: ( string -- u ) \ report string size
-	valid @ valide =
-	if this string-size @ ;m method $len
+	valid @ valid =
+	if this string-size @ then ;m method $len 
     m: ( string -- ) \ retrieve string object info
 	this [parent] print
 	s"  valid:" type valid @ valid = .
 	s"  addr:" type string-addr @ .
 	s"  size:" type string-size @ .
 	s"  string:" type string-addr @ string-size @ type ;m overrides print
-    end-class string
+end-class string
+
+0 value testing
+0 value testb
+: stringtest
+    string heap-new to testing
+    string heap-new to testb
+    testing print cr
+    testb print cr
+    s" somestring !" testing !$
+    testing @$ type cr
+    s"  other string!" testing !+$
+    testing @$ type cr
+    s" just this string!" testing !$
+    testing @$ type cr
+    testing destruct
+    testb destruct ;
+
+: dotesting
+    1000 0 ?do stringtest loop ;
+
+	
+
+
