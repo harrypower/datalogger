@@ -54,7 +54,7 @@ object class
 	then ;m method !+$
     m: ( string -- u ) \ report string size
 	valid @ valid =
-	if this string-size @ then ;m method $len 
+	if string-size @ else 0 then ;m method $len 
     m: ( string -- ) \ retrieve string object info
 	this [parent] print
 	s"  valid:" type valid @ valid = .
@@ -96,6 +96,17 @@ object class
 	    qty @ 1+ qty !
 	then
 	0 index ! ;m method $!x
+    m: ( strings -- caddr u ) \ retrieve string from array at next index
+	qty @ 0 >
+	if
+	    array @ index @ cell * + @ @$
+	    index @ 1+ index !
+	    index @ qty @ >=
+	    if 0 index ! then 
+	else 0 0 then ;m method $@x
+    m: ( strings -- u ) \ report size of strings array
+	valid @ valid =
+	if qty @ else 0 then ;m method $len
     m: ( string -- ) \ print object for debugging
 	this [parent] print
 	s" array:" type array @ .
@@ -123,6 +134,18 @@ end-class strings
 
 : dotesting
     1000 0 ?do stringtest loop ;
+
+0 value testc
+: stringstest
+    strings heap-new to testc
+    s" hello world" testc $!x
+    s" next string" testc $!x
+    s" this is 2 or third item" testc $!x
+    testc print cr
+    testc $len . cr
+    testc $@x type cr
+    testc $@x type cr
+    testc $@x type cr ;
 
 
 
