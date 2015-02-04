@@ -22,3 +22,30 @@ require gforth-misc-tools.fs
 require stringobj.fs
 require script.fs
 
+require ../BBB_Gforth_gpio/htu21d-object.fs
+require ../BBB_Gforth_gpio/bmp180-object.fs
+
+variable junk$
+variable sudo$
+s" sudo " sudo$ $!
+
+strings heap-new constant cmdlist
+
+htu21d-i2c heap-new constant myhtu21d
+bmp180-i2c heap-new constant mybmp180
+
+myhtu21d display-th
+mybmp180 display-tp
+
+sudo$ $@ junk$ $!
+s" node " junk$ $+!
+path$ $@ junk$ $+!
+s" /collection/get-co2.js" junk$ $+!
+junk$ $@ cmdlist $!X
+
+cmdlist $@x shget throw type
+
+bye
+
+
+
