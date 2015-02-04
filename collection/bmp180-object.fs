@@ -21,7 +21,7 @@ require ../BBB_Gforth_gpio/BBB_I2C_lib.fs
 object class
   protected
     22      constant EEprom_size      \ the size of calibration data eeprom on bmp180 device in bytes
-    0x77    constant BMP180ADDR  \ I2C address of BMP180 device
+    0x77    constant BMP180ADDR       \ I2C address of BMP180 device
     0xF6    constant CMD_READ_VALUE
     0xAA    constant CMD_READ_CALIBRATION
     0       constant OVERSAMPLING_ULTRA_LOW_POWER \ these are the sampling constants !
@@ -131,7 +131,10 @@ object class
     ;m method doreading
     
   public
-    m: ( bmp180 -- temp humd nflag ) \ get temperature and pressure values 
+    m: ( bmp180 -- temp humd nflag ) \ get temperature and pressure values
+	\ note temp value needs to be divided by 10 for final value in deg. celsius
+	\ note humd value is in pascals
+	\ note nflag is false if readings are valid
 	this ['] doreading catch dup 0 <>
 	if swap drop 0 swap 0 swap
 	else t @ swap pa @ swap
@@ -181,3 +184,9 @@ object class
 
 
 end-class bmp180-i2c
+
+
+\ example use of this object
+\ bmp180-i2c heap-new constant mybmp180
+\ mybmp180 display-tp
+\ mybmp180 read-temp-pressure throw cr ." humd:" . cr ." temp:" .
