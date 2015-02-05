@@ -1,3 +1,24 @@
+\    Copyright (C) 2015  Philip K. Smith
+
+\    This program is free software: you can redistribute it and/or modify
+\    it under the terms of the GNU General Public License as published by
+\    the Free Software Foundation, either version 3 of the License, or
+\    (at your option) any later version.
+
+\    This program is distributed in the hope that it will be useful,
+\    but WITHOUT ANY WARRANTY; without even the implied warranty of
+\    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+\    GNU General Public License for more details.
+
+\    You should have received a copy of the GNU General Public License
+\    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\
+\ This code is for string handling.   There are two objects.
+\ Object string is for single strings and all memory is managed by object.
+\ Object strings uses object string to handle as many stings of any size you want!
+\ You can think of string as a container for a string and strings is a container for
+\ any collection of strings you want.
+
 require objects.fs
 
 object class
@@ -54,7 +75,7 @@ object class
 	then ;m method !+$
     m: ( string -- u ) \ report string size
 	valid @ valid =
-	if string-size @ else 0 then ;m method $len 
+	if string-size @ else 0 then ;m method len$ 
     m: ( string -- ) \ retrieve string object info
 	this [parent] print
 	s"  valid:" type valid @ valid = .
@@ -99,7 +120,7 @@ object class
 	    cell qty @ * + dup 
 	    string heap-new swap ! @ !$
 	    qty @ 1+ qty !
-	then 0 index ! ;m method $!x
+	then 0 index ! ;m method !$x
     m: ( strings -- caddr u ) \ retrieve string from array at next index
 	qty @ 0 >
 	if
@@ -107,10 +128,10 @@ object class
 	    index @ 1+ index !
 	    index @ qty @ >=
 	    if 0 index ! then 
-	else 0 0 then ;m method $@x
+	else 0 0 then ;m method @$x
     m: ( strings -- u ) \ report size of strings array
 	valid @ valid =
-	if qty @ else 0 then ;m method $len
+	if qty @ else 0 then ;m method len$
     m: ( string -- ) \ print object for debugging
 	this [parent] print
 	s" array:" type array @ .
@@ -118,7 +139,7 @@ object class
 	s" iterate index:" type index @ . ;m overrides print
 end-class strings
 
-
+( \ some test words for memory leak testing 
 0 value testing
 0 value testb
 : stringtest
@@ -141,19 +162,19 @@ end-class strings
 0 value testc
 : stringstest
     strings heap-new to testc
-    s" hello world" testc $!x
-    s" next string" testc $!x
-    s" this is 2 or third item" testc $!x
+    s" hello world" testc !$x
+    s" next string" testc !$x
+    s" this is 2 or third item" testc !$x
     testc print cr
-    testc $len . cr
-    testc $@x type cr
-    testc $@x type cr
-    testc $@x type cr
+    testc len$ . cr
+    testc @$x type cr
+    testc @$x type cr
+    testc @$x type cr
     testc destruct ;
 
 : testall
     1000 0 ?do ." stringtest" cr stringtest ." stringstest" cr stringstest loop ;
-
+)
 
 
 

@@ -31,21 +31,21 @@ strings heap-new constant cmdlist
 sudo$ $@ junk$ $!
 path$ $@ junk$ $+!
 s" /BBB_Gforth_gpio/BMP180_i2c.fs" junk$ $+!
-junk$ $@ cmdlist $!x  \ pressure sensor
+junk$ $@ cmdlist !$x  \ pressure sensor
 
 sudo$ $@ junk$ $!
 path$ $@ junk$ $+!
 s" /BBB_Gforth_gpio/HTU21D_i2c.fs" junk$ $+!
-junk$ $@ cmdlist $!x  \ humidity tempertaure sensor
+junk$ $@ cmdlist !$x  \ humidity tempertaure sensor
 
  sudo$ $@ junk$ $!
  s" node " junk$ $+!
  path$ $@ junk$ $+!
  s" /collection/gas-reading.js" junk$ $+!
- junk$ $@ cmdlist $!x  \ gas sensors
+ junk$ $@ cmdlist !$x  \ gas sensors
 
 : read+print ( -- )
-    cmdlist $len 0 ?do cmdlist $@x shget throw type s" <br>" type  loop ;
+    cmdlist len$ 0 ?do cmdlist @$x shget throw type s" <br>" type  loop ;
 
 \ read+print
 \ bye

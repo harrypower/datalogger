@@ -37,15 +37,15 @@ mybmp180 display-tp cr
 s" node " junk$ !$
 path$ $@ junk$ !+$
 s" /collection/get-co2.js" junk$ !+$
-junk$ @$ cmdlist $!X
+junk$ @$ cmdlist !$X
 
 s" node " junk$ !$ 
 path$ $@ junk$ !+$
 s" /collection/get-nh3.js" junk$ !+$
-junk$ @$ cmdlist $!x
+junk$ @$ cmdlist !$x
 
-cmdlist $@x shget throw type cr
-cmdlist $@x shget throw type cr
+cmdlist @$x shget throw type cr
+cmdlist @$x shget throw type cr
 
 bye
 
