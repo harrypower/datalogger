@@ -35,7 +35,7 @@ htu21d-i2c heap-new constant myhtu21d
 bmp180-i2c heap-new constant mybmp180
 
 myhtu21d display-th
-mybmp180 display-tp
+mybmp180 display-tp cr
 
 sudo$ $@ junk$ $!
 s" node " junk$ $+!
@@ -43,7 +43,14 @@ path$ $@ junk$ $+!
 s" /collection/get-co2.js" junk$ $+!
 junk$ $@ cmdlist $!X
 
-cmdlist $@x shget throw type
+sudo$ $@ junk$ $!
+s" node " junk$ $+!
+path$ $@ junk$ $+!
+s" /collection/get-nh3.js" junk$ $+!
+junk$ $@ cmdlist $!x
+
+cmdlist $@x shget throw type cr
+cmdlist $@x shget throw type cr
 
 bye
 
