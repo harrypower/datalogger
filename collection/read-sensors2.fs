@@ -21,13 +21,10 @@ warnings off
 require gforth-misc-tools.fs
 require stringobj.fs
 require script.fs
-
 require ../BBB_Gforth_gpio/htu21d-object.fs
 require ../BBB_Gforth_gpio/bmp180-object.fs
 
-variable junk$
-variable sudo$
-s" sudo " sudo$ $!
+string heap-new constant junk$
 
 strings heap-new constant cmdlist
 
@@ -37,17 +34,15 @@ bmp180-i2c heap-new constant mybmp180
 myhtu21d display-th
 mybmp180 display-tp cr
 
-sudo$ $@ junk$ $!
-s" node " junk$ $+!
-path$ $@ junk$ $+!
-s" /collection/get-co2.js" junk$ $+!
-junk$ $@ cmdlist $!X
+s" node " junk$ !$
+path$ $@ junk$ !+$
+s" /collection/get-co2.js" junk$ !+$
+junk$ @$ cmdlist $!X
 
-sudo$ $@ junk$ $!
-s" node " junk$ $+!
-path$ $@ junk$ $+!
-s" /collection/get-nh3.js" junk$ $+!
-junk$ $@ cmdlist $!x
+s" node " junk$ !$ 
+path$ $@ junk$ !+$
+s" /collection/get-nh3.js" junk$ !+$
+junk$ @$ cmdlist $!x
 
 cmdlist $@x shget throw type cr
 cmdlist $@x shget throw type cr
