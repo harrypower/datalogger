@@ -28,12 +28,12 @@ string heap-new constant buffer$    \ a buffer string
 string heap-new constant db-path$   \ db path and name
 100 constant sqlite3-resend-time    \ this codes sqlite3 routines will wait for this time in ms if a locked database is found bef resending cmds
 
-path$ @$ db-path$ !$ s" /collection/datalogged.data" db-path$ !+$  \ this is the name of the database
+path$ $@ db-path$ !$ s" /collection/datalogged.data" db-path$ !+$  \ this is the name of the database
 
 \ These are the enumerated errors this code can produce
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code
 s" Table name already present in database file! (change name of table)"          exception constant table-present-er
-
+s" ErrorList query for an error did not return expected number!"                 exception constant errorlist-number-err
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
@@ -105,3 +105,73 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	false
     restore if drop then \ note this word will not pass any errors upwards so nothing is returned !
     endtry ;
+
+2164 constant error-yes
+2165 constant error-no
+: (errorINlist?) { nsyserror -- nflag }  \ see if nsyserror number is in database list of errors
+    \ nflag is error-yes if nsyserror is in the dbase
+    \ nflag is error-no if nsyserror is not in the dbase
+    \ nflag can be other error numbers
+    try
+	setupsqlite3
+	s" " dbfieldseparator
+	s" " dbrecordseparator
+	s" select error from errorList where (error = " temp$ !$
+	nsyserror #to$ temp$ !+$
+	s" );" temp$ !+$ temp$ @$ dbcmds
+	sendsqlite3cmd dberrorthrow
+	dbret$ dup 0 =
+	if
+	    \ the error is not in the list at this time
+	    2drop error-no throw
+	else
+	    s>number? false =
+	    if
+		\ number not recieved from errorList query
+		2drop errorlist-number-err throw
+	    else
+		d>s nsyserror <>
+		if
+		    errorlist-number-err throw
+		else
+		    error-yes throw
+		then
+	    then
+	then
+    restore
+    endtry ;
+
+: (puterrorINlist) ( nerror -- ) \ add nerror number and string to the error list
+    setupsqlite3
+    dup -2 <>  \ this is needed because -2 error does not report a message even though it is Abort !
+    if
+	s" insert into errorList values(" temp$ !$
+	dup  #to$, temp$ !+$ s\" \"" temp$ !+$
+	error#to$ temp$ !+$ s\" \");" temp$ !+$ temp$ @$ dbcmds
+    else
+	drop
+	s\" insert into errorList values(-2, \'Abort\" has occured!\');" dbcmds
+    then
+    sendsqlite3cmd drop \ ****note if there is a sqlite3 error here this new error will not be stored in list*****
+    \ **** positive error numbers can come from sqlite3 but the proper string may not get placed in db for the number
+;
+
+: errorlist-sqlite3! ( nerror -- ) \ will add the nerror associated string for that error to database
+    0 { nerror ntest -- }
+    try
+	5 0 ?do \ try to test and store 5 times after that just bail
+	    nerror (errorINlist?) to ntest ntest error-no =
+	    if
+		nerror (puterrorINlist) leave
+	    then
+	    ntest error-yes <>
+	    if
+		i 20 * ms
+	    else
+		leave
+	    then
+	loop
+	false
+    restore drop \ nothing returned by this word even if an error happens in this word!
+    endtry ;
+
