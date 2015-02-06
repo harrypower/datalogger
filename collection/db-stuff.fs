@@ -38,6 +38,22 @@ s" Table name already present in database file! (change name of table)"         
 s" ErrorList query for an error did not return expected number!"                 exception constant errorlist-number-err
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
+: error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
+    >r sqlmessg error-cell @ 0 <> r@ 1 >= r@ 101 <= and and r> swap
+    if
+	dberrmsg drop \ test for a sqlite3 error and return sqlite3 string if the error is from sqlite3
+    else
+	>stderr Errlink   \ tested with gforth ver 0.7.0 and 0.7.3
+	begin             \ if the nerror does not exist then a null string is returned!
+	    @ dup
+	while
+		2dup cell+ @ =
+		if
+		    2 cells + count rot drop exit
+		then
+	repeat
+    then ;
+
 : setupsqlite3 ( -- ) \ sets default stuff up for sqlite3 work
     initsqlall
     db-path$ @$ dbname ;
