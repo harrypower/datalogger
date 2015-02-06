@@ -16,6 +16,8 @@
 \ This code is the sqlite3 interface type words for this database project
 \ What should be in here are words to put in and take out of database!
 
+warnings off
+
 require stringobj.fs
 require string.fs
 require ../Gforth-Tools/sqlite3_gforth_lib.fs
@@ -96,7 +98,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 : error-sqlite3! ( nerror -- ) \ used to store error values into errors table
     try
 	setupsqlite3
-	s" insert into errors values(NULL," temp$ $!
+	s" insert into errors values(NULL," temp$ !$
 	datetime$ temp$ !+$
 	#to$ temp$ !+$
 	s" );" temp$ !+$
