@@ -36,6 +36,8 @@ path$ $@ db-path$ !$ s" /collection/datalogged.data" db-path$ !+$  \ this is the
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code
 s" Table name already present in database file! (change name of table)"          exception constant table-present-er
 s" ErrorList query for an error did not return expected number!"                 exception constant errorlist-number-err
+s" Error place holder #1"                                                        exception constant errorholder1
+s" Error place holder #2"                                                        exception constant errorholder2
 next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of errors for this code
 
 : error#to$ ( nerror -- caddr u )  \ takes an nerror number and gives the string for that error
@@ -105,7 +107,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 
 : create-error-tables ( -- ) \ used to create the error logging tables
     setupsqlite3
-    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT,errorSent INT);" dbcmds
     sendsqlite3cmd dberrorthrow
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT);" dbcmds
@@ -117,7 +119,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	s" insert into errors values(NULL," temp$ !$
 	datetime$ temp$ !+$
 	#to$ temp$ !+$
-	s" );" temp$ !+$
+	s" ,0 );" temp$ !+$
 	temp$ @$ dbcmds
 	sendsqlite3cmd  dberrorthrow
 	false
@@ -192,4 +194,10 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	false
     restore drop \ nothing returned by this word even if an error happens in this word!
     endtry ;
+
+: create-localdata ( -- ) \ create the local table of data from sensors
+    setupsqlite3
+    s" CREATE TABLE IF NoT EXISTS localData(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
+    s" temp INT,humd INT,pressure INT,co2 INT,nh3 INT,dataSent INT );" temp$ !+$ temp$ @$ dbcmds
+    sendsqlite3cmd dberrorthrow ;
 
