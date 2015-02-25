@@ -35,19 +35,20 @@ object class
 	this construct   \ note this will only work when object made with heap-new
         this free throw ;m method destruct
     m: ( caddr u string -- ) \ store string
-	valid @ valid =
-	if
-	    string-addr @ free throw
-	    0 valid ! 
-	then
-	dup 0 >
-	if
-	    dup allocate throw
-	    dup string-addr !
-	    swap dup string-size ! move
+	dup 0 > if
+	    dup allocate throw { u caddr1 }
+	    caddr1 u move
+	    valid @ valid =
+	    if
+		string-addr @ free throw
+		0 valid ! 
+	    then
+	    caddr1 string-addr !
+	    u string-size ! 
 	    valid valid !
 	else 2drop
-	then ;m method !$
+	then
+    ;m method !$
     m: ( string -- caddr u ) \ retrieve string
 	valid @ valid =
 	if
