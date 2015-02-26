@@ -34,8 +34,11 @@ create floatoutputbuffer
     floatoutputbuffer 10 3 0 f>buf-rdp floatoutputbuffer 10 ;
 
 variable mytemppad$
-: #to$, ( n -- c-addr u1 ) \ convert n to string then add a "," at the end of the converted string
+: #to$, ( n -- caddr u ) \ convert n to string then add a "," at the end of the converted string
     #to$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
+
+: dto$, ( d -- caddr u ) \ convert d to string then add a "," at the end of the converted string
+    dto$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
 
 : datetime$ ( -- caddr u ) \ create the current time value of unixepoch and make into a string with a "," at the end of string
     utime 1000000 fm/mod swap drop

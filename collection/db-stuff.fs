@@ -110,16 +110,16 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT,errorSent INT);" dbcmds
     sendsqlite3cmd dberrorthrow
     setupsqlite3
-    s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT,errorSent INT);" dbcmds
     sendsqlite3cmd dberrorthrow ;
 
 : error-sqlite3! ( nerror -- ) \ used to store error values into errors table
     try
 	setupsqlite3
 	s" insert into errors values(NULL," temp$ !$
-	datetime$ temp$ !+$
-	#to$ temp$ !+$
-	s" ,0 );" temp$ !+$
+	datetime$ temp$ !+$   \ dtime
+	#to$ temp$ !+$        \ error
+	s" ,0 );" temp$ !+$   \ errorSent ( false for not sent and true for sent ) 
 	temp$ @$ dbcmds
 	sendsqlite3cmd  dberrorthrow
 	false
@@ -166,11 +166,11 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     dup -2 <>  \ this is needed because -2 error does not report a message even though it is Abort !
     if
 	s" insert into errorList values(" temp$ !$
-	dup  #to$, temp$ !+$ s\" \"" temp$ !+$
-	error#to$ temp$ !+$ s\" \");" temp$ !+$ temp$ @$ dbcmds
+	dup  #to$, temp$ !+$ s\" \'" temp$ !+$
+	error#to$ temp$ !+$ s\" \', 0);" temp$ !+$ temp$ @$ dbcmds
     else
 	drop
-	s\" insert into errorList values(-2, \'Abort\" has occured!\');" dbcmds
+	s\" insert into errorList values(-2, \'Abort has occured!\', 0);" dbcmds
     then
     sendsqlite3cmd drop \ ****note if there is a sqlite3 error here this new error will not be stored in list*****
     \ **** positive error numbers can come from sqlite3 but the proper string may not get placed in db for the number
@@ -201,3 +201,17 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     s" temp INT,humd INT,pressure INT,co2 INT,nh3 INT,dataSent INT );" temp$ !+$ temp$ @$ dbcmds
     sendsqlite3cmd dberrorthrow ;
 
+: localdata! { ntemp nhumd npres nco2 nnh3 -- } \ store localdata into localData table of DB
+    setupsqlite3                                \ note local time is used to store dtime value into db   
+    s" insert into localData values(NULL," temp$ !$
+    datetime$ temp$ !+$
+    ntemp #to$, temp$ !+$
+    nhumd #to$, temp$ !+$
+    npres #to$, temp$ !+$
+    nco2 #to$, temp$ !+$
+    nnh3 #to$, temp$ !+$
+    s" 0);" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+    
+    

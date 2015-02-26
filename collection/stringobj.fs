@@ -47,8 +47,7 @@ object class
 	    u string-size ! 
 	    valid valid !
 	else 2drop
-	then
-    ;m method !$
+	then ;m method !$
     m: ( string -- caddr u ) \ retrieve string
 	valid @ valid =
 	if
