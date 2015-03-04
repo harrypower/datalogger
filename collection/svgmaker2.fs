@@ -1,5 +1,5 @@
 \ This Gforth code is BeagleBone Black Gforth SVG maker 
-\    Copyright (C) 2014  Philip K. Smith
+\    Copyright (C) 2015  Philip K. Smith
 
 \    This program is free software: you can redistribute it and/or modify
 \    it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ object class
 	svg-output @ !+$ ;m method @svg$
 
     m: ( nstrings svg -- ) \ place contents of nstrings into svg string as attribute propertys
-	dup len$ 0 ?do
+	dup $qty 0 ?do
 	    dup @$x this @svg$ s"  " this @svg$
 	loop drop ;m method svgattr
 

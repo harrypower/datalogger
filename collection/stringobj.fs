@@ -131,7 +131,7 @@ object class
 	else 0 0 then ;m method @$x
     m: ( strings -- u ) \ report size of strings array
 	valid @ valid =
-	if qty @ else 0 then ;m method len$
+	if qty @ else 0 then ;m method $qty
     m: ( string -- ) \ print object for debugging
 	this [parent] print
 	s" array:" type array @ .

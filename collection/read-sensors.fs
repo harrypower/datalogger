@@ -45,7 +45,7 @@ junk$ $@ cmdlist !$x  \ humidity tempertaure sensor
  junk$ $@ cmdlist !$x  \ gas sensors
 
 : read+print ( -- )
-    cmdlist len$ 0 ?do cmdlist @$x shget throw type s" <br>" type  loop ;
+    cmdlist $qty 0 ?do cmdlist @$x shget throw type s" <br>" type  loop ;
 
 \ read+print
 \ bye
