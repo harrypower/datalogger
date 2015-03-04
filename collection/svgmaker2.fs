@@ -23,6 +23,18 @@ object class
     cell% inst-var svg-output \ the svg output string object
     cell% inst-var construct-test \ a construct test value to prevent memory leaks
   protected
+    m: ( caddr u -- ) \ store string into svg-output
+	svg-output @ !+$ ;m method @svg$
+
+    m: ( nstrings svg -- ) \ place contents of nstrings into svg string as attribute propertys
+	dup len$ 0 ?do
+	    dup @$x this @svg$ s"  " this @svg$
+	loop drop ;m method svgattr
+
+    m: ( n -- caddr u ) \ convert n to string
+	s>d swap over dabs <<# #s rot sign #> #>>
+	this @svg$ ;m method #tosvg$
+    
   public
     m: ( svg -- ) \ init svt-output string
 	construct-test construct-test @ =
@@ -30,27 +42,35 @@ object class
 	else string heap-new svg-output ! construct-test construct-test !
 	then  ;m overrides construct
     
-    m: ( nstrings svg -- ) \ start svg string and place nstrings contents as header to svg
+    m: ( nstrings-header svg -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$
-	dup len$ 0 ?do
-	    dup @$x svg-output @ !+$ s"  " svg-output @ !+$
-	loop drop
-	s\" >\n" svg-output @ !+$ ;m method svgheader
-
-    m: ( nstrings svg -- ) \ place contents of nstrings into svg string as attribute propertys
-    ;m method svgattr
+	this svgattr
+	s\" >" this @svg$ ;m method svgheader
 
     m: ( nstrings-attr nx ny nstring-text svg -- ) \ to make svg text 
 	\ nstirngs-attr is strings for attribute of text
 	\ nx ny are text x and y of svg text tag
 	\ nstring-text is the string object address of the string
-    ;m method svgtext
+	s\" <text x=\"" this @svg$ rot
+	this #tosvg$
+	s\" \" y=\"" this @svg$
+	swap this #tosvg$
+	s\" \" " this @svg$
+	swap this svgattr s" >" this @svg$
+        @$ this @svg$ s" </text>" this @svg$ ;m method svgtext
 
     m: ( nstrings-attr nstrings-pathdata svg -- ) \ make a svg path with nstring-attr and nstrings-pathdata
-    ;m method svgpath
+	s" <path " this @svg$
+	swap this svgattr
+	s\" d=\" " this @svg$
+	this svgattr s\" \"> </path>" this @svg$ ;m method svgpath
 
     m: ( nstring-attr nx ny nr -- ) \ make a svg circle with nstring-attr at nx and ny with radius nr
-    ;m method svgcircle
+	s\" <circle cx=\"" this @svg$ rot this #tosvg$
+	s\" \" cy=\"" this @svg$ swap this #tosvg$
+	s\" \" r=\"" this @svg$ this #tosvg$
+	s\" \" " this @svg$ this svgattr
+	s" />" this @svg$ ;m method svgcircle
 
     m: ( -- caddr u ) \ finish forming the svg string and output it
 	s" </svg>" svg-output @ !+$
@@ -60,5 +80,46 @@ object class
 	svg-output @ @$ ;m overrides print
 end-class svgmaker
 
-strings heap-new constant test$s
-svgmaker heap-new constant test
+strings heap-new constant head1
+strings heap-new constant attr1
+strings heap-new constant path1
+string heap-new constant a$
+svgmaker heap-new constant thesvg
+
+s\" width=\"300\""            head1 !$x
+s\" height=\"300\""           head1 !$x
+s\" viewBox=\"0 0 300 300 \"" head1 !$x
+
+s\" fill=\"rgb(0,0,255)\""      attr1 !$x 
+s\" fill-opacity=\"1.0\""       attr1 !$x 
+s\" stroke=\"rgb(0,100,200)\""  attr1 !$x 
+s\" stroke-opacity=\"0.0\""     attr1 !$x 
+s\" stroke-width=\"4.0\""       attr1 !$x 
+s\" font-size=\"20px\""         attr1 !$x 
+
+s" M 10 30" path1 !$x 
+s" L 15 35" path1 !$x 
+s" L 27 40" path1 !$x 
+s" L 48 50" path1 !$x 
+s" L 97 20" path1 !$x 
+
+s" Some test text!" a$ !$
+
+head1 thesvg svgheader
+attr1 30 20 a$ thesvg svgtext
+thesvg svgend dump
+thesvg print cr type cr
+
+thesvg construct
+
+head1 thesvg svgheader
+attr1 path1 thesvg svgpath
+thesvg svgend dump
+thesvg print cr type cr
+
+thesvg construct
+
+head1 thesvg svgheader
+attr1 50 80 35 thesvg svgcircle
+thesvg svgend dump
+thesvg print cr type cr
