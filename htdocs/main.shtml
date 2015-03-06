@@ -5,7 +5,7 @@
 <title>Sensor Data info.</title>
 </head>
 <link rel="stylesheet" type="text/css" href="styleA.css">
-<$ require ../collection/read-sensors.fs $>
+<$ require /home/pks/datalogger/collection/read-sensors.fs $>
 <body>
 <h1><p> Sensor Data as follows: <p><h1>
 <h1><p> <$ read+print $> <p><h1>
