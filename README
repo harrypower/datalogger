@@ -6,14 +6,24 @@ This code needs the inetd service running and setup as bellow.
 To use this server you need to install Gforth, inetd and then configure this service and adjust the path for the web files.
 The steps are below( do this on the pi or via sshing into the pi):
 -Install stuff
-    $ sudo apt-get install gforth
-    $ sudo apt-get install inetutils-inetd
+    $ sudo apt-get install gforth libtool libltdl-dev libffi-dev autoconf m4
+    $ sudo apt-get install openbsd-inetd
     $ sudo apt-get install sqlite3 libsqlite3-dev
--Install dependent Rpi_Gforth_GPIO library submodule ( the raspberry pi gpio stuff depends on this library !)
-	Note this library is not used yet in the datalogging software but you can simply add code to use it! 	
-	Note that this Rpi_Gforth_GPIO is a submodule in this repository.  This means you must issue these commands from this gforth_webserver repositorys directory to get the files:
+-Install the BBB_Gforth_gpio library submodule 
+
+# need to rewrite this 
     $ sudo git submodule init
     $ sudo git submodule update
+
+# not had some issues with these shared librarys... 
+.. first run from command line as a user the htu21d_i2c.fs and the bmp180_i2c.fs stuff so gforth can make the librarys on your system
+.. now the shared library and object code and c code that gforth makes needs to be copied to a folder as follows
+$ sudo cp -R /home/yourusername/.gforth / 
+.. this copies the files to /.gforth and all the files and sub folders are included
+
+# now the rest of this document needs to be rewritten it is all incorrect and outdated
+
+
 	Now follow the README in the gpio directory for information on compiling the C code into a shared library.
 	Run gforth as in the README in the gpio directory and enter the following as show in that README:
     include rpi_GPIO_lib.fs
@@ -37,7 +47,7 @@ The steps are below( do this on the pi or via sshing into the pi):
 -Configure inetd service and start the webserver as follows:
     $ sudo nano /etc/inetd.conf
 	Move the curser to the end of the document and enter the following text:
-	http stream tcp nowait.1000 root /home/pi/git/datalogger/httpd.fs
+	http stream tcp nowait.1000 yourusername /home/pi/git/datalogger/httpd.fs
 	Note the path in the above line is the path for where you installed this repository.
 	Save the file with control x y enter
 	Now at this moment you can restart your pi as follows:
@@ -46,7 +56,7 @@ When the pi starts up it will serve index.html !
 -Configure path for repository as follows:
 	There is a batch file called configure in the datalogger directory.  Use it as follows:
     $ sudo ./configure
-	This just puts a file in /var/lib/datalogger-gforth/ directory called datalobber_home_path. 
+	This just puts a file in /var/lib/datalogger-gforth/ directory called datalogger_home_path. 
 	In this file is simply stored the path to the repository so now the project can find files in this repository.  
 	Note the web server and the mbed-sensor-client.fs programs us this method to find where files are!
 -The data collection is done with sensor-client.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
