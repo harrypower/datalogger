@@ -22,6 +22,7 @@ require stringobj.fs
 require script.fs
 require ../BBB_Gforth_gpio/htu21d-object.fs
 require ../BBB_Gforth_gpio/bmp180-object.fs
+require db-stuff.fs
 
 string heap-new constant shlast$
 string heap-new constant junk$
@@ -56,4 +57,24 @@ next-exception @ constant gss-errorListEnd
     RESTORE
     ENDTRY ;
 
+htu21d-i2c heap-new constant myhtu21d
+bmp180-i2c heap-new constant mybmp180
 
+: read-thp ( -- F: ftemp F: fhumd npress nflag ) \ read temperature humidity and pressure
+    \ nflag is false for no errors
+    \ nflag is non false for some other last error generated in this code
+    \ note the error is logged into the database with this code at exit already
+    myhtu21d read-temp-humd dup false =
+    if
+	drop swap s>d d>f 10e f/ s>d d>f 10e f/
+    else
+	error!
+	2drop 0.0e 0.0e
+    then
+    mybmp180 read-temp-pressure dup false =
+    if
+	drop swap drop false 
+    else
+	dup error!
+	swap drop swap drop 0 swap 
+    then ;

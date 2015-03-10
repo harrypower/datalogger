@@ -195,6 +195,10 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     restore drop \ nothing returned by this word even if an error happens in this word!
     endtry ;
 
+: error! ( nerror -- ) \ store nerror in database and string for error message
+    dup error-sqlite3!
+    errorlist-sqlite3! ;
+
 : create-localdata ( -- ) \ create the local table of data from sensors
     setupsqlite3
     s" CREATE TABLE IF NoT EXISTS localData(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
