@@ -40,6 +40,12 @@ variable mytemppad$
 : dto$, ( d -- caddr u ) \ convert d to string then add a "," at the end of the converted string
     dto$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
 
+: fto$, ( f: r -- caddr u ) \ convert r from floating stack to string with a ',' added
+    fto$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
+
+: datetime ( -- ntime ) \ get time from utime but return it as a truncated cell
+    utime 1000000 fm/mod swap drop ;
+
 : datetime$ ( -- caddr u ) \ create the current time value of unixepoch and make into a string with a "," at the end of string
     utime 1000000 fm/mod swap drop
     #to$, ;

@@ -198,19 +198,19 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 : create-localdata ( -- ) \ create the local table of data from sensors
     setupsqlite3
     s" CREATE TABLE IF NoT EXISTS localData(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
-    s" temp INT,humd INT,pressure INT,co2 INT,nh3 INT,dataSent INT );" temp$ !+$ temp$ @$ dbcmds
+    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,dataSent INT );" temp$ !+$ temp$ @$ dbcmds
     sendsqlite3cmd dberrorthrow ;
 
-: localdata! { ntemp nhumd npres nco2 nnh3 -- } \ store localdata into localData table of DB
+: localdata! { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 -- } \ store localdata into localData table of DB
     setupsqlite3                                \ note local time is used to store dtime value into db   
     s" insert into localData values(NULL," temp$ !$
-    datetime$ temp$ !+$
-    ntemp #to$, temp$ !+$
-    nhumd #to$, temp$ !+$
+    ntime #to$, temp$ !+$   \ remember ntime is a one cell size  
+    ftemp fto$, temp$ !+$
+    fhumd fto$, temp$ !+$
     npres #to$, temp$ !+$
-    nco2 #to$, temp$ !+$
-    nnh3 #to$, temp$ !+$
-    s" 0);" temp$ !+$
+    fco2 fto$, temp$ !+$
+    fnh3 fto$, temp$ !+$
+    s" 0);" temp$ !+$       \ dataSent can be 0 for not sent or -1 for sent
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
     
