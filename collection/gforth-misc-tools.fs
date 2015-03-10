@@ -31,7 +31,7 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ confi
 create floatoutputbuffer
 10 allot 
 : fto$ ( f: r -- caddr u ) \ convert r from float stack to string
-    floatoutputbuffer 10 3 0 f>buf-rdp floatoutputbuffer 10 ;
+    floatoutputbuffer 10 4 0 f>buf-rdp floatoutputbuffer 10 ;
 
 variable mytemppad$
 : #to$, ( n -- caddr u ) \ convert n to string then add a "," at the end of the converted string
