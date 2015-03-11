@@ -62,19 +62,28 @@ bmp180-i2c heap-new constant mybmp180
 
 : read-thp ( -- F: ftemp F: fhumd npress nflag ) \ read temperature humidity and pressure
     \ nflag is false for no errors
-    \ nflag is non false for some other last error generated in this code
-    \ note the error is logged into the database with this code at exit already
-    myhtu21d read-temp-humd dup false =
+    \ nflag is non false for the first error generated in this code
+    \ note the errors are logged into the database at code exit already
+    myhtu21d read-temp-humd dup 0 { nflag1 nflag2 } false =
     if
-	drop swap s>d d>f 10e f/ s>d d>f 10e f/
+	swap s>d d>f 10e f/ s>d d>f 10e f/
     else
-	error!
+	nflag1 error!  \ system error about sensor problem
+	ht-err error!  \ sensor error 
 	2drop 0.0e 0.0e
     then
-    mybmp180 read-temp-pressure dup false =
+    mybmp180 read-temp-pressure dup to nflag2 false =
     if
-	drop swap drop false 
+	swap drop  
     else
-	dup error!
-	swap drop swap drop 0 swap 
+	nflag2 error!    \ system error about sensors problem
+	press-err error! \ sensor error
+	2drop 0  
+    then
+    nflag1 nflag2 or false =
+    if
+	false
+    else
+	nflag1 false =
+	if nflag2 else nflag1 then
     then ;
