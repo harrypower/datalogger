@@ -87,3 +87,20 @@ bmp180-i2c heap-new constant mybmp180
 	nflag1 false =
 	if nflag2 else nflag1 then
     then ;
+string heap-new constant co2cmd$
+s" node " co2cmd$ !$
+path$ $@ co2cmd$ !+$
+s" /collection/get2-co2.js" co2cmd$ !+$ 
+: read-co2-nh3 ( -- F: fco2 F: fnh3 nflag ) \ read co2 and nh3 values
+    \ nflag is false for no errors
+    \ nflag is non false for the first error generated
+    \ note the errors are logged into the database at code exit already
+    co2cmd$ @$ shgets throw
+    s" co2:" search true =
+    if
+	5 - swap 5 + swap junk$ !$
+	junk$ @$ >float false = if co2-err throw then 
+    else
+	co2-err throw
+    then
+;
