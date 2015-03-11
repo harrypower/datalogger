@@ -73,6 +73,20 @@ object class
 	    else 2drop
 	    then
 	then ;m method !+$
+    m: ( caddr u -- caddr1 u1 caddr2 u2 nflag ) \ split the stored string at caddr u if found
+	\ caddr u will be removed and caddr1 u1 will be split string before caddr u
+	\ caddr2 u2 will be the split string after caddr u
+	\ if no match found caddr1 u1 returns and empty string and caddr2 u2 contains the this objects string
+	\ nflag is true if string is split and returned false if this objects string is returned 
+	\ Note the returned strings are valid until a new string is placed in this string object
+	{ caddr u }
+	string-addr @ string-size @ caddr u search true =
+	if
+	    dup string-size @ swap - string-addr @ swap 2swap u - swap u + swap true
+	else
+	    2drop 0 0 string-addr @ string-size @ false
+	then ;m method split$
+    
     m: ( string -- u ) \ report string size
 	valid @ valid =
 	if string-size @ else 0 then ;m method len$ 
