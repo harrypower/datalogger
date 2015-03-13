@@ -60,7 +60,7 @@ next-exception @ constant gss-errorListEnd
 htu21d-i2c heap-new constant myhtu21d
 bmp180-i2c heap-new constant mybmp180
 
-: read-thp ( -- F: ftemp F: fhumd npress nflag ) \ read temperature humidity and pressure
+: read-thp ( npress nflag ) ( -- F: ftemp F: fhumd ) \ read temperature humidity and pressure
     \ nflag is false for no errors
     \ nflag is non false for the first error generated in this code
     \ note the errors are logged into the database at code exit already
@@ -96,6 +96,7 @@ s" /collection/get-co2.js" co2cmd$ !+$
     \ nflag is false if co2 value is read with no errors
     \ nflag is non false for some reading or system error
     \ note floating stack will contain 0.0e if nflag is non false
+    \ note the errors are reported to database at end of this word
     try
 	co2cmd$ @$ shgets throw 
 	junk$ !$ s" co2: " junk$ split$ true =
@@ -112,5 +113,6 @@ s" /collection/get-co2.js" co2cmd$ !+$
 	else
 	    co2-err throw
 	then 
-    restore dup if 0.0e then
+    restore dup if 0.0e dup co2-err <> if dup error! then co2-err error! then
     endtry ;
+
