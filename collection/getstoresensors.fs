@@ -100,14 +100,9 @@ s" /collection/get2-co2.js" co2cmd$ !+$
 	junk$ !$ 2drop 
 	s\" \n" junk$ split$ true =
 	if
-	    2swap >float false = if co2-err throw then
-	    junk$ !$ s" err: " junk$ split$ true =
-	    if
-		2swap 2drop
-		s" undefined" search false = if co2-err throw else 2drop then 
-	    else
-		co2-err throw 
-	    then
+	    s" err: undefined" search -rot 2drop true =
+	    if >float false = if co2-err throw then
+	    else co2-err throw then
 	else
 	    co2-err throw
 	then

@@ -4,5 +4,5 @@ nh3.analogRead('P9_39', nh3print);
 
 function nh3print(x) {
     console.log('nh3: ' + x.value);
-    console.log('nh3 reading error: ' + x.err);
+    console.log('err: ' + x.err);
 }
