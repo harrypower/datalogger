@@ -91,21 +91,26 @@ bmp180-i2c heap-new constant mybmp180
 string heap-new constant co2cmd$
 s" node " co2cmd$ !$
 path$ $@ co2cmd$ !+$
-s" /collection/get2-co2.js" co2cmd$ !+$ 
-: read-co2 ( -- F: fco2 ) \ read co2 value
-    \ Note catch should be used with this word as it can throw errors
-    co2cmd$ @$ shgets throw 
-    junk$ !$ s" co2: " junk$ split$ true =
-    if
-	junk$ !$ 2drop 
-	s\" \n" junk$ split$ true =
+s" /collection/get-co2.js" co2cmd$ !+$ 
+: read-co2 ( -- nflag ) ( -- F: fco2 ) \ read co2 value
+    \ nflag is false if co2 value is read with no errors
+    \ nflag is non false for some reading or system error
+    \ note floating stack will contain 0.0e if nflag is non false
+    try
+	co2cmd$ @$ shgets throw 
+	junk$ !$ s" co2: " junk$ split$ true =
 	if
-	    s" err: undefined" search -rot 2drop true =
-	    if >float false = if co2-err throw then
-	    else co2-err throw then
+	    junk$ !$ 2drop 
+	    s\" \n" junk$ split$ true =
+	    if
+		s" err: undefined" search -rot 2drop true =
+		if >float false = if co2-err throw else false then
+		else co2-err throw then
+	    else
+		co2-err throw
+	    then
 	else
 	    co2-err throw
-	then
-    else
-	co2-err throw
-    then ;
+	then 
+    restore dup if 0.0e then
+    endtry ;
