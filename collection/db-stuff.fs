@@ -205,8 +205,9 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,dataSent INT );" temp$ !+$ temp$ @$ dbcmds
     sendsqlite3cmd dberrorthrow ;
 
-: localdata! { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 -- } \ store localdata into localData table of DB
-    setupsqlite3                                \ note local time is used to store dtime value into db   
+: localdata! ( ntime npress -- ) ( F: ftemp fhumd fco2 fnh3 -- ) \ store local data!
+    { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 -- } \ store data into localData table of DB
+    setupsqlite3            
     s" insert into localData values(NULL," temp$ !$
     ntime #to$, temp$ !+$   \ remember ntime is a one cell size  
     ftemp fto$, temp$ !+$
