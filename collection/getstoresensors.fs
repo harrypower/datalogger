@@ -60,6 +60,9 @@ next-exception @ constant gss-errorListEnd
 htu21d-i2c heap-new constant myhtu21d
 bmp180-i2c heap-new constant mybmp180
 
+\ this is a test word for hty21d-i2c read-temp-humd object
+\ : read-temp-humd ( naddr -- nt nh nflag ) drop 233 200 -20 ;
+
 : read-thp ( npress nflag ) ( -- F: ftemp F: fhumd ) \ read temperature humidity and pressure
     \ nflag is false for no errors
     \ nflag is non false for the first error generated in this code
