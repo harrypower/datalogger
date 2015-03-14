@@ -62,6 +62,7 @@ bmp180-i2c heap-new constant mybmp180
 
 \ this is a test word for hty21d-i2c read-temp-humd object
 \ : read-temp-humd ( naddr -- nt nh nflag ) drop 233 200 -20 ;
+\ : read-temp-pressure ( naddr -- nt np nflag ) drop 233 88000 -5 ;
 
 : read-thp ( npress nflag ) ( -- F: ftemp F: fhumd ) \ read temperature humidity and pressure
     \ nflag is false for no errors
@@ -117,5 +118,33 @@ s" /collection/get-co2.js" co2cmd$ !+$
 	    co2-err throw
 	then 
     restore dup if 0.0e dup co2-err <> if dup error! then co2-err error! then
+    endtry ;
+
+string heap-new constant nh3cmd$
+s" node " nh3cmd$ !$
+path$ $@ nh3cmd$ !+$
+s" /collection/get-nh3.js" nh3cmd$ !+$ 
+: read-nh3 ( -- nflag ) ( -- F: fco2 ) \ read nh3 value
+    \ nflag is false if nh3 value is read with no errors
+    \ nflag is non false for some reading or system error
+    \ note floating stack will contain 0.0e if nflag is non false
+    \ note the errors are reported to database at end of this word
+    try
+	nh3cmd$ @$ shgets throw 
+	junk$ !$ s" nh3: " junk$ split$ true =
+	if
+	    junk$ !$ 2drop 
+	    s\" \n" junk$ split$ true =
+	    if
+		s" err: undefined" search -rot 2drop true =
+		if >float false = if nh3-err throw else false then
+		else nh3-err throw then
+	    else
+		nh3-err throw
+	    then
+	else
+	    nh3-err throw
+	then 
+    restore dup if 0.0e dup nh3-err <> if dup error! then nh3-err error! then
     endtry ;
 
