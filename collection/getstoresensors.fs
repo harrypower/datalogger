@@ -1,3 +1,8 @@
+#! /usr/local/bin/gforth
+\ the above line works on 0.7.3 gforth and up
+\ #! /usr/bin/gforth
+\ version 0.7.0 has the /local removed from the path to work
+
 \ This Gforth code works on BeagleBone Black to retrieve and store sensor iformation
 \    Copyright (C) 2015  Philip K. Smith
 
@@ -26,6 +31,8 @@ require db-stuff.fs
 
 string heap-new constant shlast$
 string heap-new constant junk$
+
+5 60 * 1000 * constant rtimes \ the time between readings in ms
 
 next-exception @ constant gss-errorListStart
 s" co2 reading error!"                                      exception constant co2-err
@@ -148,3 +155,21 @@ s" /collection/get-nh3.js" nh3cmd$ !+$
     restore dup if 0.0e dup nh3-err <> if dup error! then nh3-err error! then
     endtry ;
 
+: read-all-store ( -- ) \ read all sensors and store data in db
+    try
+	datetime
+	read-thp throw
+	read-co2 throw
+	read-nh3 throw
+	localdata!
+	false
+    restore drop 
+    endtry ;
+
+: main-read-loop ( -- ) \ read store wait loop
+    begin
+	read-all-store
+	rtimes ms 
+    again ;
+
+main-read-loop bye
