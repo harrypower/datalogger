@@ -221,7 +221,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 : lastlocaldata@ ( caddr u -- ) \ simply output a string of the last data point stored in localData table
     setupsqlite3
     s" select row,datetime(dtime,'unixepoch','localtime'),humd,temp,pressure,co2,nh3,dataSent " temp$ !$
-    s" from localData limit 11 offset ((select max(row) from localData)-1);" temp$ !+$
+    s" from localData limit 1 offset ((select max(row) from localData)-1);" temp$ !+$
     temp$ @$ dbcmds
     sendsqlite3cmd dberrorthrow dbret$ ;
 
