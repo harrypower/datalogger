@@ -3,8 +3,14 @@ color: sienna;
 font-family: "lucida Console";
 }
 
+h2 {
+color: sienna;
+font-family: "lucida Console";
+}
+
 p {
 margin-left: 20px;
+color: black;
 font-family: "lucida Console";
 }
 

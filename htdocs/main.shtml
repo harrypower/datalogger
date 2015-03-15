@@ -31,16 +31,18 @@ junk$ @$ cmdlist$ !$x \ ;
 
 $>
 <body>
-<h1> Realtime Sensor Data as follows: </h1>
-<h2> HTU21D sensor </h2>
-<h2> <$ myhtu21d display-th  $> <br></h2>
-<h2> BMP180 sensor </h2>
-<h2> <$ mybmp180 display-tp  $> <br></h2>
-<h2> CO2 M811 sensor </h2>
-<h2> <$ cmdlist$ @$x shget dup false = [if] drop type [else] ." co2 reading error #" . [then] $> <br></h2>
-<h2> NH3 MQ137 sensor </h2>
-<h2> <$ cmdlist$ @$x shget dup false = [if] drop type [else] ." nh3 reading error #" . [then] $> <br></h2>
-<h1> Last Database data: </h1>
-<h2> <$ lastlocaldata@ dberrmsg dup false = [if] drop 2drop type [else] . space type 2drop [then] $> <br></h2>
+<h1> Realtime Sensor Data as follows: <h1>
+<h2> Server current time <h2>
+<p> <$ s" date" shget drop type  $> </p>
+<h2> HTU21D sensor<h2>
+<p> <$ myhtu21d display-th $> </p>
+<h2> BMP180 sensor<h2>
+<p> <$ mybmp180 display-tp  $> </p>
+<h2> CO2 M811 sensor <h2>
+<p> <$ cmdlist$ @$x shget dup false = [if] drop type [else] ." co2 reading error #" . [then] $> </p>
+<h2> NH3 MQ137 sensor <h2>
+<p> <$ cmdlist$ @$x shget dup false = [if] drop type [else] ." nh3 reading error #" . [then] $> </p>
+<h1> Last Database entry: <h1>
+<p> <$ lastlocaldata@ dberrmsg dup false = [if] drop 2drop type [else] . space type 2drop [then] $> </p>
 </body>
 </html>
