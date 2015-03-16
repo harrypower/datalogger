@@ -143,6 +143,17 @@ object class
 	    index @ qty @ >=
 	    if 0 index ! then 
 	else 0 0 then ;m method @$x
+    m: ( caddr u strings -- caddr1 u1 caddr2 u2 ) \ retrieve string from aray at next index then
+	\ split that next string at caddr u if possible
+	\ caddr1 u1 is empty if caddr u string is not found
+	\ caddr2 u2 contains the left over string if caddr u string is found
+	qty @ 0 >
+	if
+	    array @ index @ cell * + @ split$ drop
+	    index @ 1+ index !
+	    index @ qty @ >=
+	    if 0 index ! then 
+	else 2drop 0 0 0 0 then ;m method split$s
     m: ( strings -- u ) \ report size of strings array
 	valid @ valid =
 	if qty @ else 0 then ;m method $qty

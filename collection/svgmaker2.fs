@@ -80,46 +80,47 @@ object class
 	svg-output @ @$ ;m overrides print
 end-class svgmaker
 
-strings heap-new constant head1
-strings heap-new constant attr1
-strings heap-new constant path1
-string heap-new constant a$
-svgmaker heap-new constant thesvg
 
-s\" width=\"300\""            head1 !$x
-s\" height=\"300\""           head1 !$x
-s\" viewBox=\"0 0 300 300 \"" head1 !$x
+\ strings heap-new constant head1
+\ strings heap-new constant attr1
+\ strings heap-new constant path1
+\ string heap-new constant a$
+\ svgmaker heap-new constant thesvg
 
-s\" fill=\"rgb(0,0,255)\""      attr1 !$x 
-s\" fill-opacity=\"1.0\""       attr1 !$x 
-s\" stroke=\"rgb(0,100,200)\""  attr1 !$x 
-s\" stroke-opacity=\"0.0\""     attr1 !$x 
-s\" stroke-width=\"4.0\""       attr1 !$x 
-s\" font-size=\"20px\""         attr1 !$x 
+\ s\" width=\"300\""            head1 !$x
+\ s\" height=\"300\""           head1 !$x
+\ s\" viewBox=\"0 0 300 300 \"" head1 !$x
 
-s" M 10 30" path1 !$x 
-s" L 15 35" path1 !$x 
-s" L 27 40" path1 !$x 
-s" L 48 50" path1 !$x 
-s" L 97 20" path1 !$x 
+\ s\" fill=\"rgb(0,0,255)\""      attr1 !$x 
+\ s\" fill-opacity=\"1.0\""       attr1 !$x 
+\ s\" stroke=\"rgb(0,100,200)\""  attr1 !$x 
+\ s\" stroke-opacity=\"0.0\""     attr1 !$x 
+\ s\" stroke-width=\"4.0\""       attr1 !$x 
+\ s\" font-size=\"20px\""         attr1 !$x 
 
-s" Some test text!" a$ !$
+\ s" M 10 30" path1 !$x 
+\ s" L 15 35" path1 !$x 
+\ s" L 27 40" path1 !$x 
+\ s" L 48 50" path1 !$x 
+\ s" L 97 20" path1 !$x 
 
-head1 thesvg svgheader
-attr1 30 20 a$ thesvg svgtext
-thesvg svgend dump
-thesvg print cr type cr
+\ s" Some test text!" a$ !$
 
-thesvg construct
+\ head1 thesvg svgheader
+\ attr1 30 20 a$ thesvg svgtext
+\ thesvg svgend dump
+\ thesvg print cr type cr
 
-head1 thesvg svgheader
-attr1 path1 thesvg svgpath
-thesvg svgend dump
-thesvg print cr type cr
+\ thesvg construct
 
-thesvg construct
+\ head1 thesvg svgheader
+\ attr1 path1 thesvg svgpath
+\ thesvg svgend dump
+\ thesvg print cr type cr
 
-head1 thesvg svgheader
-attr1 50 80 35 thesvg svgcircle
-thesvg svgend dump
-thesvg print cr type cr
+\ thesvg construct
+
+\ head1 thesvg svgheader
+\ attr1 50 80 35 thesvg svgcircle
+\ thesvg svgend dump
+\ thesvg print cr type cr
