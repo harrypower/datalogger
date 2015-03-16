@@ -21,11 +21,6 @@
 # 
 # m h  dom mon dow   command
 
-# 0 23 * * * /home/pi/git/datalogger/collection/usbcopydb.fs >/dev/null 2>&1
-# 0 15 * * * /home/pi/git/datalogger/collection/usbcopydb.fs >/dev/null 2>&1
-# 0 *  * * * /home/pi/git/datalogger/collection/sendsmtp.fs >/dev/null 2>&1
-# 0  3 * * * /sbin/shutdown -r +1  >/dev/null 2>&1
-
-@reboot /home/pks/datalogger/collection/sensor-client.fs -r &
+@reboot /home/pks/datalogger/collection/getstoresensors.fs &
 
 
