@@ -1,3 +1,7 @@
+#! /usr/local/bin/gforth
+\ note this should call gforth version 0.7.2 and up
+\ /usr/bin/gforth  would call 0.7.0 only!
+
 \ This Gforth code is Beaglebone black sensor reading code
 \    Copyright (C) 2015  Philip K. Smith
 
@@ -16,36 +20,38 @@
 
 \ Currently this code just runs other tools that get the sensors data.
 
-\ warnings off
+warnings off
 
 require gforth-misc-tools.fs
 require stringobj.fs
 require script.fs
+require ../BBB_Gforth_gpio/htu21d-object.fs
+require ../BBB_Gforth_gpio/bmp180-object.fs
 
-variable junk$
-\ variable sudo$
-\ s" sudo " sudo$ $!
+string heap-new constant junk$
 
 strings heap-new constant cmdlist
 
-\ sudo$ $@ junk$ $!
-path$ $@ junk$ $! \ $+!
-s" /BBB_Gforth_gpio/BMP180_i2c.fs" junk$ $+!
-junk$ $@ cmdlist !$x  \ pressure sensor
+htu21d-i2c heap-new constant myhtu21d
+bmp180-i2c heap-new constant mybmp180
 
-\ sudo$ $@ junk$ $!
-path$ $@ junk$ $! \ $+!
-s" /BBB_Gforth_gpio/HTU21D_i2c.fs" junk$ $+!
-junk$ $@ cmdlist !$x  \ humidity tempertaure sensor
+myhtu21d display-th
+mybmp180 display-tp cr
 
-\ sudo$ $@ junk$ $!
-s" node " junk$ $! \ $+!
-path$ $@ junk$ $+!
-s" /collection/gas-reading.js" junk$ $+!
-junk$ $@ cmdlist !$x  \ gas sensors
+s" node " junk$ !$
+path$ $@ junk$ !+$
+s" /collection/get-co2.js" junk$ !+$
+junk$ @$ cmdlist !$X
 
-: read+print ( -- )
-    cmdlist $qty 0 ?do cmdlist @$x shget throw type s" <br>" type  loop ;
+s" node " junk$ !$ 
+path$ $@ junk$ !+$
+s" /collection/get-nh3.js" junk$ !+$
+junk$ @$ cmdlist !$x
 
-\ read+print
-\ bye
+cmdlist @$x shget throw type cr
+cmdlist @$x shget throw type cr
+
+bye
+
+
+
