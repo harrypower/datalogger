@@ -157,6 +157,8 @@ object class
     m: ( strings -- u ) \ report size of strings array
 	valid @ valid =
 	if qty @ else 0 then ;m method $qty
+    m: ( strings -- ) \ reset index to start of strings list for output purposes
+	0 index ! ;m method reset
     m: ( string -- ) \ print object for debugging
 	this [parent] print
 	s" array:" type array @ .

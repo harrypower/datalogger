@@ -10,18 +10,19 @@ warnings off
 require ../collection/svgmaker2.fs
 require ../collection/stringobj.fs
 
-string  heap-new constant junk$
 strings heap-new constant head
 strings heap-new constant attr1
+strings heap-new constant attr2
 strings heap-new constant path1
+strings heap-new constant path2
 strings heap-new constant circle
 strings heap-new constant text
 svgmaker heap-new constant thesvg
-
+." a" 
 s\" width=\"300\""            head !$x
 s\" height=\"300\""           head !$x
 s\" viewBox=\"0 0 300 300\""  head !$x
-
+." c"
 s\" fill=\"rgb(0,0,255)\""      attr1 !$x 
 s\" fill-opacity=\"1.0\""       attr1 !$x 
 s\" stroke=\"rgb(0,100,200)\""  attr1 !$x 
@@ -29,12 +30,23 @@ s\" stroke-opacity=\"0.0\""     attr1 !$x
 s\" stroke-width=\"4.0\""       attr1 !$x 
 s\" font-size=\"20px\""         attr1 !$x 
 
+s\" fill=\"rgb(0,255,0)\""      attr2 !$x 
+s\" fill-opacity=\"1.0\""       attr2 !$x 
+s\" stroke=\"rgb(0,100,0)\""    attr2 !$x 
+s\" stroke-opacity=\"0.0\""     attr2 !$x 
+s\" stroke-width=\"4.0\""       attr2 !$x 
+s\" font-size=\"20px\""         attr2 !$x 
+
+
 s" M 10 30" path1 !$x 
 s" L 15 35" path1 !$x 
 s" L 27 40" path1 !$x 
 s" L 48 50" path1 !$x 
 s" L 97 20" path1 !$x 
 
+s" M 300 0" path2 !$x
+s" L 0 0"   path2 !$x
+s" L 0 300" path2 !$x
 
 s" Some text in the svg! " text !$x
 
@@ -43,11 +55,14 @@ $>
 <body>
 <h1> SVG test <h1>
 <$
+." b" 
 head thesvg svgheader 
 attr1 path1 thesvg svgpath
+attr2 path2 thesvg svgpath
 attr1 30 20 text thesvg svgtext
 attr1 50 80 20 thesvg svgcircle
-thesvg svgend type 
+thesvg svgend type
+
 $>
 </body>
 </html>
