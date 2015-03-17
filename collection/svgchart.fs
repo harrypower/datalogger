@@ -22,15 +22,16 @@ require string.fs
 
 svgmaker class
     \ these variables and values are calcuated or used in the following code
-    cell% inst-var mymin          \ will contain the chart data min absolute value
-    cell% inst-var mymax          \ will contain the chart data max absolute value
-    cell% inst-var myspread       \ will contain mymax - mymin
-    cell% inst-var xstep          \ how many x px absolute values to skip between data point plots
-    cell% inst-var yscale         \ this is the scaling factor of the y values to be placed on chart
-    inst-value xmaxpoints         \ this will be the max allowed points to be placed on the chart
-    inst-value localdata          \ this is used by the chart making process for the data to be processed
-    inst-value working$           \ this is used to work on strings temporarily in the chart code
-    inst-value svgdata$           \ will contain the data values used in path 
+    cell% inst-var mymin      \ will contain the chart data min absolute value
+    cell% inst-var mymax      \ will contain the chart data max absolute value
+    cell% inst-var myspread   \ will contain mymax - mymin
+    cell% inst-var xstep      \ how many x px absolute values to skip between data point plots
+    cell% inst-var yscale     \ this is the scaling factor of the y values to be placed on chart
+    inst-value xmaxpoints     \ this will be the max allowed points to be placed on the chart
+    \ these will be strings to hold string data 
+    inst-value localdata$     \ this is used by the chart making process for the data to be processed
+    inst-value working$       \ this is used to work on strings temporarily in the chart code
+    inst-value svgdata$       \ will contain the data values used in path 
     \ these values are inputs to the chart for changing its look or size
     \ set these values to adjust the look of the size and positions of the chart
     inst-value xlablesize    \ the size taken up by the xlabel on the right side for chart
@@ -79,28 +80,42 @@ svgmaker class
         0    [to-inst] ylablerot
 
     ;m overrides construct
-    
-\    m: ( svgchartmaker -- n ) ( f: r -- )
-\	f>d d>s ;m method f>s
-\    m: ( n svgchartmaker -- ) ( f: -- r )
-\	s>d d>f ;m method s>f
-    \ these test words will be removed after all is working
+
+    \ fudge test words ... will be deleted after object is done
     m: ( strings-data svgchartmaker -- ) \ test word to populate svgdata$
-	[to-inst] svgdata$ ;m method popsvgdata$
+	[to-inst] svgdata$ ;m method putsvgdata$
     m: ( -- caddr u ) \ test word to show svg output
 	svg-output @  @$ ;m method seeoutput
+
+    \ some worker words to do some specific jobs
+    m: ( -- )  \ finds the min and max values of the localdata strings
+	\ note results stored in mymax and mymin float variables
+	localdata $qty xmaxpoints min 0 ?do
+	    localdata @$ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! else true throw then
+	loop ;m method findminmaxdata
+
+    m: ( ?? -- ?? ) \ will produce the svg header for this chart
+
+    ;m method makeheader
     
-    m: ( strings-attr svgchartmaker -- ) \ makes circle data from exisiting svgdata$ that was used to create chart lines
-	\ strings-attr is address to a strings object containing attributes
-	\ svgdata$ is of strings type object and needs to be populated before calling!
-	svgdata$ $qty 0 ?do
-	    dup
-	    svgdata$ @$ 32 $split 2swap 2drop 32 $split >float
-	    if
-		>float if f>s f>s circleradius svgcircle then
-	    else
-		2drop
-	    then
-	loop drop ;m method makecirclefrompathdata
+    m: ( ?? -- ?? ) \ will produce the cicle svg strings to be used in chart
+
+    ;m method makecircle
+    
+    m: ( ?? -- ?? ) \ will produce the path strings to be used in chart
+
+    ;m method makepath
+    
+    m: ( ?? -- ?? ) \ will make the chart lables both lines and text
 	
+    ;m method makelables
+
+    m: ( ?? -- ?? ) \ will put the text onto the chart
+
+    ;m maketext
+    
+    m: ( ?? -- caddr u nflag )  \ top level word to make the svg chart 
+
+    ;m method makechart
+    
 end-class svgchartmaker

@@ -23,7 +23,7 @@ object class
     cell% inst-var svg-output \ the svg output string object
     cell% inst-var construct-test \ a construct test value to prevent memory leaks
   protected
-    m: ( caddr u -- ) \ store string into svg-output
+    m: ( caddr u -- ) \ append string into svg-output string
 	svg-output @ !+$ ;m method @svg$
 
     m: ( nstrings svg -- ) \ place contents of nstrings into svg string as attribute propertys
@@ -38,7 +38,7 @@ object class
   public
     m: ( svg -- ) \ init svt-output string
 	construct-test construct-test @ =
-	if svg-output @ construct \ init string
+	if svg-output @ free 0 construct-test ! this construct \ init string
 	else string heap-new svg-output ! construct-test construct-test !
 	then  ;m overrides construct
     
