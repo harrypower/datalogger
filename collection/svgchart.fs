@@ -87,7 +87,7 @@ svgmaker class
     m: ( -- caddr u ) \ test word to show svg output
 	svg-output @  @$ ;m method seeoutput
 
-    \ some worker words to do some specific jobs
+    \ some worker methods to do some specific jobs
     m: ( -- )  \ finds the min and max values of the localdata strings
 	\ note results stored in mymax and mymin float variables
 	localdata $qty xmaxpoints min 0 ?do
@@ -112,7 +112,21 @@ svgmaker class
 
     m: ( ?? -- ?? ) \ will put the text onto the chart
 
-    ;m maketext
+    ;m method maketext
+
+    \ methods for giving data to svgchart and geting the svg from this object
+    m: ( nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr -- )
+	\ to place xdata onto svg chart with xdata-attr and with circle-attr for each data point
+	\ note the xdata is a strings object that must have quantity must match xlabdata quantity
+    ;m method setdata
+    
+    m: ( nstrings-xlabdata nstrings-xlabtxt-attr nstrings-ylabtxt-attr nstrings-labline-attr -- )
+	\ to place xlabel data onto svg chart with x,y text and line attributes
+	\ note xlabdata is a strings object containing all data to be placed on xlabel but quantity must match xdata quantity
+    ;m method setlabeldataattr
+    
+    m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attr
+    ;m method settext
     
     m: ( ?? -- caddr u nflag )  \ top level word to make the svg chart 
 
