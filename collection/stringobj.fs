@@ -159,6 +159,9 @@ object class
 	if qty @ else 0 then ;m method $qty
     m: ( strings -- ) \ reset index to start of strings list for output purposes
 	0 index ! ;m method reset
+    m: ( nstrings strings -- ) \ copy strings object to this strings object
+	dup reset
+	dup $qty 0 ?do dup @$x this !$x loop drop ;m method copy$s 
     m: ( string -- ) \ print object for debugging
 	this [parent] print
 	s" array:" type array @ .
