@@ -18,7 +18,7 @@
 \ output for using in a web server for example!
 
 require svgmaker2.fs
-require string.fs
+require stringobj.fs
 
 svgmaker class
     \ these variables and values are calcuated or used in the following code
@@ -27,13 +27,9 @@ svgmaker class
     cell% inst-var myspread   \ will contain mymax - mymin
     cell% inst-var xstep      \ how many x px absolute values to skip between data point plots
     cell% inst-var yscale     \ this is the scaling factor of the y values to be placed on chart
-    inst-value xmaxpoints     \ this will be the max allowed points to be placed on the chart
-    \ these will be strings to hold string data 
-    inst-value localdata$     \ this is used by the chart making process for the data to be processed
-    inst-value working$       \ this is used to work on strings temporarily in the chart code
-    inst-value svgdata$       \ will contain the data values used in path 
     \ these values are inputs to the chart for changing its look or size
     \ set these values to adjust the look of the size and positions of the chart
+    inst-value xmaxpoints    \ this will be the max allowed points to be placed on the chart
     inst-value xlablesize    \ the size taken up by the xlabel on the right side for chart
     inst-value xmaxchart     \ the max x absolute px of the chart .. change this value to make chart larger in x
     inst-value ymaxchart     \ the max y absolute px of the chart .. change this value to make chart larger in y
@@ -49,8 +45,20 @@ svgmaker class
     inst-value circleradius  \ the radius of the circle used on charts for lines
     inst-value xlablerot     \ the value for rotation orientation of xlable text
     inst-value ylablerot     \ the value for rotation orientation of ylable text
-
+    \ these will be string to hold string data 
+    inst-value working$       \ this is used to work on strings temporarily in the chart code
+    inst-value svg-output$    \ this will be the primary output string that makechart creates
+    \ these will be strings to hold strings data
+    inst-value xdata$         \ holds the xdata for chart in strings
+    inst-value xdata-attr$    \ holds the xdata attribute strings
+    inst-value xdata-circle-attr$ \ holds the xdata circle attribute strings
+    inst-value xlabdata$      \ x label data strings
+    inst-value xlab-attr$     \ x label attribute strings
+    inst-value ylab-attr$     \ y label attribute strings
+    inst-value labline-attr$  \ label line attribute strings
+    
     m: ( -- ) \ constructor to set some defaults
+	\ *** remember to add control method for testing if construct is first time running or not! ***
 	this [parent] construct
 	0.0e mymin f!
         0.0e mymax f!
@@ -58,11 +66,6 @@ svgmaker class
         0.0e xstep f!
         0.0e yscale f!
         2    [to-inst] xmaxpoints
-
-	strings heap-new [to-inst] localdata
-	strings heap-new [to-inst] working$
-	strings heap-new [to-inst] svgdata$
-	
         140  [to-inst] xlablesize
         1000 [to-inst] xmaxchart
         600  [to-inst] ymaxchart
@@ -79,19 +82,28 @@ svgmaker class
         0    [to-inst] xlablerot
         0    [to-inst] ylablerot
 
+	string heap-new [to-inst] working$
+	string heap-new [to-inst] svg-output$
+
+	strings heap-new [to-inst] xdata$
+	strings heap-new [to-inst] xdata-attr$
+	strings heap-new [to-inst] xdata-circle-attr$
+	strings heap-new [to-inst] xlabdata$
+	strings heap-new [to-inst] xlab-attr$
+	strings heap-new [to-inst] ylab-attr$
+	strings heap-new [to-inst] labline-attr$
+	
     ;m overrides construct
 
     \ fudge test words ... will be deleted after object is done
-    m: ( strings-data svgchartmaker -- ) \ test word to populate svgdata$
-	[to-inst] svgdata$ ;m method putsvgdata$
     m: ( -- caddr u ) \ test word to show svg output
-	svg-output @  @$ ;m method seeoutput
+	svg-output$ @$ ;m method seeoutput
 
     \ some worker methods to do some specific jobs
     m: ( -- )  \ finds the min and max values of the localdata strings
 	\ note results stored in mymax and mymin float variables
-	localdata $qty xmaxpoints min 0 ?do
-	    localdata @$ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! else true throw then
+	xdata$ $qty xmaxpoints min 0 ?do
+	    xdata$ @$ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! else true throw then
 	loop ;m method findminmaxdata
 
     m: ( ?? -- ?? ) \ will produce the svg header for this chart
@@ -118,14 +130,17 @@ svgmaker class
     m: ( nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr -- )
 	\ to place xdata onto svg chart with xdata-attr and with circle-attr for each data point
 	\ note the xdata is a strings object that must have quantity must match xlabdata quantity
+	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
     ;m method setdata
     
-    m: ( nstrings-xlabdata nstrings-xlabtxt-attr nstrings-ylabtxt-attr nstrings-labline-attr -- )
+    m: ( nstrings-xlabdata nstrings-xlab-attr nstrings-ylab-attr nstrings-labline-attr -- )
 	\ to place xlabel data onto svg chart with x,y text and line attributes
 	\ note xlabdata is a strings object containing all data to be placed on xlabel but quantity must match xdata quantity
+	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
     ;m method setlabeldataattr
     
     m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attr
+	\ every time this is called before makechart method the string,x,y and attributes are stored to be placed into svgchart
     ;m method settext
     
     m: ( ?? -- caddr u nflag )  \ top level word to make the svg chart 
