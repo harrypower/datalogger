@@ -78,7 +78,7 @@ svgmaker class
         140  [to-inst] xlablesize
         1000 [to-inst] xmaxchart
         600  [to-inst] ymaxchart
-       140  [to-inst] ylablesize
+        140  [to-inst] ylablesize
         70   [to-inst] ytoplablesize
         9    [to-inst] xminstep
         10   [to-inst] xlableoffset
@@ -151,13 +151,18 @@ svgmaker class
 	\ to place xdata onto svg chart with xdata-attr and with circle-attr for each data point
 	\ note the xdata is a strings object that must have quantity must match xlabdata quantity
 	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
-    ;m method setdata
+	xdata-circle-attr$ copy$s
+	xdata-attr$ copy$s
+	xdata$ copy$s ;m method setdata
     
     m: ( nstrings-xlabdata nstrings-xlab-attr nstrings-ylab-attr nstrings-labline-attr -- )
 	\ to place xlabel data onto svg chart with x,y text and line attributes
 	\ note xlabdata is a strings object containing all data to be placed on xlabel but quantity must match xdata quantity
 	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
-    ;m method setlabeldataattr
+	labline-attr$ copy$s
+	ylab-attr$ copy$s
+	xlab-attr$ copy$s
+	xlabdata$ copy$s ;m method setlabeldataattr
     
     m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attr
 	\ every time this is called before makechart method the string,x,y and attributes are stored to be placed into svgchart
@@ -169,10 +174,10 @@ svgmaker class
 	    1 [to-inst] index-text 
 	then
 	addr-text index-text 1 - text% %size * + dup
-	-rot text-attr$ ! dup
+	-rot text-attr$ strings heap-new dup rot ! copy$s dup
 	-rot text-y ! dup
 	-rot text-x !
-	text$ !
+	text$ string heap-new dup rot ! swap @$ rot !$
     ;m method settext
     
     m: ( ?? -- caddr u nflag )  \ top level word to make the svg chart 
