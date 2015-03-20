@@ -56,6 +56,15 @@ svgmaker class
     inst-value xlab-attr$     \ x label attribute strings
     inst-value ylab-attr$     \ y label attribute strings
     inst-value labline-attr$  \ label line attribute strings
+
+    struct                    \ structure to hold the text string location and attributes
+	cell% field text$
+	cell% field text-x
+	cell% field text-y
+	cell% field text-attr$
+    end-struct text%
+    inst-value index-text \ text index
+    inst-value addr-text  \ address of text structure
     
     m: ( -- ) \ constructor to set some defaults
 	\ *** remember to add control method for testing if construct is first time running or not! ***
@@ -69,7 +78,7 @@ svgmaker class
         140  [to-inst] xlablesize
         1000 [to-inst] xmaxchart
         600  [to-inst] ymaxchart
-        140  [to-inst] ylablesize
+       140  [to-inst] ylablesize
         70   [to-inst] ytoplablesize
         9    [to-inst] xminstep
         10   [to-inst] xlableoffset
@@ -81,7 +90,7 @@ svgmaker class
         4    [to-inst] circleradius
         0    [to-inst] xlablerot
         0    [to-inst] ylablerot
-
+	\ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
 	string heap-new [to-inst] working$
 	string heap-new [to-inst] svg-output$
 
@@ -92,7 +101,9 @@ svgmaker class
 	strings heap-new [to-inst] xlab-attr$
 	strings heap-new [to-inst] ylab-attr$
 	strings heap-new [to-inst] labline-attr$
-	
+	\ *** remember the text structure is created dynamicaly so free memory if text were stored ***
+	0 [to-inst] index-text 
+	0 [to-inst] addr-text 
     ;m overrides construct
 
     \ fudge test words ... will be deleted after object is done
@@ -100,6 +111,15 @@ svgmaker class
 	svg-output$ @$ ;m method seeoutput
 
     \ some worker methods to do some specific jobs
+
+    m: ( nindex-text -- nstring-text nx ny nstrings-attr )
+	\ to retrieve the text attributes for a given index value
+	text% %size * addr-text + dup
+	text$ @ swap dup
+	text-x @ swap dup
+	text-y @ swap 
+	text-attr$ @ ;m method ntext@
+
     m: ( -- )  \ finds the min and max values of the localdata strings
 	\ note results stored in mymax and mymin float variables
 	xdata$ $qty xmaxpoints min 0 ?do
@@ -141,6 +161,18 @@ svgmaker class
     
     m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attr
 	\ every time this is called before makechart method the string,x,y and attributes are stored to be placed into svgchart
+	index-text 0 >
+	if
+	    addr-text text% %size index-text 1 + * resize throw [to-inst] addr-text index-text 1 + [to-inst] index-text
+	else
+	    text% %alloc [to-inst] addr-text
+	    1 [to-inst] index-text 
+	then
+	addr-text index-text 1 - text% %size * + dup
+	-rot text-attr$ ! dup
+	-rot text-y ! dup
+	-rot text-x !
+	text$ !
     ;m method settext
     
     m: ( ?? -- caddr u nflag )  \ top level word to make the svg chart 
@@ -148,3 +180,5 @@ svgmaker class
     ;m method makechart
     
 end-class svgchartmaker
+
+svgchartmaker heap-new constant test
