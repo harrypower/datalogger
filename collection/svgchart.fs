@@ -69,12 +69,12 @@ svgmaker class
     m: ( -- ) \ constructor to set some defaults
 	\ *** remember to add control method for testing if construct is first time running or not! ***
 	this [parent] construct
-	0.0e mymin f!
-        0.0e mymax f!
-        0.0e myspread f!
-        0.0e xstep f!
-        0.0e yscale f!
-        2    [to-inst] xmaxpoints
+	0.0e mymin sf!
+        0.0e mymax sf!
+        0.0e myspread sf!
+        0.0e xstep sf!
+        0.0e yscale sf!
+        4    [to-inst] xmaxpoints
         140  [to-inst] xlablesize
         1000 [to-inst] xmaxchart
         600  [to-inst] ymaxchart
@@ -101,7 +101,7 @@ svgmaker class
 	strings heap-new [to-inst] xlab-attr$
 	strings heap-new [to-inst] ylab-attr$
 	strings heap-new [to-inst] labline-attr$
-	\ *** remember the text structure is created dynamicaly so free memory if text were stored ***
+	\ *** remember the text structure is created dynamicaly so free memory if text was stored ***
 	0 [to-inst] index-text 
 	0 [to-inst] addr-text 
     ;m overrides construct
@@ -109,6 +109,9 @@ svgmaker class
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
 	svg-output$ @$ ;m method seeoutput
+    m: ( f: -- fmymin fmymax )
+	mymin sf@
+	mymax sf@ ;m method seeminmax
 
     \ some worker methods to do some specific jobs
 
@@ -123,7 +126,7 @@ svgmaker class
     m: ( -- )  \ finds the min and max values of the localdata strings
 	\ note results stored in mymax and mymin float variables
 	xdata$ $qty xmaxpoints min 0 ?do
-	    xdata$ @$ >float if fdup mymin f@ fmin mymin f! mymax f@ fmax mymax f! else true throw then
+	    xdata$ @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! else true throw then
 	loop ;m method findminmaxdata
 
     m: ( ?? -- ?? ) \ will produce the svg header for this chart
@@ -164,7 +167,7 @@ svgmaker class
 	xlab-attr$ copy$s
 	xlabdata$ copy$s ;m method setlabeldataattr
     
-    m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attr
+    m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attributes
 	\ every time this is called before makechart method the string,x,y and attributes are stored to be placed into svgchart
 	index-text 0 >
 	if
