@@ -49,8 +49,7 @@ svgmaker class
     \ these will be string to hold string data 
     inst-value working$s      \ this is used to work on strings temporarily in the chart code
     inst-value working$       \ used to work on a string temporarily in chart code
-\    inst-value svg-output$    \ this will be the primary output string that makechart creates
-    inst-value svgdata$       \ contains processed xdata$ into prepath data strings
+    inst-value pathdata$      \ contains path strings processed drom xdata$ strings
     \ these will be strings to hold strings data
     inst-value xdata$         \ holds the xdata for chart in strings
     inst-value xdata-attr$    \ holds the xdata attribute strings
@@ -60,7 +59,16 @@ svgmaker class
     inst-value ylab-attr$     \ y label attribute strings
     inst-value labline-attr$  \ label line attribute strings
 
-    struct                    \ structure to hold the text string location and attributes
+    \ structure to hold the array of datas to be charted 
+    struct
+	cell% field data$
+	cell% field data-attr$
+	cell% field cicle-attr$
+    end-struct data%
+    inst-value index-data \ data index
+    inst-value addr-data  \ addresss of data structure
+    struct
+    \ structure to hold the text string location and attributes
 	cell% field text$
 	cell% field text-x
 	cell% field text-y
@@ -96,8 +104,7 @@ svgmaker class
 	\ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
 	strings heap-new [to-inst] working$s
 	string  heap-new [to-inst] working$
-\	string  heap-new [to-inst] svg-output$
-	strings heap-new [to-inst] svgdata$
+	strings heap-new [to-inst] pathdata$
 	
 	strings heap-new [to-inst] xdata$
 	strings heap-new [to-inst] xdata-attr$
@@ -106,6 +113,9 @@ svgmaker class
 	strings heap-new [to-inst] xlab-attr$
 	strings heap-new [to-inst] ylab-attr$
 	strings heap-new [to-inst] labline-attr$
+	\ *** remember the data structure is created dynamicaly so free memory if data was stored ***
+	0 [to-inst] index-data
+	0 [to-inst] addr-data
 	\ *** remember the text structure is created dynamicaly so free memory if text was stored ***
 	0 [to-inst] index-text 
 	0 [to-inst] addr-text 
@@ -122,7 +132,9 @@ svgmaker class
     m: ( f: -- fmymin fmymax )
 	mymin sf@
 	mymax sf@ ;m method seeminmax
-
+    m: ( -- naddr )
+	pathdata$ ;m method seepathdata$
+   
     \ some worker methods to do some specific jobs
 
     m: ( nindex-text -- nstring-text nx ny nstrings-attr )
@@ -160,9 +172,28 @@ svgmaker class
 
     ;m method makecircle
     
-    m: ( ?? -- ?? ) \ will produce the path strings to be used in chart
-
-    ;m method makepath
+    m: ( -- ) \ will produce the path strings to be used in chart
+	xdata$ reset
+	s" M " working$ !$ xlablesize #to$ working$ !+$ s"  " working$ !+$
+	xdata$ @$x >float
+	if
+	    yscale sf@ f*
+	else \ if fist string is not a number just plot with mymin value
+	    mymin sf@ yscale sf@ f*
+	then
+	mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ !+$ working$ @$ pathdata$ !$x
+	xdata$ $qty xmaxpoints min 1
+	?do
+	    s" L " working$ !$
+	    i s>f xstep sf@ f* f>s xlablesize + #to$ working$ !+$ s"  " working$ !+$
+	    xdata$ @$x >float
+	    if
+		yscale sf@ f*
+	    else \ if string is not a number just plot with mymin value
+		mymin sf@ yscale sf@ f*
+	    then
+	    mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ !+$ working$ @$ pathdata$ !$x
+	loop ;m method makepath
     
     m: ( ?? -- ?? ) \ will make the chart lables both lines and text
 	
@@ -173,6 +204,8 @@ svgmaker class
     ;m method maketext
 
     \ methods for giving data to svgchart and geting the svg from this object
+    
+    \ **** this word needs to store several data sets like settext method does ****
     m: ( nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr -- )
 	\ to place xdata onto svg chart with xdata-attr and with circle-attr for each data point
 	\ note the xdata is a strings object that must have quantity must match xlabdata quantity
@@ -207,7 +240,11 @@ svgmaker class
     ;m method settext
     
     m: ( ?? -- caddr u nflag )  \ top level word to make the svg chart 
-
+\	xdata$ reset
+\	xmaxchart xminstep
+\	xdata$ $qtyf
+\	xstep
+\	yscale
     ;m method makechart
     
 end-class svgchartmaker
