@@ -19,6 +19,7 @@
 
 require svgmaker2.fs
 require stringobj.fs
+require gforth-misc-tools.fs
 
 svgmaker class
     \ these variables and values are calcuated or used in the following code
@@ -46,8 +47,10 @@ svgmaker class
     inst-value xlablerot     \ the value for rotation orientation of xlable text
     inst-value ylablerot     \ the value for rotation orientation of ylable text
     \ these will be string to hold string data 
-    inst-value working$       \ this is used to work on strings temporarily in the chart code
-    inst-value svg-output$    \ this will be the primary output string that makechart creates
+    inst-value working$s      \ this is used to work on strings temporarily in the chart code
+    inst-value working$       \ used to work on a string temporarily in chart code
+\    inst-value svg-output$    \ this will be the primary output string that makechart creates
+    inst-value svgdata$       \ contains processed xdata$ into prepath data strings
     \ these will be strings to hold strings data
     inst-value xdata$         \ holds the xdata for chart in strings
     inst-value xdata-attr$    \ holds the xdata attribute strings
@@ -91,9 +94,11 @@ svgmaker class
         0    [to-inst] xlablerot
         0    [to-inst] ylablerot
 	\ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
-	string heap-new [to-inst] working$
-	string heap-new [to-inst] svg-output$
-
+	strings heap-new [to-inst] working$s
+	string  heap-new [to-inst] working$
+\	string  heap-new [to-inst] svg-output$
+	strings heap-new [to-inst] svgdata$
+	
 	strings heap-new [to-inst] xdata$
 	strings heap-new [to-inst] xdata-attr$
 	strings heap-new [to-inst] xdata-circle-attr$
@@ -108,7 +113,12 @@ svgmaker class
 
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
-	svg-output$ @$ ;m method seeoutput
+	svg-output @ @$ ;m method seeoutput
+    m: ( --  caddr u )
+	working$ @$ ;m method seeworking
+    m: ( -- naddr )
+	working$s ;m method working$s@
+    
     m: ( f: -- fmymin fmymax )
 	mymin sf@
 	mymax sf@ ;m method seeminmax
@@ -129,9 +139,22 @@ svgmaker class
 	    xdata$ @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! else true throw then
 	loop ;m method findminmaxdata
 
-    m: ( ?? -- ?? ) \ will produce the svg header for this chart
+    m: ( -- ) \ will produce the svg header for this chart
+	working$s construct
+	s\" width=" working$ !$ s\" \"" working$ !+$
+	xmaxchart xlablesize + #to$ working$ !+$ s\" \"" working$ !+$
+	working$ @$ working$s !$x
 
-    ;m method makeheader
+	s\" height=" working$ !$ s\" \"" working$ !+$
+	ymaxchart ylablesize + ytoplablesize + #to$ working$ !+$ s\" \"" working$ !+$
+	working$ @$ working$s !$x
+	
+	s\" viewBox=" working$ !$ s\" \"0 0 " working$ !+$
+	xmaxchart xlablesize + #to$ working$ !+$ s"  " working$ !+$
+	ymaxchart ylablesize + ytoplablesize + #to$ working$ !+$ s\" \"" working$ !+$
+	working$ @$ working$s !$x
+
+	working$s this svgheader ;m method makeheader
     
     m: ( ?? -- ?? ) \ will produce the cicle svg strings to be used in chart
 
