@@ -22,6 +22,7 @@ require stringobj.fs
 require gforth-misc-tools.fs
 
 svgmaker class
+    cell% inst-var svgmaker-test \ used to see if construct is first being executed or not
     \ these variables and values are calcuated or used in the following code
     cell% inst-var mymin      \ will contain the chart data min absolute value
     cell% inst-var mymax      \ will contain the chart data max absolute value
@@ -47,13 +48,10 @@ svgmaker class
     inst-value xlablerot     \ the value for rotation orientation of xlable text
     inst-value ylablerot     \ the value for rotation orientation of ylable text
     \ these will be string to hold string data 
-    inst-value working$s      \ this is used to work on strings temporarily in the chart code
     inst-value working$       \ used to work on a string temporarily in chart code
-    inst-value pathdata$      \ contains path strings processed drom xdata$ strings
     \ these will be strings to hold strings data
-    inst-value xdata$         \ holds the xdata for chart in strings
-    inst-value xdata-attr$    \ holds the xdata attribute strings
-    inst-value xdata-circle-attr$ \ holds the xdata circle attribute strings
+    inst-value working$s      \ this is used to work on strings temporarily in the chart code
+    inst-value pathdata$      \ contains path strings processed drom xdata$ strings
     inst-value xlabdata$      \ x label data strings
     inst-value xlab-attr$     \ x label attribute strings
     inst-value ylab-attr$     \ y label attribute strings
@@ -79,46 +77,48 @@ svgmaker class
     
     m: ( -- ) \ constructor to set some defaults
 	\ *** remember to add control method for testing if construct is first time running or not! ***
-	this [parent] construct
-	0.0e mymin sf!
-        0.0e mymax sf!
-        0.0e myspread sf!
-        0.0e xstep sf!
-        0.0e yscale sf!
-        4    [to-inst] xmaxpoints
-        140  [to-inst] xlablesize
-        1000 [to-inst] xmaxchart
-        600  [to-inst] ymaxchart
-        140  [to-inst] ylablesize
-        70   [to-inst] ytoplablesize
-        9    [to-inst] xminstep
-        10   [to-inst] xlableoffset
-        10   [to-inst] ylableoffset
-        30   [to-inst] ylabletextoff
-        10   [to-inst] ylableqty
-        20   [to-inst] ymarksize
-        0    [to-inst] ylabletxtpos
-        4    [to-inst] circleradius
-        0    [to-inst] xlablerot
-        0    [to-inst] ylablerot
-	\ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
-	strings heap-new [to-inst] working$s
-	string  heap-new [to-inst] working$
-	strings heap-new [to-inst] pathdata$
-	
-	strings heap-new [to-inst] xdata$
-	strings heap-new [to-inst] xdata-attr$
-	strings heap-new [to-inst] xdata-circle-attr$
-	strings heap-new [to-inst] xlabdata$
-	strings heap-new [to-inst] xlab-attr$
-	strings heap-new [to-inst] ylab-attr$
-	strings heap-new [to-inst] labline-attr$
-	\ *** remember the data structure is created dynamicaly so free memory if data was stored ***
-	0 [to-inst] index-data
-	0 [to-inst] addr-data
-	\ *** remember the text structure is created dynamicaly so free memory if text was stored ***
-	0 [to-inst] index-text 
-	0 [to-inst] addr-text 
+	svgmaker-test svgmaker-test @ =
+	if
+	    \ make word to clear only variables and reset objects and structures without memory leaks
+	else
+	    this [parent] construct
+	    0.0e mymin sf!
+	    0.0e mymax sf!
+	    0.0e myspread sf!
+	    0.0e xstep sf!
+	    0.0e yscale sf!
+	    4    [to-inst] xmaxpoints
+	    140  [to-inst] xlablesize
+	    1000 [to-inst] xmaxchart
+	    600  [to-inst] ymaxchart
+	    140  [to-inst] ylablesize
+	    70   [to-inst] ytoplablesize
+	    9    [to-inst] xminstep
+	    10   [to-inst] xlableoffset
+	    10   [to-inst] ylableoffset
+	    30   [to-inst] ylabletextoff
+	    10   [to-inst] ylableqty
+	    20   [to-inst] ymarksize
+	    0    [to-inst] ylabletxtpos
+	    4    [to-inst] circleradius
+	    0    [to-inst] xlablerot
+	    0    [to-inst] ylablerot
+	    \ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
+	    string  heap-new [to-inst] working$
+	    strings heap-new [to-inst] working$s
+	    strings heap-new [to-inst] pathdata$
+	    strings heap-new [to-inst] xlabdata$
+	    strings heap-new [to-inst] xlab-attr$
+	    strings heap-new [to-inst] ylab-attr$
+	    strings heap-new [to-inst] labline-attr$
+	    \ *** remember the data structure is created dynamicaly so free memory if data was stored ***
+	    0 [to-inst] index-data
+	    0 [to-inst] addr-data
+	    \ *** remember the text structure is created dynamicaly so free memory if text was stored ***
+	    0 [to-inst] index-text 
+	    0 [to-inst] addr-text
+	    svgmaker-test svgmaker-test ! \ set flag for first time svgmaker object constructed
+	then
     ;m overrides construct
 
     \ fudge test words ... will be deleted after object is done
@@ -157,8 +157,9 @@ svgmaker class
 	text-y @ swap 
 	text-attr$ @ ;m method ntext@
 
-    m: ( -- )  \ finds the min and max values of the localdata strings
+    m: ( nxdata$ -- )  \ finds the min and max values of the localdata strings
 	\ note results stored in mymax and mymin float variables
+	{ xdata$ }
 	xdata$ $qty xmaxpoints min 0 ?do
 	    xdata$ @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! else true throw then
 	loop ;m method findminmaxdata
@@ -184,7 +185,8 @@ svgmaker class
 
     ;m method makecircle
     
-    m: ( -- ) \ will produce the path strings to be used in chart
+    m: ( nxdata$ -- ) \ will produce the path strings to be used in chart
+	{ xdata$ }
 	xdata$ reset
 	s" M " working$ !$ xlablesize #to$ working$ !+$ s"  " working$ !+$
 	xdata$ @$x >float
@@ -258,12 +260,18 @@ svgmaker class
 	text$ string heap-new dup rot ! swap @$ rot !$
     ;m method settext
     
-    m: ( ?? -- caddr u nflag )  \ top level word to make the svg chart 
-\	xdata$ reset
-\	xmaxchart xminstep
-\	xdata$ $qtyf
-\	xstep
-\	yscale
+    m: ( -- caddr u nflag )  \ top level word to make the svg chart 
+	\ set mymin and mymax to start values
+	\ find all min and max values from data set
+	\ calculate myspread
+	\ calculate xstep
+	\ calculate yscale
+	\ execute makeheader
+	\ loop through data sets with makepath and makecircle in loop for each data set with attributes 
+	\ execute makelables
+	\ execute maketext
+	\ finish svg with svgend to return the svg string
+	\ return false if no other errors
     ;m method makechart
     
 end-class svgchartmaker
