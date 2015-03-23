@@ -63,7 +63,7 @@ svgmaker class
     struct
 	cell% field data$
 	cell% field data-attr$
-	cell% field cicle-attr$
+	cell% field circle-attr$
     end-struct data%
     inst-value index-data \ data index
     inst-value addr-data  \ addresss of data structure
@@ -137,6 +137,13 @@ svgmaker class
    
     \ some worker methods to do some specific jobs
 
+    m: ( nindex-data -- nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr )
+	\ to retrieve teh data and attributes for a given index value
+	data% %sixe * addr-data + dup
+	data$ @ swap dup
+	data-attr$ @ swap 
+	circle-attr$ @ ;m method ndata@
+    
     m: ( nindex-text -- nstring-text nx ny nstrings-attr )
 	\ to retrieve the text attributes for a given index value
 	text% %size * addr-text + dup
@@ -210,9 +217,18 @@ svgmaker class
 	\ to place xdata onto svg chart with xdata-attr and with circle-attr for each data point
 	\ note the xdata is a strings object that must have quantity must match xlabdata quantity
 	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
-	xdata-circle-attr$ copy$s
-	xdata-attr$ copy$s
-	xdata$ copy$s ;m method setdata
+	index-data 0 >
+	if
+	    addr-data data% %size index-data 1 + * resize throw [to-inst] addr-data index-data 1 + [to-inst] index-data
+	else
+	    data% %alloc [to-inst] addr-data
+	    1 [to-inst] index-data
+	then
+	addr-data index-data 1 - data% %size * + dup
+	-rot circle-attr$ strings heap-new dup rot ! copy$s dup
+	-rot data-attr$ strings heap-new dup rot ! copy$s
+	data$ strings heap-new dup rot ! copy$s
+    ;m method setdata
     
     m: ( nstrings-xlabdata nstrings-xlab-attr nstrings-ylab-attr nstrings-labline-attr -- )
 	\ to place xlabel data onto svg chart with x,y text and line attributes
