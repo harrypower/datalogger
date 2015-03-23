@@ -134,12 +134,17 @@ svgmaker class
 	mymax sf@ ;m method seeminmax
     m: ( -- naddr )
 	pathdata$ ;m method seepathdata$
-   
+    m: ( -- nxlabdata$ nxlab-attr$ nylab-attr$ nlabline-attr$ )
+	xlabdata$
+	xlab-attr$
+	ylab-attr$
+	labline-attr$ ;m method seelable
+    
     \ some worker methods to do some specific jobs
 
     m: ( nindex-data -- nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr )
-	\ to retrieve teh data and attributes for a given index value
-	data% %sixe * addr-data + dup
+	\ to retrieve the data and attributes for a given index value
+	data% %size * addr-data + dup
 	data$ @ swap dup
 	data-attr$ @ swap 
 	circle-attr$ @ ;m method ndata@
@@ -211,8 +216,6 @@ svgmaker class
     ;m method maketext
 
     \ methods for giving data to svgchart and geting the svg from this object
-    
-    \ **** this word needs to store several data sets like settext method does ****
     m: ( nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr -- )
 	\ to place xdata onto svg chart with xdata-attr and with circle-attr for each data point
 	\ note the xdata is a strings object that must have quantity must match xlabdata quantity
@@ -237,7 +240,7 @@ svgmaker class
 	labline-attr$ copy$s
 	ylab-attr$ copy$s
 	xlab-attr$ copy$s
-	xlabdata$ copy$s ;m method setlabeldataattr
+	xlabdata$ copy$s ;m method setlabledataattr
     
     m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attributes
 	\ every time this is called before makechart method the string,x,y and attributes are stored to be placed into svgchart
@@ -266,3 +269,72 @@ svgmaker class
 end-class svgchartmaker
 
 svgchartmaker heap-new constant test
+
+
+strings heap-new constant tdata
+strings heap-new constant tda
+strings heap-new constant tdca
+strings heap-new constant tld
+strings heap-new constant tla
+strings heap-new constant ta
+string heap-new constant tt
+
+s\" fill=\"rgb(0,0,255)\""     ta !$x
+s\" fill-opacity=\"1.0\""      ta !$x
+s\" stroke=\"rgb(0,100,200)\"" ta !$x
+s\" stroke-opacity=\"0.0\""    ta !$x
+s\" stroke-width=\"4.0\""      ta !$x
+s\" font-size=\"20px\""        ta !$x
+
+s" 10"                         tdata !$x
+s" 20"                         tdata !$x
+s" 53.9"                       tdata !$x
+s" 0.789"                      tdata !$x
+
+s\" fill=\"rgb(255,0,0)\""     tda !$x
+s\" fill-opacity=\"0.0\""      tda !$x
+s\" stroke=\"rgb(120,255,0)\"" tda !$x
+s\" stroke-opacity=\"1.0\""    tda !$x
+s\" stroke-width=\"2.0\""      tda !$x
+
+s\" fill=\"rgb(255,0,0)\""     tdca !$x
+s\" fill-opacity=\"1.0\""      tdca !$x
+s\" stroke=\"rgb(120,255,0)\"" tdca !$x
+s\" stroke-opacity=\"1.0\""    tdca !$x
+s\" stroke-width=\"3.0\""      tdca !$x
+
+s" first"                      tld !$x
+s" second"                     tld !$x
+s" third"                      tld !$x
+s" fourth"                     tld !$x
+
+s\" fill=\"rgb(255,0,0)\""     tla !$x
+s\" fill-opacity=\"1.0\""      tla !$x
+s\" stroke=\"rgb(120,255,0)\"" tla !$x
+s\" stroke-opacity=\"1.0\""    tla !$x
+s\" stroke-width=\"3.0\""      tla !$x
+
+s" her is first text"          tt !$
+
+tt 10 20  ta test settext
+s" second texts" tt !$
+tt 30 30 ta test settext
+
+tld tla tla tla test setlabledataattr
+
+tdata tda tdca test setdata
+tdata construct
+s" 19" tdata !$x
+s" 29" tdata !$x
+s" 3.92" tdata !$x
+s" 99.3" tdata !$x
+tdata tda tdca test setdata
+
+cr
+test seelable $qty . $qty . $qty . $qty . ." lable" cr
+
+0 test ntext@ $qty . . . @$ type space ." text" cr
+1 test ntext@ $qty . . . @$ type space ." text" cr
+
+0 test ndata@ $qty . $qty . @$x type space ." first data set point 0" cr
+1 test ndata@ $qty . $qty . @$x type space ." second data set point 0" cr
