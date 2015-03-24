@@ -184,8 +184,19 @@ svgmaker class
 
 	working$s this svgheader ;m method makeheader
     
-    m: ( ?? -- ?? ) \ will produce the cicle svg strings to be used in chart
-
+    m: ( nattr$ -- ) \ will produce the cicle svg strings to be used in chart
+	\ *** use the pathdata$ to make the circle data into the svgoutput
+	{ attr$ }
+	attr$ reset
+	pathdata$ reset
+	pathdata$ $qty 0 ?do
+	    s"  " pathdata$ split$s 2swap 2drop 32 $split >float
+	    if
+		>float if attr$ f>s f>s circleradius this svgcircle then 
+	    else
+		2drop
+	    then
+	loop
     ;m method makecircle
     
     m: ( nxdata$ -- ) \ will produce the path strings to be used in chart
@@ -281,7 +292,12 @@ svgmaker class
 	\ calculate yscale
 	ymaxchart s>f myspread sf@ f/ yscale sf!
 	\ execute makeheader
-	\ loop through data sets with makepath and makecircle in loop for each data set with attributes 
+	this makeheader
+	\ make path and cicle svg elements with there associated attributes 
+	index-data 0 ?do
+	    i this ndata@ swap rot this makepath pathdata$ this svgpath this makecircle
+	loop
+	
 	\ execute makelables
 	\ execute maketext
 	\ finish svg with svgend to return the svg string
