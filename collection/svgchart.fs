@@ -87,7 +87,7 @@ svgmaker class
 	    0.0e myspread sf!
 	    0.0e xstep sf!
 	    0.0e yscale sf!
-	    4    [to-inst] xmaxpoints
+	    20   [to-inst] xmaxpoints
 	    140  [to-inst] xlablesize
 	    1000 [to-inst] xmaxchart
 	    600  [to-inst] ymaxchart
@@ -129,9 +129,12 @@ svgmaker class
     m: ( -- naddr )
 	working$s ;m method working$s@
     
-    m: ( f: -- fmymin fmymax )
+    m: ( f: -- fmymin fmymax fmyspread fxstep fyscale )
 	mymin sf@
-	mymax sf@ ;m method seeminmax
+	mymax sf@
+	myspread sf@
+	xstep sf@
+	yscale sf@ ;m method seecalculated
     m: ( -- naddr )
 	pathdata$ ;m method seepathdata$
     m: ( -- nxlabdata$ nxlab-attr$ nylab-attr$ nlabline-attr$ )
@@ -161,7 +164,7 @@ svgmaker class
 	\ note results stored in mymax and mymin float variables
 	{ xdata$ }
 	xdata$ $qty xmaxpoints min 0 ?do
-	    xdata$ @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! else true throw then
+	    xdata$ @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! then
 	loop ;m method findminmaxdata
 
     m: ( -- ) \ will produce the svg header for this chart
@@ -261,11 +264,22 @@ svgmaker class
     ;m method settext
     
     m: ( -- caddr u nflag )  \ top level word to make the svg chart 
+	\ test for data available for chart making
+	index-data 0 = if abort" No data for chart!" then
+	0 this ndata@ 2drop $qty 0 = if abort" Data for chart is empty!" then
+	xlabdata$ $qty 0 = if abort" No lable data for chart!" then
 	\ set mymin and mymax to start values
-	\ find all min and max values from data set
+	0 this ndata@ 2drop dup reset @$x >float if fdup mymax sf! mymin sf! else abort" Data not a number!" then  
+	\ find all min and max values from all data sets
+	index-data 0 ?do
+	    i this ndata@ 2drop dup reset this findminmaxdata
+	loop
 	\ calculate myspread
+	mymax sf@ mymin sf@ f- myspread sf!
 	\ calculate xstep
+	xmaxchart s>f 0 this ndata@ 2drop $qty xmaxpoints min s>f f/ xstep sf!
 	\ calculate yscale
+	ymaxchart s>f myspread sf@ f/ yscale sf!
 	\ execute makeheader
 	\ loop through data sets with makepath and makecircle in loop for each data set with attributes 
 	\ execute makelables
