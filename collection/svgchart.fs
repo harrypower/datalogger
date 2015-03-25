@@ -226,7 +226,8 @@ svgmaker class
 
     
     m: ( -- ) \ will make the chart lables both lines and text
-	string heap-new string heap-new { lableref$ lablemark$ }
+	string heap-new string heap-new string heap-new strings heap-new
+	{ lableref$ lablemark$ ytransform$ ytempattr$s }
 	pathdata$ construct
 	\ make the ylable line
 	s" M " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
@@ -249,11 +250,24 @@ svgmaker class
 	loop
 	labline-attr$ pathdata$ this svgpath
 	\ generate y lable text
-
+	ylableqty 1 + 0 ?do
+	    ytempattr$s construct
+	    ylab-attr$ ytempattr$s copy$s
+	    ylabletxtpos ytoplablesize
+	    yscale sf@ myspread sf@ ylableqty s>f f/ f* i s>f f* f>s + ( nx ny )
+	    \ add transformation for ylable rotation
+	    s\"  transform=\"rotate(" ytransform$ !$ ylablerot #to$ ytransform$ !+$ s" , " ytransform$ !+$
+	    swap dup #to$ ytransform$ !+$ s" , " ytransform$ !+$ swap dup #to$ ytransform$ !+$
+	    s"  " ytransform$ !+$ s\" )\"" ytransform$ !+$ ytransform$ @$ ytempattr$s !$x ytempattr$s -rot
+	    myspread sf@ ylableqty s>f f/ i s>f f* mymax sf@ fswap f- fto$ ytransform$ !$ ytransform$ 
+	    this svgtext 
+	loop
 	\ generate x lable text *** note this was called svgchartXlabletext in svgmaker.fs code now doing this here 
 	
 	lableref$ destruct
 	lablemark$ destruct
+	ytransform$ destruct
+	ytempattr$s destruct
     ;m method makelables
 
     m: ( ?? -- ?? ) \ will put the text onto the chart
@@ -304,10 +318,12 @@ else
     ;m method settext
     
     m: ( -- caddr u nflag )  \ top level word to make the svg chart 
-	\ test for data available for chart making
+	\ test for data available for chart making and valid
 	index-data 0 = if abort" No data for chart!" then
 	0 this ndata@ 2drop $qty 0 = if abort" Data for chart is empty!" then
 	xlabdata$ $qty 0 = if abort" No lable data for chart!" then
+	0 this ndata@ 2drop $qty index-data 1 ?do dup i this ndata@ 2drop $qty <> if abort" Data quantitys not the same!" then loop
+	xlabdata$ $qty <> if abort" Data quantitys not the same!" then 
 	\ set mymin and mymax to start values
 	0 this ndata@ 2drop dup reset @$x >float if fdup mymax sf! mymin sf! else abort" Data not a number!" then  
 	\ find all min and max values from all data sets
@@ -332,6 +348,7 @@ else
 	\ finish svg with svgend to return the svg string
 	this svgend
 	\ return false if no other errors
+	false
     ;m method makechart
     
 end-class svgchartmaker
