@@ -248,6 +248,9 @@ svgmaker class
 	    lablemark$ @$ pathdata$ !$x
 	loop
 	labline-attr$ pathdata$ this svgpath
+	\ generate y lable text
+
+	\ generate x lable text *** note this was called svgchartXlabletext in svgmaker.fs code now doing this here 
 	
 	lableref$ destruct
 	lablemark$ destruct
