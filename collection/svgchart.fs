@@ -51,7 +51,7 @@ svgmaker class
     inst-value working$       \ used to work on a string temporarily in chart code
     \ these will be strings to hold strings data
     inst-value working$s      \ this is used to work on strings temporarily in the chart code
-    inst-value pathdata$      \ contains path strings processed drom xdata$ strings
+    inst-value pathdata$      \ contains path strings for processing in makepath and makelable
     inst-value xlabdata$      \ x label data strings
     inst-value xlab-attr$     \ x label attribute strings
     inst-value ylab-attr$     \ y label attribute strings
@@ -79,7 +79,7 @@ svgmaker class
 	\ *** remember to add control method for testing if construct is first time running or not! ***
 	svgmaker-test svgmaker-test @ =
 	if
-	    \ make word to clear only variables and reset objects and structures without memory leaks
+	    \ ***make word to clear only variables and reset objects and structures without memory leaks
 	else
 	    this [parent] construct
 	    0.0e mymin sf!
@@ -105,6 +105,7 @@ svgmaker class
 	    0    [to-inst] ylablerot
 	    \ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
 	    string  heap-new [to-inst] working$
+	    
 	    strings heap-new [to-inst] working$s
 	    strings heap-new [to-inst] pathdata$
 	    strings heap-new [to-inst] xlabdata$
@@ -222,9 +223,34 @@ svgmaker class
 	    then
 	    mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ !+$ working$ @$ pathdata$ !$x
 	loop ;m method makepath
+
     
-    m: ( ?? -- ?? ) \ will make the chart lables both lines and text
+    m: ( -- ) \ will make the chart lables both lines and text
+	string heap-new string heap-new { lableref$ lablemark$ }
+	pathdata$ construct
+	\ make the ylable line
+	s" M " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
+	ytoplablesize #to$ working$ !+$ s"  " working$ !+$ working$ @$ 2dup lableref$ !$ pathdata$ !$x
+	s" L " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
+	ymaxchart ytoplablesize + ylableoffset + #to$ working$ !+$ s"  " working$ !+$ working$ @$ pathdata$ !$x
+	\ make the xlable line
+	s" L " working$ !$ xmaxchart xlablesize + #to$ working$ !+$ s"  " working$ !+$
+	ymaxchart ytoplablesize + ylableoffset + #to$ working$ !+$ s"  " working$ !+$ working$ @$ pathdata$ !$x
+	\ make ylable line marks
+	lableref$ @$ pathdata$ !$x
+	s" l " working$ !$ ymarksize -1 * #to$ working$ !+$ s"  " working$ !+$ 0 #to$ working$ !+$
+	working$ @$ 2dup lablemark$ !$ pathdata$ !$x
+	ylableqty 1 + 1 ?do
+	    lableref$ @$ pathdata$ !$x
+	    s" m " working$ !$ 0 #to$ working$ !+$ s"  " working$ !+$
+	    ymaxchart s>f ylableqty s>f f/ i s>f f* f>s #to$ working$ !+$
+	    working$ @$ pathdata$ !$x
+	    lablemark$ @$ pathdata$ !$x
+	loop
+	labline-attr$ pathdata$ this svgpath
 	
+	lableref$ destruct
+	lablemark$ destruct
     ;m method makelables
 
     m: ( ?? -- ?? ) \ will put the text onto the chart
@@ -239,7 +265,7 @@ svgmaker class
 	index-data 0 >
 	if
 	    addr-data data% %size index-data 1 + * resize throw [to-inst] addr-data index-data 1 + [to-inst] index-data
-	else
+else
 	    data% %alloc [to-inst] addr-data
 	    1 [to-inst] index-data
 	then
@@ -297,10 +323,11 @@ svgmaker class
 	index-data 0 ?do
 	    i this ndata@ swap rot this makepath pathdata$ this svgpath this makecircle
 	loop
-	
 	\ execute makelables
+	this makelables
 	\ execute maketext
 	\ finish svg with svgend to return the svg string
+	this svgend
 	\ return false if no other errors
     ;m method makechart
     
@@ -346,8 +373,8 @@ s" second"                     tld !$x
 s" third"                      tld !$x
 s" fourth"                     tld !$x
 
-s\" fill=\"rgb(255,0,0)\""     tla !$x
-s\" fill-opacity=\"1.0\""      tla !$x
+\ s\" fill=\"rgb(255,0,0)\""     tla !$x
+s\" fill-opacity=\"0.0\""      tla !$x
 s\" stroke=\"rgb(120,255,0)\"" tla !$x
 s\" stroke-opacity=\"1.0\""    tla !$x
 s\" stroke-width=\"3.0\""      tla !$x
