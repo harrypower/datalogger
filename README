@@ -43,7 +43,7 @@ Once in the gforth environment just type bye to exit.  Version 0.7.3 should be d
     $ gforth sqlite3_gforth_lib.fs ( then exit gforth with bye )
 
 The point of all that was to get gforth to recompile and link those shared librarys on your system for future use.
-Note dure each of those gforth environment entrys you should simply get no messages if compiling is all ok.
+Note for each of those gforth environment entrys you should simply get no messages if compiling is all ok.
 Now these shared librarys are stored in one of two places at this moment but needs to be copied to another place now.
 If you are doing this as root then the location is /root/.gforth
 If you are doing this as a user then the location is /home/yourusername/.gforth
@@ -77,7 +77,7 @@ Note ensure you type these delete commands corretly or you will delete your linu
     $ sudo nano /etc/inetd.conf
 Move the curser to the end of the document and enter the following text:
 
-gforth stream tcp nowait.1000 yourusername /home/yourusername/datalogger/httpd.fs
+gforth stream tcp nowait.100 yourusername /home/yourusername/datalogger/httpd.fs
 
 Note the path in the above line is the path for where you installed this repository.
 Save the file with control x y enter
