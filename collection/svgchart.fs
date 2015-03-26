@@ -101,7 +101,7 @@ svgmaker class
 	    20   [to-inst] ymarksize
 	    0    [to-inst] ylabletxtpos
 	    4    [to-inst] circleradius
-	    0    [to-inst] xlablerot
+	    90    [to-inst] xlablerot
 	    0    [to-inst] ylablerot
 	    \ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
 	    string  heap-new [to-inst] working$
@@ -226,8 +226,8 @@ svgmaker class
 
     
     m: ( -- ) \ will make the chart lables both lines and text
-	string heap-new string heap-new string heap-new strings heap-new
-	{ lableref$ lablemark$ ytransform$ ytempattr$s }
+	string heap-new string heap-new string heap-new strings heap-new strings heap-new 
+	{ lableref$ lablemark$ ytransform$ ytempattr$s xtempattr$s }
 	pathdata$ construct
 	\ make the ylable line
 	s" M " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
@@ -262,12 +262,22 @@ svgmaker class
 	    myspread sf@ ylableqty s>f f/ i s>f f* mymax sf@ fswap f- fto$ ytransform$ !$ ytransform$ 
 	    this svgtext 
 	loop
-	\ generate x lable text *** note this was called svgchartXlabletext in svgmaker.fs code now doing this here 
+	\ generate x lable text  
+	xlabdata$ $qty 0 ?do
+	    xtempattr$s construct
+	    xlab-attr$ xtempattr$s copy$s
+	    xlablesize xmaxchart s>f xlabdata$ $qty s>f f/ i s>f f* f>s + ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
+	    s\"  transform=\"rotate(" working$ !$ xlablerot #to$ working$ !+$ s" , " working$ !+$
+	    swap dup #to$ working$ !+$ s" , " working$ !+$ swap dup #to$ working$ !+$ s"  " working$ !+$
+	    s\" )\"" working$ !+$ working$ @$ xtempattr$s !$x xtempattr$s -rot xlabdata$
+	    this svgtext
+	loop
 	
 	lableref$ destruct
 	lablemark$ destruct
 	ytransform$ destruct
 	ytempattr$s destruct
+	xtempattr$s destruct
     ;m method makelables
 
     m: ( ?? -- ?? ) \ will put the text onto the chart
