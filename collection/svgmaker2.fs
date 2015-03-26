@@ -41,6 +41,11 @@ object class
 	if svg-output @ free 0 construct-test ! this construct \ init string
 	else string heap-new svg-output ! construct-test construct-test !
 	then  ;m overrides construct
+
+    m: ( svg -- ) \ free memory for this object and delete object
+	this construct \ only works with heap-new allocation
+	svg-output @ destruct
+	this free throw ;m method destruct
     
     m: ( nstrings-header svg -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$

@@ -75,34 +75,21 @@ svgmaker class
     inst-value index-text \ text index
     inst-value addr-text  \ address of text structure
     
-    m: ( -- ) \ constructor to set some defaults
-	\ *** remember to add control method for testing if construct is first time running or not! ***
+    m: ( svgchart -- ) \ constructor to set some defaults
+	this [parent] construct
 	svgmaker-test svgmaker-test @ =
 	if
-	    \ ***make word to clear only variables and reset objects and structures without memory leaks
+	    working$    construct
+	    working$s   construct
+	    pathdata$   construct
+	    xlabdata$   construct
+	    xlab-attr$  construct
+	    ylab-attr$  construct
+	    labline-attr$ construct
+
+	    \ *** now free the data and the text that may be stored if index-data is > 0 and index-text > 0
+	    
 	else
-	    this [parent] construct
-	    0.0e mymin sf!
-	    0.0e mymax sf!
-	    0.0e myspread sf!
-	    0.0e xstep sf!
-	    0.0e yscale sf!
-	    20   [to-inst] xmaxpoints
-	    140  [to-inst] xlablesize
-	    1000 [to-inst] xmaxchart
-	    600  [to-inst] ymaxchart
-	    140  [to-inst] ylablesize
-	    70   [to-inst] ytoplablesize
-	    9    [to-inst] xminstep
-	    10   [to-inst] xlableoffset
-	    10   [to-inst] ylableoffset
-	    30   [to-inst] ylabletextoff
-	    10   [to-inst] ylableqty
-	    20   [to-inst] ymarksize
-	    0    [to-inst] ylabletxtpos
-	    4    [to-inst] circleradius
-	    90    [to-inst] xlablerot
-	    0    [to-inst] ylablerot
 	    \ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
 	    string  heap-new [to-inst] working$
 	    
@@ -120,8 +107,41 @@ svgmaker class
 	    0 [to-inst] addr-text
 	    svgmaker-test svgmaker-test ! \ set flag for first time svgmaker object constructed
 	then
+	0.0e mymin sf!
+	0.0e mymax sf!
+	0.0e myspread sf!
+	0.0e xstep sf!
+	0.0e yscale sf!
+	20   [to-inst] xmaxpoints
+	140  [to-inst] xlablesize
+	1000 [to-inst] xmaxchart
+	600  [to-inst] ymaxchart
+	140  [to-inst] ylablesize
+	70   [to-inst] ytoplablesize
+	9    [to-inst] xminstep
+	10   [to-inst] xlableoffset
+	10   [to-inst] ylableoffset
+	30   [to-inst] ylabletextoff
+	10   [to-inst] ylableqty
+	20   [to-inst] ymarksize
+	0    [to-inst] ylabletxtpos
+	4    [to-inst] circleradius
+	90   [to-inst] xlablerot
+	0    [to-inst] ylablerot
     ;m overrides construct
 
+    m: ( svgchart -- ) \ destruct all allocated memory and free this object
+	this construct
+	this [parent] destruct
+	working$ destruct
+	working$s destruct
+	pathdata$ destruct
+	xlabdata$ destruct
+	xlab-attr$ destruct
+	ylab-attr$ destruct
+	labline-attr$ destruct
+	this free throw ;m overrides destruct
+    
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
 	svg-output @ @$ ;m method seeoutput
@@ -146,14 +166,14 @@ svgmaker class
     
     \ some worker methods to do some specific jobs
 
-    m: ( nindex-data -- nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr )
+    m: ( nindex-data svgchart -- nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr )
 	\ to retrieve the data and attributes for a given index value
 	data% %size * addr-data + dup
 	data$ @ swap dup
 	data-attr$ @ swap 
 	circle-attr$ @ ;m method ndata@
     
-    m: ( nindex-text -- nstring-text nx ny nstrings-attr )
+    m: ( nindex-text svgchart -- nstring-text nx ny nstrings-attr )
 	\ to retrieve the text attributes for a given index value
 	text% %size * addr-text + dup
 	text$ @ swap dup
@@ -161,14 +181,14 @@ svgmaker class
 	text-y @ swap 
 	text-attr$ @ ;m method ntext@
 
-    m: ( nxdata$ -- )  \ finds the min and max values of the localdata strings
+    m: ( nxdata$ svgchart -- )  \ finds the min and max values of the localdata strings
 	\ note results stored in mymax and mymin float variables
 	{ xdata$ }
 	xdata$ $qty xmaxpoints min 0 ?do
 	    xdata$ @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! then
 	loop ;m method findminmaxdata
 
-    m: ( -- ) \ will produce the svg header for this chart
+    m: ( svgchart -- ) \ will produce the svg header for this chart
 	working$s construct
 	s\" width=" working$ !$ s\" \"" working$ !+$
 	xmaxchart xlablesize + #to$ working$ !+$ s\" \"" working$ !+$
@@ -185,7 +205,7 @@ svgmaker class
 
 	working$s this svgheader ;m method makeheader
     
-    m: ( nattr$ -- ) \ will produce the cicle svg strings to be used in chart
+    m: ( nattr$ svgchart -- ) \ will produce the cicle svg strings to be used in chart
 	\ *** use the pathdata$ to make the circle data into the svgoutput
 	{ attr$ }
 	attr$ reset
@@ -197,10 +217,9 @@ svgmaker class
 	    else
 		2drop
 	    then
-	loop
-    ;m method makecircle
+	loop ;m method makecircles
     
-    m: ( nxdata$ -- ) \ will produce the path strings to be used in chart
+    m: ( nxdata$ svgchart -- ) \ will produce the path strings to be used in chart
 	{ xdata$ }
 	xdata$ reset
 	s" M " working$ !$ xlablesize #to$ working$ !+$ s"  " working$ !+$
@@ -224,8 +243,7 @@ svgmaker class
 	    mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ !+$ working$ @$ pathdata$ !$x
 	loop ;m method makepath
 
-    
-    m: ( -- ) \ will make the chart lables both lines and text
+    m: ( svgchart -- ) \ will make the chart lables both lines and text
 	string heap-new string heap-new string heap-new strings heap-new strings heap-new 
 	{ lableref$ lablemark$ ytransform$ ytempattr$s xtempattr$s }
 	pathdata$ construct
@@ -272,20 +290,20 @@ svgmaker class
 	    s\" )\"" working$ !+$ working$ @$ xtempattr$s !$x xtempattr$s -rot xlabdata$
 	    this svgtext
 	loop
-	
-	lableref$ destruct
-	lablemark$ destruct
-	ytransform$ destruct
-	ytempattr$s destruct
-	xtempattr$s destruct
+	." here!" cr
+	 lableref$ destruct
+	\ lablemark$ destruct
+	\ ytransform$ destruct
+	\ ytempattr$s destruct
+	\ xtempattr$s destruct
     ;m method makelables
 
-    m: ( ?? -- ?? ) \ will put the text onto the chart
+    m: ( svgchart -- ) \ will put the text onto the chart
 
-    ;m method maketext
+    ;m method maketexts
 
     \ methods for giving data to svgchart and geting the svg from this object
-    m: ( nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr -- )
+    m: ( nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr svgchart -- )
 	\ to place xdata onto svg chart with xdata-attr and with circle-attr for each data point
 	\ note the xdata is a strings object that must have quantity must match xlabdata quantity
 	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
@@ -302,7 +320,7 @@ else
 	data$ strings heap-new dup rot ! copy$s
     ;m method setdata
     
-    m: ( nstrings-xlabdata nstrings-xlab-attr nstrings-ylab-attr nstrings-labline-attr -- )
+    m: ( nstrings-xlabdata nstrings-xlab-attr nstrings-ylab-attr nstrings-labline-attr svgchart -- )
 	\ to place xlabel data onto svg chart with x,y text and line attributes
 	\ note xlabdata is a strings object containing all data to be placed on xlabel but quantity must match xdata quantity
 	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
@@ -311,7 +329,7 @@ else
 	xlab-attr$ copy$s
 	xlabdata$ copy$s ;m method setlabledataattr
     
-    m: ( nstring-txt nx ny nstrings-attr -- ) \ to place txt on svg with x and y location and attributes
+    m: ( nstring-txt nx ny nstrings-attr svgchart -- ) \ to place txt on svg with x and y location and attributes
 	\ every time this is called before makechart method the string,x,y and attributes are stored to be placed into svgchart
 	index-text 0 >
 	if
@@ -327,7 +345,7 @@ else
 	text$ string heap-new dup rot ! swap @$ rot !$
     ;m method settext
     
-    m: ( -- caddr u nflag )  \ top level word to make the svg chart 
+    m: ( svgchart -- caddr u nflag )  \ top level word to make the svg chart 
 	\ test for data available for chart making and valid
 	index-data 0 = if abort" No data for chart!" then
 	0 this ndata@ 2drop $qty 0 = if abort" Data for chart is empty!" then
@@ -350,7 +368,7 @@ else
 	this makeheader
 	\ make path and cicle svg elements with there associated attributes 
 	index-data 0 ?do
-	    i this ndata@ swap rot this makepath pathdata$ this svgpath this makecircle
+	    i this ndata@ swap rot this makepath pathdata$ this svgpath this makecircles
 	loop
 	\ execute makelables
 	this makelables
