@@ -22,7 +22,7 @@ require stringobj.fs
 require gforth-misc-tools.fs
 
 svgmaker class
-    cell% inst-var svgmaker-test \ used to see if construct is first being executed or not
+    cell% inst-var svgchartmaker-test \ used to see if construct is first being executed or not
     \ these variables and values are calcuated or used in the following code
     cell% inst-var mymin      \ will contain the chart data min absolute value
     cell% inst-var mymax      \ will contain the chart data max absolute value
@@ -49,7 +49,12 @@ svgmaker class
     inst-value ylablerot     \ the value for rotation orientation of ylable text
     \ these will be string to hold string data 
     inst-value working$       \ used to work on a string temporarily in chart code
+    inst-value lableref$
+    inst-value lablemark$
+    inst-value ytransform$
     \ these will be strings to hold strings data
+    inst-value ytempattr$s
+    inst-value xtempattr$s
     inst-value working$s      \ this is used to work on strings temporarily in the chart code
     inst-value pathdata$      \ contains path strings for processing in makepath and makelable
     inst-value xlabdata$      \ x label data strings
@@ -77,7 +82,7 @@ svgmaker class
     
     m: ( svgchart -- ) \ constructor to set some defaults
 	this [parent] construct
-	svgmaker-test svgmaker-test @ =
+	svgchartmaker-test svgchartmaker-test @ =
 	if
 	    working$    construct
 	    working$s   construct
@@ -92,7 +97,12 @@ svgmaker class
 	else
 	    \ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
 	    string  heap-new [to-inst] working$
-	    
+	    string  heap-new [to-inst] lableref$
+	    string  heap-new [to-inst] lablemark$
+	    string  heap-new [to-inst] ytransform$
+
+	    strings heap-new [to-inst] ytempattr$s
+	    strings heap-new [to-inst] xtempattr$s
 	    strings heap-new [to-inst] working$s
 	    strings heap-new [to-inst] pathdata$
 	    strings heap-new [to-inst] xlabdata$
@@ -105,7 +115,7 @@ svgmaker class
 	    \ *** remember the text structure is created dynamicaly so free memory if text was stored ***
 	    0 [to-inst] index-text 
 	    0 [to-inst] addr-text
-	    svgmaker-test svgmaker-test ! \ set flag for first time svgmaker object constructed
+	    svgchartmaker-test svgchartmaker-test ! \ set flag for first time svgmaker object constructed
 	then
 	0.0e mymin sf!
 	0.0e mymax sf!
@@ -140,6 +150,11 @@ svgmaker class
 	xlab-attr$ destruct
 	ylab-attr$ destruct
 	labline-attr$ destruct
+	lableref$ destruct
+	lablemark$ destruct
+	ytransform$ destruct
+	ytempattr$s destruct
+	xtempattr$s destruct
 	this free throw ;m overrides destruct
     
     \ fudge test words ... will be deleted after object is done
@@ -244,8 +259,8 @@ svgmaker class
 	loop ;m method makepath
 
     m: ( svgchart -- ) \ will make the chart lables both lines and text
-	string heap-new string heap-new string heap-new strings heap-new strings heap-new 
-	{ lableref$ lablemark$ ytransform$ ytempattr$s xtempattr$s }
+\	string heap-new string heap-new string heap-new strings heap-new strings heap-new 
+\	{ lableref$ lablemark$ ytransform$ ytempattr$s xtempattr$s }
 	pathdata$ construct
 	\ make the ylable line
 	s" M " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
@@ -290,12 +305,6 @@ svgmaker class
 	    s\" )\"" working$ !+$ working$ @$ xtempattr$s !$x xtempattr$s -rot xlabdata$
 	    this svgtext
 	loop
-	." here!" cr
-	 lableref$ destruct
-	\ lablemark$ destruct
-	\ ytransform$ destruct
-	\ ytempattr$s destruct
-	\ xtempattr$s destruct
     ;m method makelables
 
     m: ( svgchart -- ) \ will put the text onto the chart

@@ -1,5 +1,4 @@
 \    Copyright (C) 2015  Philip K. Smith
-
 \    This program is free software: you can redistribute it and/or modify
 \    it under the terms of the GNU General Public License as published by
 \    the Free Software Foundation, either version 3 of the License, or
@@ -24,11 +23,11 @@ require objects.fs
 object class
     cell% inst-var string-addr
     cell% inst-var string-size
-    cell% inst-var valid
+    cell% inst-var string-test
     m: ( string -- ) \ initalize the string
-	valid @ valid =
+	string-test @ string-test =
 	if string-addr @ free throw then
-	0 valid !
+	0 string-test !
 	0 string-addr !
 	0 string-size ! ;m overrides construct
     m: ( string -- )     \ free allocated memory for this instance of object
@@ -38,24 +37,24 @@ object class
 	dup 0 > if
 	    dup allocate throw { u caddr1 }
 	    caddr1 u move
-	    valid @ valid =
+	    string-test @ string-test =
 	    if
 		string-addr @ free throw
-		0 valid ! 
+		0 string-test ! 
 	    then
 	    caddr1 string-addr !
 	    u string-size ! 
-	    valid valid !
+	    string-test string-test !
 	else 2drop
 	then ;m method !$
     m: ( string -- caddr u ) \ retrieve string
-	valid @ valid =
+	string-test @ string-test =
 	if
 	    string-addr @ string-size @
 	else 0 0
 	then ;m method @$
     m: ( caddr u string -- ) \ add a string to this string
-	valid @ valid =
+	string-test @ string-test =
 	if \ resize
 	    dup 0 >
 	    if
@@ -69,7 +68,7 @@ object class
 		dup allocate throw
 		dup string-addr !
 		swap dup string-size ! move
-		valid valid !
+		string-test string-test !
 	    else 2drop
 	    then
 	then ;m method !+$
@@ -88,11 +87,11 @@ object class
 	then ;m method split$
     
     m: ( string -- u ) \ report string size
-	valid @ valid =
+	string-test @ string-test =
 	if string-size @ else 0 then ;m method len$ 
     m: ( string -- ) \ retrieve string object info
 	this [parent] print
-	s"  valid:" type valid @ valid = .
+	s"  string-test:" type string-test @ string-test = .
 	s"  addr:" type string-addr @ .
 	s"  size:" type string-size @ .
 	s"  string:" type string-addr @ string-size @ type ;m overrides print
@@ -102,9 +101,9 @@ object class
     cell% inst-var array \ contains first address of allocated string object
     cell% inst-var qty
     cell% inst-var index
-    cell% inst-var valid
+    cell% inst-var strings-test
     m: ( strings -- ) \ initalize strings object
-	valid @ valid =
+	strings-test @ strings-test =
 	if
 	    array @ 0 >
 	    if \ deallocate memory allocated for the array
@@ -118,7 +117,7 @@ object class
 	    0 qty !
 	    0 index !
 	    0 array !
-	    valid valid !
+	    strings-test strings-test !
 	then ;m overrides construct
     m: ( strings -- ) \ deallocate this object and other allocated memory in this object
 	this construct
@@ -155,7 +154,7 @@ object class
 	    if 0 index ! then 
 	else 2drop 0 0 0 0 then ;m method split$s
     m: ( strings -- u ) \ report size of strings array
-	valid @ valid =
+	strings-test @ strings-test =
 	if qty @ else 0 then ;m method $qty
     m: ( strings -- ) \ reset index to start of strings list for output purposes
 	0 index ! ;m method reset
