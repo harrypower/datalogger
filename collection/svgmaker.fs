@@ -21,25 +21,25 @@ require stringobj.fs  \ this is my own string package for single strings and arr
 
 object class
     cell% inst-var svg-output \ the svg output string object
-    cell% inst-var construct-test \ a construct test value to prevent memory leaks
+    cell% inst-var svgmaker-test \ a construct test value to prevent memory leaks
   protected
     m: ( caddr u -- ) \ append string into svg-output string
-	svg-output @ !+$ ;m method @svg$
+	svg-output @ !+$ ;m method !svg$
 
     m: ( nstrings svg -- ) \ place contents of nstrings into svg string as attribute propertys
 	dup $qty 0 ?do
-	    dup @$x this @svg$ s"  " this @svg$
+	    dup @$x this !svg$ s"  " this !svg$
 	loop drop ;m method svgattr
 
     m: ( n -- caddr u ) \ convert n to string
 	s>d swap over dabs <<# #s rot sign #> #>>
-	this @svg$ ;m method #tosvg$
+	this !svg$ ;m method #tosvg$
     
   public
     m: ( svg -- ) \ init svt-output string
-	construct-test construct-test @ =
-	if svg-output @ free 0 construct-test ! this construct \ init string
-	else string heap-new svg-output ! construct-test construct-test !
+	svgmaker-test svgmaker-test @ =
+	if svg-output @ free 0 svgmaker-test ! this construct \ init string
+	else string heap-new svg-output ! svgmaker-test svgmaker-test !
 	then  ;m overrides construct
 
     m: ( svg -- ) \ free memory for this object and delete object
@@ -50,32 +50,32 @@ object class
     m: ( nstrings-header svg -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$
 	this svgattr
-	s\" >" this @svg$ ;m method svgheader
+	s\" >" this !svg$ ;m method svgheader
 
     m: ( nstrings-attr nx ny nstring-text svg -- ) \ to make svg text 
 	\ nstirngs-attr is strings for attribute of text
 	\ nx ny are text x and y of svg text tag
 	\ nstring-text is the string object address of the string
-	s\" <text x=\"" this @svg$ rot
+	s\" <text x=\"" this !svg$ rot
 	this #tosvg$
-	s\" \" y=\"" this @svg$
+	s\" \" y=\"" this !svg$
 	swap this #tosvg$
-	s\" \" " this @svg$
-	swap this svgattr s" >" this @svg$
-        @$ this @svg$ s" </text>" this @svg$ ;m method svgtext
+	s\" \" " this !svg$
+	swap this svgattr s" >" this !svg$
+        @$ this !svg$ s" </text>" this !svg$ ;m method svgtext
 
     m: ( nstrings-attr nstrings-pathdata svg -- ) \ make a svg path with nstring-attr and nstrings-pathdata
-	s" <path " this @svg$
+	s" <path " this !svg$
 	swap this svgattr
-	s\" d=\" " this @svg$
-	this svgattr s\" \"> </path>" this @svg$ ;m method svgpath
+	s\" d=\" " this !svg$
+	this svgattr s\" \"> </path>" this !svg$ ;m method svgpath
 
     m: ( nstring-attr nx ny nr -- ) \ make a svg circle with nstring-attr at nx and ny with radius nr
-	s\" <circle cx=\"" this @svg$ rot this #tosvg$
-	s\" \" cy=\"" this @svg$ swap this #tosvg$
-	s\" \" r=\"" this @svg$ this #tosvg$
-	s\" \" " this @svg$ this svgattr
-	s" />" this @svg$ ;m method svgcircle
+	s\" <circle cx=\"" this !svg$ rot this #tosvg$
+	s\" \" cy=\"" this !svg$ swap this #tosvg$
+	s\" \" r=\"" this !svg$ this #tosvg$
+	s\" \" " this !svg$ this svgattr
+	s" />" this !svg$ ;m method svgcircle
 
     m: ( -- caddr u ) \ finish forming the svg string and output it
 	s" </svg>" svg-output @ !+$

@@ -17,7 +17,7 @@
 \ The code inherits svgmaker object and creates svgchartmaker object to work with SVG
 \ output for using in a web server for example!
 
-require svgmaker2.fs
+require svgmaker.fs
 require stringobj.fs
 require gforth-misc-tools.fs
 
