@@ -23,36 +23,36 @@ object class
     cell% inst-var svg-output \ the svg output string object
     cell% inst-var svgmaker-test \ a construct test value to prevent memory leaks
   protected
-    m: ( caddr u -- ) \ append string into svg-output string
+    m: ( caddr u svgmaker -- ) \ append string into svg-output string
 	svg-output @ !+$ ;m method !svg$
 
-    m: ( nstrings svg -- ) \ place contents of nstrings into svg string as attribute propertys
+    m: ( nstrings svgmaker -- ) \ place contents of nstrings into svg string as attribute propertys
 	dup $qty 0 ?do
 	    dup @$x this !svg$ s"  " this !svg$
 	loop drop ;m method svgattr
 
-    m: ( n -- caddr u ) \ convert n to string
+    m: ( n svgmaker -- caddr u ) \ convert n to string
 	s>d swap over dabs <<# #s rot sign #> #>>
 	this !svg$ ;m method #tosvg$
     
   public
-    m: ( svg -- ) \ init svt-output string
+    m: ( svgmaker -- ) \ init svt-output string
 	svgmaker-test svgmaker-test @ =
-	if svg-output @ free 0 svgmaker-test ! this construct \ init string
+	if
+	    svg-output @ string-destruct
+	    string heap-new svg-output !
 	else string heap-new svg-output ! svgmaker-test svgmaker-test !
 	then  ;m overrides construct
 
-    m: ( svg -- ) \ free memory for this object and delete object
-	this construct \ only works with heap-new allocation
-	svg-output @ destruct
-	this free throw ;m method destruct
+    m: ( svgmaker -- ) \ free memory for this object and delete object
+	svg-output @ string-destruct ;m method svgmaker-destruct
     
-    m: ( nstrings-header svg -- ) \ start svg string and place nstrings contents as header to svg
+    m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$
 	this svgattr
 	s\" >" this !svg$ ;m method svgheader
 
-    m: ( nstrings-attr nx ny nstring-text svg -- ) \ to make svg text 
+    m: ( nstrings-attr nx ny nstring-text svgmaker -- ) \ to make svg text 
 	\ nstirngs-attr is strings for attribute of text
 	\ nx ny are text x and y of svg text tag
 	\ nstring-text is the string object address of the string
@@ -64,24 +64,24 @@ object class
 	swap this svgattr s" >" this !svg$
         @$ this !svg$ s" </text>" this !svg$ ;m method svgtext
 
-    m: ( nstrings-attr nstrings-pathdata svg -- ) \ make a svg path with nstring-attr and nstrings-pathdata
+    m: ( nstrings-attr nstrings-pathdata svgmaker -- ) \ make a svg path with nstring-attr and nstrings-pathdata
 	s" <path " this !svg$
 	swap this svgattr
 	s\" d=\" " this !svg$
 	this svgattr s\" \"> </path>" this !svg$ ;m method svgpath
 
-    m: ( nstring-attr nx ny nr -- ) \ make a svg circle with nstring-attr at nx and ny with radius nr
+    m: ( nstring-attr nx ny nr svgmaker -- ) \ make a svg circle with nstring-attr at nx and ny with radius nr
 	s\" <circle cx=\"" this !svg$ rot this #tosvg$
 	s\" \" cy=\"" this !svg$ swap this #tosvg$
 	s\" \" r=\"" this !svg$ this #tosvg$
 	s\" \" " this !svg$ this svgattr
 	s" />" this !svg$ ;m method svgcircle
 
-    m: ( -- caddr u ) \ finish forming the svg string and output it
+    m: ( svgmaker -- caddr u ) \ finish forming the svg string and output it
 	s" </svg>" svg-output @ !+$
 	svg-output @ @$ ;m method svgend
     
-    m: ( -- caddr u ) \ view string directly
+    m: ( svgmaker -- caddr u ) \ view string directly
 	svg-output @ @$ ;m overrides print
 end-class svgmaker
 

@@ -85,12 +85,18 @@ svgmaker class
 	svgchartmaker-test svgchartmaker-test @ =
 	if
 	    working$    construct
+	    lableref$   construct
+	    lablemark$  construct
+	    ytransform$ construct
+
 	    working$s   construct
 	    pathdata$   construct
 	    xlabdata$   construct
 	    xlab-attr$  construct
 	    ylab-attr$  construct
 	    labline-attr$ construct
+	    ytempattr$s construct
+	    xtempattr$s construct
 
 	    \ *** now free the data and the text that may be stored if index-data is > 0 and index-text > 0
 	    
@@ -101,14 +107,14 @@ svgmaker class
 	    string  heap-new [to-inst] lablemark$
 	    string  heap-new [to-inst] ytransform$
 
-	    strings heap-new [to-inst] ytempattr$s
-	    strings heap-new [to-inst] xtempattr$s
 	    strings heap-new [to-inst] working$s
 	    strings heap-new [to-inst] pathdata$
 	    strings heap-new [to-inst] xlabdata$
 	    strings heap-new [to-inst] xlab-attr$
 	    strings heap-new [to-inst] ylab-attr$
 	    strings heap-new [to-inst] labline-attr$
+	    strings heap-new [to-inst] ytempattr$s
+	    strings heap-new [to-inst] xtempattr$s
 	    \ *** remember the data structure is created dynamicaly so free memory if data was stored ***
 	    0 [to-inst] index-data
 	    0 [to-inst] addr-data
@@ -141,21 +147,22 @@ svgmaker class
     ;m overrides construct
 
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
-	this construct
-	this [parent] destruct
-	working$ destruct
-	working$s destruct
-	pathdata$ destruct
-	xlabdata$ destruct
-	xlab-attr$ destruct
-	ylab-attr$ destruct
-	labline-attr$ destruct
-	lableref$ destruct
-	lablemark$ destruct
-	ytransform$ destruct
-	ytempattr$s destruct
-	xtempattr$s destruct
-	this free throw ;m overrides destruct
+	\ *** still need code here to remove the data and text that was allocated if index-data and index-text are > 0
+	this svgmaker-destruct
+	working$ string-destruct
+	lableref$ string-destruct
+	lablemark$ string-destruct
+	ytransform$ string-destruct
+	
+	working$s strings-destruct
+	pathdata$ strings-destruct
+	xlabdata$ strings-destruct
+	xlab-attr$ strings-destruct
+	ylab-attr$ strings-destruct
+	labline-attr$ strings-destruct
+	ytempattr$s strings-destruct
+	xtempattr$s strings-destruct
+    ;m method svgchart-destruct
     
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
@@ -259,8 +266,6 @@ svgmaker class
 	loop ;m method makepath
 
     m: ( svgchart -- ) \ will make the chart lables both lines and text
-\	string heap-new string heap-new string heap-new strings heap-new strings heap-new 
-\	{ lableref$ lablemark$ ytransform$ ytempattr$s xtempattr$s }
 	pathdata$ construct
 	\ make the ylable line
 	s" M " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
