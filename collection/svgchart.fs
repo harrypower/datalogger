@@ -313,7 +313,13 @@ svgmaker class
     ;m method makelables
 
     m: ( svgchart -- ) \ will put the text onto the chart
-
+	index-text 0 ?do
+	    addr-text i text% %size * + dup
+	    text-attr$ @ swap dup
+	    text-x @ swap dup
+	    text-y @ swap
+	    text$ @ this svgtext
+	loop
     ;m method maketexts
 
     \ methods for giving data to svgchart and geting the svg from this object
@@ -387,6 +393,7 @@ else
 	\ execute makelables
 	this makelables
 	\ execute maketext
+	this maketexts
 	\ finish svg with svgend to return the svg string
 	this svgend
 	\ return false if no other errors
