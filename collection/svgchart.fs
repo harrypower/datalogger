@@ -442,17 +442,17 @@ s" second"                     tld !$x
 s" third"                      tld !$x
 s" fourth"                     tld !$x
 
-\ s\" fill=\"rgb(255,0,0)\""     tla !$x
-s\" fill-opacity=\"0.0\""      tla !$x
+s\" fill=\"rgb(255,0,0)\""     tla !$x
+s\" fill-opacity=\"0.2\""      tla !$x
 s\" stroke=\"rgb(120,255,0)\"" tla !$x
 s\" stroke-opacity=\"1.0\""    tla !$x
-s\" stroke-width=\"3.0\""      tla !$x
+s\" stroke-width=\"2.0\""      tla !$x
 
-s" her is first text"          tt !$
+s" here is first text"          tt !$
 
 tt 10 20  ta test settext
 s" second texts" tt !$
-tt 30 30 ta test settext
+tt 200 300 ta test settext
 
 tld tla tla tla test setlabledataattr
 

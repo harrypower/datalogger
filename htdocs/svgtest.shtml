@@ -4,11 +4,13 @@
 <meta charset="utf-8">
 <title>SVG Test</title>
 </head>
-<link rel="stylesheet" type="text/css" href="styleA.css">
+<$ \ <link rel="stylesheet" type="text/css" href="styleA.css"> 
+$>
 <$
 warnings off
-require ../collection/svgmaker2.fs
+require ../collection/svgmaker.fs
 require ../collection/stringobj.fs
+require ../collection/svgchart.fs
 
 strings heap-new constant head
 strings heap-new constant attr1
@@ -63,6 +65,8 @@ attr1 30 20 text thesvg svgtext
 attr1 50 80 20 thesvg svgcircle
 thesvg svgend type
 
+test makechart throw 
+type
 $>
 </body>
 </html>
