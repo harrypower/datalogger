@@ -166,10 +166,22 @@ svgmaker class
 	\ nmaxpoints forces data points to be used up to this limit
 	\ nxmaxchart max x absolute px size of chart
 	\ nymaxchart max y absolute px size of chart
-	[to-inst] ymaxchart [to-inst] xmaxchart [to-inst] xmaxpoints ;m method pxychartsize
+	[to-inst] ymaxchart [to-inst] xmaxchart [to-inst] xmaxpoints ;m method chart-prop
 
     m: ( ncircleradius -- ) \ the radius size of circles for each data point in data set ( in px ).
-	[to-inst] circleradius ;m method ppcircleradius
+	[to-inst] circleradius ;m method dtpts-circle-prop
+
+    m: ( nylablesize nytoplablesize nylableoffset nylableqty nymarksize  ) \ y lable position and quantity propertys
+	\ nylablesize y lable at bottom of chart size in absolute px
+	\ nytoplablesize y lable at top of chart size in absolute px
+	\ nylableoffset offset to place lable from ( ymaxchart + ytoplableoffset )
+	\ nylableqty how may y lable lines and or text spots
+	\ nymarksize size of the y lable marks
+	[to-inst] ymarksize [to-inst] ylableqty [to-inst] ylableoffset [to-inst] ytoplablesize [to-inst] ylablesize
+    ;m method ylable-prop
+
+    m: ( nylabletextoff ylabletxtpos ylablerot )
+    ;m method ylable-text-prop
     
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
@@ -479,5 +491,6 @@ s" 3.92" tdata !$x
 s" 99.3" tdata !$x
 tdata tda tdca test setdata
 
-5 500 300 test pxychartsize
-10 test ppcircleradius
+5 500 300 test chart-prop
+10 test dtpts-circle-prop
+200 40 10 5 50 test ylable-prop
