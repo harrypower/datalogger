@@ -309,8 +309,7 @@ svgmaker class
 	    swap dup #to$ working$ !+$ s" , " working$ !+$ swap dup #to$ working$ !+$ s"  " working$ !+$
 	    s\" )\"" working$ !+$ working$ @$ xtempattr$s !$x xtempattr$s -rot xlabdata$
 	    this svgtext
-	loop
-    ;m method makelables
+	loop ;m method makelables
 
     m: ( svgchart -- ) \ will put the text onto the chart
 	index-text 0 ?do
@@ -319,8 +318,7 @@ svgmaker class
 	    text-x @ swap dup
 	    text-y @ swap
 	    text$ @ this svgtext
-	loop
-    ;m method maketexts
+	loop ;m method maketexts
 
     \ methods for giving data to svgchart and geting the svg from this object
     m: ( nstrings-xdata nstrings-xdata-attr nstrings-xdata-circle-attr svgchart -- )
@@ -330,15 +328,14 @@ svgmaker class
 	index-data 0 >
 	if
 	    addr-data data% %size index-data 1 + * resize throw [to-inst] addr-data index-data 1 + [to-inst] index-data
-else
+	else
 	    data% %alloc [to-inst] addr-data
 	    1 [to-inst] index-data
 	then
 	addr-data index-data 1 - data% %size * + dup
 	-rot circle-attr$ strings heap-new dup rot ! copy$s dup
 	-rot data-attr$ strings heap-new dup rot ! copy$s
-	data$ strings heap-new dup rot ! copy$s
-    ;m method setdata
+	data$ strings heap-new dup rot ! copy$s ;m method setdata
     
     m: ( nstrings-xlabdata nstrings-xlab-attr nstrings-ylab-attr nstrings-labline-attr svgchart -- )
 	\ to place xlabel data onto svg chart with x,y text and line attributes
@@ -362,8 +359,7 @@ else
 	-rot text-attr$ strings heap-new dup rot ! copy$s dup
 	-rot text-y ! dup
 	-rot text-x !
-	text$ string heap-new dup rot ! swap @$ rot !$
-    ;m method settext
+	text$ string heap-new dup rot ! swap @$ rot !$ ;m method settext
     
     m: ( svgchart -- caddr u nflag )  \ top level word to make the svg chart 
 	\ test for data available for chart making and valid
@@ -397,8 +393,7 @@ else
 	\ finish svg with svgend to return the svg string
 	this svgend
 	\ return false if no other errors
-	false
-    ;m method makechart
+	false ;m method makechart
     
 end-class svgchartmaker
 
@@ -409,52 +404,65 @@ strings heap-new constant tdata
 strings heap-new constant tda
 strings heap-new constant tdca
 strings heap-new constant tld
-strings heap-new constant tla
+strings heap-new constant tlla
 strings heap-new constant ta
-string heap-new constant tt
+string  heap-new constant tt
+strings heap-new constant yla
+strings heap-new constant xla
 
 s\" fill=\"rgb(0,0,255)\""     ta !$x
 s\" fill-opacity=\"1.0\""      ta !$x
 s\" stroke=\"rgb(0,100,200)\"" ta !$x
-s\" stroke-opacity=\"0.0\""    ta !$x
-s\" stroke-width=\"4.0\""      ta !$x
-s\" font-size=\"20px\""        ta !$x
+s\" stroke-opacity=\"1.0\""    ta !$x
+s\" stroke-width=\"2.0\""      ta !$x
+s\" font-size=\"30px\""        ta !$x
 
 s" 10"                         tdata !$x
 s" 20"                         tdata !$x
 s" 53.9"                       tdata !$x
 s" 0.789"                      tdata !$x
 
-s\" fill=\"rgb(255,0,0)\""     tda !$x
 s\" fill-opacity=\"0.0\""      tda !$x
-s\" stroke=\"rgb(120,255,0)\"" tda !$x
+s\" stroke=\"rgb(255,120,0)\"" tda !$x
 s\" stroke-opacity=\"1.0\""    tda !$x
 s\" stroke-width=\"2.0\""      tda !$x
 
-s\" fill=\"rgb(255,0,0)\""     tdca !$x
-s\" fill-opacity=\"1.0\""      tdca !$x
-s\" stroke=\"rgb(120,255,0)\"" tdca !$x
+s\" fill=\"rgb(0,255,0)\""     tdca !$x
+s\" fill-opacity=\"0.7\""      tdca !$x
+s\" stroke=\"rgb(255,0,0)\""   tdca !$x
 s\" stroke-opacity=\"1.0\""    tdca !$x
 s\" stroke-width=\"3.0\""      tdca !$x
+
+s\" fill=\"rgb(0,0,255)\""     yla !$x
+s\" fill-opacity=\"1.0\""      yla !$x
+s\" stroke=\"rgb(0,120,255)\"" yla !$x
+s\" stroke-opacity=\"1.0\""    yla !$x
+s\" stroke-width=\"2.0\""      yla !$x
+s\" font-size=\"20px\""        yla !$x
+
+s\" fill=\"rgb(255,0,0)\""     xla !$x
+s\" fill-opacity=\"1.0\""      xla !$x
+s\" stroke=\"rgb(50,255,0)\""  xla !$x
+s\" stroke-opacity=\"1.0\""    xla !$x
+s\" stroke-width=\"2.0\""      xla !$x
+s\" font-size=\"20px\""        xla !$x
 
 s" first"                      tld !$x
 s" second"                     tld !$x
 s" third"                      tld !$x
 s" fourth"                     tld !$x
 
-s\" fill=\"rgb(255,0,0)\""     tla !$x
-s\" fill-opacity=\"0.2\""      tla !$x
-s\" stroke=\"rgb(120,255,0)\"" tla !$x
-s\" stroke-opacity=\"1.0\""    tla !$x
-s\" stroke-width=\"2.0\""      tla !$x
+s\" fill-opacity=\"0.0\""      tlla !$x
+s\" stroke=\"rgb(0,0,255)\""   tlla !$x
+s\" stroke-opacity=\"1.0\""    tlla !$x
+s\" stroke-width=\"2.0\""      tlla !$x
 
 s" here is first text"          tt !$
-
 tt 10 20  ta test settext
 s" second texts" tt !$
 tt 200 300 ta test settext
 
-tld tla tla tla test setlabledataattr
+tld xla yla tlla test setlabledataattr
 
 tdata tda tdca test setdata
 tdata construct
@@ -464,11 +472,3 @@ s" 3.92" tdata !$x
 s" 99.3" tdata !$x
 tdata tda tdca test setdata
 
-cr
-test seelable $qty . $qty . $qty . $qty . ." lable" cr
-
-0 test ntext@ $qty . . . @$ type space ." text" cr
-1 test ntext@ $qty . . . @$ type space ." text" cr
-
-0 test ndata@ $qty . $qty . @$x type space ." first data set point 0" cr
-1 test ndata@ $qty . $qty . @$x type space ." second data set point 0" cr

@@ -20,20 +20,20 @@ strings heap-new constant path2
 strings heap-new constant circle
 strings heap-new constant text
 svgmaker heap-new constant thesvg
-." a" 
+
 s\" width=\"300\""            head !$x
 s\" height=\"300\""           head !$x
 s\" viewBox=\"0 0 300 300\""  head !$x
-." c"
+
 s\" fill=\"rgb(0,0,255)\""      attr1 !$x 
-s\" fill-opacity=\"1.0\""       attr1 !$x 
+s\" fill-opacity=\"0.5\""       attr1 !$x 
 s\" stroke=\"rgb(0,100,200)\""  attr1 !$x 
 s\" stroke-opacity=\"0.0\""     attr1 !$x 
 s\" stroke-width=\"4.0\""       attr1 !$x 
 s\" font-size=\"20px\""         attr1 !$x 
 
 s\" fill=\"rgb(0,255,0)\""      attr2 !$x 
-s\" fill-opacity=\"1.0\""       attr2 !$x 
+s\" fill-opacity=\"0.3\""       attr2 !$x 
 s\" stroke=\"rgb(0,100,0)\""    attr2 !$x 
 s\" stroke-opacity=\"0.0\""     attr2 !$x 
 s\" stroke-width=\"4.0\""       attr2 !$x 
@@ -57,7 +57,6 @@ $>
 <body>
 <h1> SVG test <h1>
 <$
-." b" 
 head thesvg svgheader 
 attr1 path1 thesvg svgpath
 attr2 path2 thesvg svgpath
