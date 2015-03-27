@@ -37,7 +37,6 @@ svgmaker class
     inst-value ymaxchart     \ the max y absolute px of the chart .. change this value to make chart larger in y
     inst-value ylablesize    \ the y label at bottom of chart size in absolute px
     inst-value ytoplablesize \ the y label at top of chart size in absolute px
-    inst-value xminstep      \ the min distance in px between x ploted points
     inst-value xlableoffset  \ the offset to place lable from xlabelsize edge
     inst-value ylableoffset  \ the offset to place lable from ( ymaxchart + ytoplablesize )
     inst-value ylabletextoff \ the offset of the text from ( ymaxchart + ytoplablesize + ylabeloffset )
@@ -134,7 +133,6 @@ svgmaker class
 	600  [to-inst] ymaxchart
 	140  [to-inst] ylablesize
 	70   [to-inst] ytoplablesize
-	9    [to-inst] xminstep
 	10   [to-inst] xlableoffset
 	10   [to-inst] ylableoffset
 	30   [to-inst] ylabletextoff
@@ -163,6 +161,15 @@ svgmaker class
 	ytempattr$s strings-destruct
 	xtempattr$s strings-destruct
     ;m method svgchart-destruct
+
+    m: ( nxmaxpoints nxmaxchart nymaxchart -- ) \ values to change chart size and charting data use
+	\ nmaxpoints forces data points to be used up to this limit
+	\ nxmaxchart max x absolute px size of chart
+	\ nymaxchart max y absolute px size of chart
+	[to-inst] ymaxchart [to-inst] xmaxchart [to-inst] xmaxpoints ;m method pxychartsize
+
+    m: ( ncircleradius -- ) \ the radius size of circles for each data point in data set ( in px ).
+	[to-inst] circleradius ;m method ppcircleradius
     
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
@@ -472,3 +479,5 @@ s" 3.92" tdata !$x
 s" 99.3" tdata !$x
 tdata tda tdca test setdata
 
+5 500 300 test pxychartsize
+10 test ppcircleradius
