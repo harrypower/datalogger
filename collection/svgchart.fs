@@ -87,11 +87,14 @@ svgmaker class
 	    data-attr$ @ strings-destruct
 	    circle-attr$ @ strings-destruct
 	loop
+	index-data 0 > if addr-data free throw then 
 	index-text 0 ?do
 	    addr-text text% %size i * + dup
 	    text$ @ string-destruct
 	    text-attr$ @ strings-destruct
-	loop ;m method free-text-data
+	loop
+	index-text 0 > if addr-text free throw then
+    ;m method free-text-data
 
   public
     m: ( svgchart -- ) \ constructor to set some defaults
@@ -111,11 +114,9 @@ svgmaker class
 	    labline-attr$ construct
 	    ytempattr$s construct
 	    xtempattr$s construct
-
-	    \ *** now free the data and the text that may be stored if index-data is > 0 and index-text > 0
 	    this free-text-data
 	else
-	    \ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
+	    \ dynamicaly created objects
 	    string  heap-new [to-inst] working$
 	    string  heap-new [to-inst] lableref$
 	    string  heap-new [to-inst] lablemark$
@@ -129,10 +130,8 @@ svgmaker class
 	    strings heap-new [to-inst] labline-attr$
 	    strings heap-new [to-inst] ytempattr$s
 	    strings heap-new [to-inst] xtempattr$s
-	    \ *** remember the data structure is created dynamicaly so free memory if data was stored ***
 	    0 [to-inst] index-data
 	    0 [to-inst] addr-data
-	    \ *** remember the text structure is created dynamicaly so free memory if text was stored ***
 	    0 [to-inst] index-text 
 	    0 [to-inst] addr-text
 	    svgchartmaker-test svgchartmaker-test ! \ set flag for first time svgmaker object constructed
