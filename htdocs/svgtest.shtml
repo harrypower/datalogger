@@ -63,9 +63,13 @@ attr2 path2 thesvg svgpath
 attr1 30 20 text thesvg svgtext
 attr1 50 80 20 thesvg svgcircle
 thesvg svgend type
+thesvg svgmaker-destruct
+thesvg free throw
 
 test makechart throw 
 type
+test svgchart-destruct
+test free throw
 $>
 </body>
 </html>

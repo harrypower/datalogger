@@ -78,7 +78,21 @@ svgmaker class
     end-struct text%
     inst-value index-text \ text index
     inst-value addr-text  \ address of text structure
-    
+
+  protected
+    m: ( -- ) \ this will free text and data strings and string that is dynamicaly created in this object
+	index-data 0 ?do
+	    addr-data data% %size i * + dup
+	    data$ @ strings-destruct dup
+	    data-attr$ @ strings-destruct
+	    circle-attr$ @ strings-destruct
+	loop
+	index-text 0 ?do
+	    addr-text text% %size i * + dup
+	    text$ @ string-destruct
+	    text-attr$ @ strings-destruct
+	loop ;m method free-text-data
+
   public
     m: ( svgchart -- ) \ constructor to set some defaults
 	this [parent] construct
@@ -99,7 +113,7 @@ svgmaker class
 	    xtempattr$s construct
 
 	    \ *** now free the data and the text that may be stored if index-data is > 0 and index-text > 0
-	    
+	    this free-text-data
 	else
 	    \ *** remember these items below are objects that will need to be deconstructed to prevent memory leaks ****
 	    string  heap-new [to-inst] working$
@@ -146,13 +160,10 @@ svgmaker class
     ;m overrides construct
 
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
-	\ *** still need code here to remove the data and text that was allocated if index-data and index-text are > 0
-	this svgmaker-destruct
 	working$ string-destruct
 	lableref$ string-destruct
 	lablemark$ string-destruct
 	ytransform$ string-destruct
-	
 	working$s strings-destruct
 	pathdata$ strings-destruct
 	xlabdata$ strings-destruct
@@ -161,6 +172,8 @@ svgmaker class
 	labline-attr$ strings-destruct
 	ytempattr$s strings-destruct
 	xtempattr$s strings-destruct
+	this free-text-data
+	this svgmaker-destruct
     ;m method svgchart-destruct
 
     m: ( nxmaxpoints nxmaxchart nymaxchart -- ) \ values to change chart size and charting data use
