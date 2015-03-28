@@ -180,8 +180,11 @@ svgmaker class
 	[to-inst] ymarksize [to-inst] ylableqty [to-inst] ylableoffset [to-inst] ytoplablesize [to-inst] ylablesize
     ;m method ylable-prop
 
-    m: ( nylabletextoff ylabletxtpos ylablerot )
-    ;m method ylable-text-prop
+    m: ( nylabletextoff nylabletxtpos nylablerot ) \ y lable text propertys
+	\ nylabletextoff offset of the text from ( ymaxchart + ytoplablesize + ylabeloffset )
+	\ nylabletxtpos offset of y lable text from svg window
+	\ nylablerot rotation orientation of ylable text
+	[to-inst] ylablerot [to-inst] ylabletxtpos [to-inst] ylabletextoff ;m method ylable-text-prop
     
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
@@ -491,6 +494,7 @@ s" 3.92" tdata !$x
 s" 99.3" tdata !$x
 tdata tda tdca test setdata
 
-5 500 300 test chart-prop
-10 test dtpts-circle-prop
-200 40 10 5 50 test ylable-prop
+5 1000 300 test chart-prop
+1 test dtpts-circle-prop
+200 40 10 10 10 test ylable-prop
+10 30 0 test ylable-text-prop
