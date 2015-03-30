@@ -64,91 +64,91 @@ variable mytemppad$
 
 \ ********************************************************************
 
-: (list$)
-  does> ( -- addr nindex  )
-    dup dup @ -rot cell + @    \ return address of list$ and current index of list$'s
-    0 rot 2 cells + ! ;        \ reset iterator value to zero
+\ : (list$)
+\  does> ( -- addr nindex  )
+\    dup dup @ -rot cell + @    \ return address of list$ and current index of list$'s
+\    0 rot 2 cells + ! ;        \ reset iterator value to zero
 
-: (dolist$!) ( caddr u addr -- )
-    @ >r r@ @ r@ cell + @ cells cell + resize throw    \ resize past allocated stuff for new string
-    r@ !                                               \ store new address of list$
-    r@ @ r@  cell + @ cells +    ( caddr u addr -- )   \ calculate offset to store next string
-    dup 0 swap !                 ( caddr u addr -- )   \ clear addr contents to use as string
-    $!                           ( caddr u addr-- )    \ store string
-    r@ cell + @ 1+ r> cell + ! ; ( -- )                \ update index 
+\ : (dolist$!) ( caddr u addr -- )
+\    @ >r r@ @ r@ cell + @ cells cell + resize throw    \ resize past allocated stuff for new string
+\    r@ !                                               \ store new address of list$
+\    r@ @ r@  cell + @ cells +    ( caddr u addr -- )   \ calculate offset to store next string
+\    dup 0 swap !                 ( caddr u addr -- )   \ clear addr contents to use as string
+\    $!                           ( caddr u addr-- )    \ store string
+\    r@ cell + @ 1+ r> cell + ! ; ( -- )                \ update index 
 
-: (list$!) \ note resize here will resize 0 alloted address in gforth only (non ans forth)
-  does> ( caddr u -- )
-    (dolist$!) ;
+\ : (list$!) \ note resize here will resize 0 alloted address in gforth only (non ans forth)
+\  does> ( caddr u -- )
+\    (dolist$!) ;
 
-: (list$@)
-  does> ( -- caddr u )
-    @ >r
-    r@ cell + @ 0 >  \ if list$ is empty just return null string
-    if
-	r@ @                       \ get string address star
-	r@ 2 cells + @ cells + $@  \ return string with index offset added 
-	r@ 2 cells + @ 1 + dup     \ add one to iterator next output
-	r@ cell + @ >=             \ if iterator next output to large start again at zero
-	if
-	    drop 0                 \ restart
-	then
-	r@ 2 cells + !             \ store next iterator value
-    else
-	0 0
-	0 r@ 2 cells + !           \ ensure iterator has zero for starting index value
-    then rdrop ;
+\ : (list$@)
+\  does> ( -- caddr u )
+\    @ >r
+\    r@ cell + @ 0 >  \ if list$ is empty just return null string
+\    if
+\	r@ @                       \ get string address star
+\	r@ 2 cells + @ cells + $@  \ return string with index offset added 
+\	r@ 2 cells + @ 1 + dup     \ add one to iterator next output
+\	r@ cell + @ >=             \ if iterator next output to large start again at zero
+\	if
+\	    drop 0                 \ restart
+\	then
+\	r@ 2 cells + !             \ store next iterator value
+\    else
+\	0 0
+\	0 r@ 2 cells + !           \ ensure iterator has zero for starting index value
+\    then rdrop ;
 
-: (list$off)
-  does> ( -- ) \ note this local is used inside the ?do loop and works in gforth (non ans forth)
-    @ { this@ }                 \ note used local here because return stack cant be used in do loops
-    this@ cell + @ 0 ?do
-	this@ @ i cells + $off  \ free the strings
-    loop
-    this@ @ free throw          \ free the pointers
-    0 this@ !                   \ start at begining
-    0 this@ cell + !
-    0 this@ 2 cells + ! ;       \ zero iterator 
+\ : (list$off)
+\  does> ( -- ) \ note this local is used inside the ?do loop and works in gforth (non ans forth)
+\    @ { this@ }                 \ note used local here because return stack cant be used in do loops
+\    this@ cell + @ 0 ?do
+\	this@ @ i cells + $off  \ free the strings
+\    loop
+\    this@ @ free throw          \ free the pointers
+\    0 this@ !                   \ start at begining
+\    0 this@ cell + !
+\    0 this@ 2 cells + ! ;       \ zero iterator 
 
-: (list$>$!)
-  does> ( addr nindex )
-    swap -rot { addr this }
-    0 ?do \ this loops from 0 to nindex
-	i cells addr + $@ this (dolist$!)
-    loop ;
+\ : (list$>$!)
+\  does> ( addr nindex )
+\    swap -rot { addr this }
+\    0 ?do \ this loops from 0 to nindex
+\	i cells addr + $@ this (dolist$!)
+\    loop ;
 
-: list$: ( -- ) ( "name" ) \ used to create a dynamic string array handler
-    create here latest { addr nt }
-    0 , 0 , 0 ,             \ start address for list$, total stored list$'s, interative index for viewing
-    nt name>string addr $!  \ temporarily store name of created list$
-    s" -$!" addr $+!    \ add -$! to name for next create
-    addr $@ nextname    \ set next create name
-    (list$)             \ set doer for name handler
+\ : list$: ( -- ) ( "name" ) \ used to create a dynamic string array handler
+\    create here latest { addr nt }
+\    0 , 0 , 0 ,             \ start address for list$, total stored list$'s, interative index for viewing
+\    nt name>string addr $!  \ temporarily store name of created list$
+\    s" -$!" addr $+!    \ add -$! to name for next create
+\    addr $@ nextname    \ set next create name
+\    (list$)             \ set doer for name handler
 
-    create addr ,       \ store first list$ addr
-    nt name>string addr $!
-    s" -$@" addr $+!
-    addr $@ nextname
-    (list$!)            \ set doer for name string storer
+\    create addr ,       \ store first list$ addr
+\    nt name>string addr $!
+\    s" -$@" addr $+!
+\    addr $@ nextname
+\    (list$!)            \ set doer for name string storer
 
-    create addr ,       \ store first list$ addr 
-    nt name>string addr $!
-    s" -$off" addr $+!
-    addr $@ nextname
-    (list$@)            \ set doer for name string fetch iterator
+\    create addr ,       \ store first list$ addr 
+\    nt name>string addr $!
+\    s" -$off" addr $+!
+\    addr $@ nextname
+\    (list$@)            \ set doer for name string fetch iterator
 
-    create addr ,       \ name-$off store first list$ addr
-    nt name>string addr $!
-    s" ->$!" addr $+!
-    addr $@ nextname
+\    create addr ,       \ name-$off store first list$ addr
+\    nt name>string addr $!
+\    s" ->$!" addr $+!
+\    addr $@ nextname
 
-    addr $off           \ reclaim temporary string
-    0 addr !            \ reset cell to start the new list$ 
+\    addr $off           \ reclaim temporary string
+\    0 addr !            \ reset cell to start the new list$ 
     
-    (list$off)          \ set doer for name string reclaimer
+\    (list$off)          \ set doer for name string reclaimer
 
-    create addr ,
-    (list$>$!) ;         \ set doer for name string copier
+\    create addr ,
+\    (list$>$!) ;         \ set doer for name string copier
 
 \ list$: is used as follows:
 \ list$: mystrings
@@ -162,33 +162,33 @@ variable mytemppad$
 \ mystring otherstrings->$! \ this would transfer all strings from mystring to otherstrings handler 
 \ ************************************************************************
 
-: (bufr$!)
-  does> ( caddr u -- caddr1 u1 )
-    dup 2swap                         ( caddr u -- sa sa caddr u )
-    dup allocate throw                ( sa sa caddr u -- sa sa caddr u anew )
-    dup 2swap                         ( sa sa caddr u anew  -- sa sa anew anew caddr u )
-    rot swap dup >r move              ( sa sa anew anew caddr u -- sa sa anew  )
-    rot dup @ 0 <>                    ( sa sa anew -- sa anew sa f )
-    if @ free throw else drop then    ( sa anew sa -- sa anew  )
-    over ! dup cell +                 ( sa anew -- sa sa+4 )
-    r> swap ! dup @ swap cell + @ ;   ( sa sa+4 -- sa@ sa+4@ )
+\ : (bufr$!)
+\  does> ( caddr u -- caddr1 u1 )
+\    dup 2swap                         ( caddr u -- sa sa caddr u )
+\    dup allocate throw                ( sa sa caddr u -- sa sa caddr u anew )
+\    dup 2swap                         ( sa sa caddr u anew  -- sa sa anew anew caddr u )
+\    rot swap dup >r move              ( sa sa anew anew caddr u -- sa sa anew  )
+\    rot dup @ 0 <>                    ( sa sa anew -- sa anew sa f )
+\    if @ free throw else drop then    ( sa anew sa -- sa anew  )
+\    over ! dup cell +                 ( sa anew -- sa sa+4 )
+\    r> swap ! dup @ swap cell + @ ;   ( sa sa+4 -- sa@ sa+4@ )
 
-: bufr$: ( runtime: caddr u -- caddr1 u1 ) \ will take a string from stack then return it back to stack
-    ( compiletime: "name" -- ) 
+\ : bufr$: ( runtime: caddr u -- caddr1 u1 ) \ will take a string from stack then return it back to stack
+\    ( compiletime: "name" -- ) 
     \ the point of this is it acts as a fifo buffer with only one space
     \ The main use is to put strings into new allocated memory to prevent s" use causing invalid memory errors
     \ and free the old string memory so there is no leaks
-    create here 0 , 0 ,
-    latest { addr nt }   
-    nt name>string 2 + dup allocate throw addr ! 
-    dup addr cell + !
-    addr @ swap move
-    addr cell + @ 2 - addr @ + '$' swap c!
-    addr cell + @ 1 - addr @ + '@' swap c!
-    addr @ addr cell + @ nextname
-    (bufr$!) 
-    create addr , 
-  does> @ dup @ swap cell + @ ;
+\    create here 0 , 0 ,
+\    latest { addr nt }   
+\    nt name>string 2 + dup allocate throw addr ! 
+\    dup addr cell + !
+\    addr @ swap move
+\    addr cell + @ 2 - addr @ + '$' swap c!
+\    addr cell + @ 1 - addr @ + '@' swap c!
+\    addr @ addr cell + @ nextname
+\    (bufr$!) 
+\    create addr , 
+\  does> @ dup @ swap cell + @ ;
 
 \ bufr$: is used as follows:
 \ bufr$: mybuffer
