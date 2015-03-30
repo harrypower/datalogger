@@ -218,11 +218,21 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     s" 0);" temp$ !+$       \ dataSent can be 0 for not sent or -1 for sent
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: lastlocaldata@ ( caddr u -- ) \ simply output a string of the last data point stored in localData table
+: lastlocaldata@ ( -- ncaddr u ) \ simply output a string of the last data point stored in localData table
     setupsqlite3
     s" select row,datetime(dtime,'unixepoch','localtime'),humd,temp,pressure,co2,nh3,dataSent " temp$ !$
     s" from localData limit 1 offset ((select max(row) from localData)-1);" temp$ !+$
     temp$ @$ dbcmds
     sendsqlite3cmd dberrorthrow dbret$ ;
 
-    
+: nlastlocaldata@ ( uqty -- ncaddr u ) \ retrieve nqty rows from local database taking rows from last row first
+    setupsqlite3
+    dup 100 * mkretbuff \ uqty * 100 = amount to change return buffer size to 
+    s" select row,datetime(dtime,'unixepoch','localtime'),humd,temp,pressure,co2,nh3 " temp$ !$
+    s" from localData limit " temp$ !+$
+    #to$ 2dup temp$ !+$ 
+    s"  offset ((select max(row) from localData)-" temp$ !+$
+    temp$ !+$
+    s" );" temp$ !+$
+    temp$ @$ dbcmds
+    sendsqlite3cmd dberrorthrow dbret$ ;

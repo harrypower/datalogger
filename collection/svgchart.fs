@@ -16,6 +16,9 @@
 
 \ The code inherits svgmaker object and creates svgchartmaker object to work with SVG
 \ output for using in a web server for example!
+\ This svgchartmaker object can take large data sets for x and a y data set an make an svg chart
+\ Also most attributes can be setup in this chart for how the data looks and how the text looks
+\ and how the chart looks.
 
 require svgmaker.fs
 require stringobj.fs
