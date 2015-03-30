@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Last 100</title>
+</head>
+<$
+warnings off
+require ../collection/stringobj.fs
+require ../collection/svgchart.fs
+
+svgchartmaker heap-new constant asvgchart
+strings heap-new constant txtattr1
+strings heap-new constant data
+strings heap-new constant circleattr
+strings heap-new constant labledata
+strings heap-new constant lablexattr
+strings heap-new constant lableyattr
+strings heap-new constant lablelineattr
+
+
+s\" fill=\"rgb(0,0,255)\""      txtattr1 !$x 
+s\" fill-opacity=\"0.5\""       txtattr1 !$x 
+s\" stroke=\"rgb(0,100,200)\""  txtattr1 !$x 
+s\" stroke-opacity=\"0.0\""     txtattr1 !$x 
+s\" stroke-width=\"4.0\""       txtattr1 !$x 
+s\" font-size=\"20px\""         txtattr1 !$x 
+
+s\" fill=\"rgb(0,255,0)\""      lablexattr !$x 
+s\" fill-opacity=\"0.3\""       lablexattr !$x 
+s\" stroke=\"rgb(0,100,0)\""    lablexattr !$x 
+s\" stroke-opacity=\"0.0\""     lablexattr !$x 
+s\" stroke-width=\"4.0\""       lablexattr !$x 
+s\" font-size=\"20px\""         lablexattr !$x 
+
+s\" fill=\"rgb(0,255,0)\""      lableyattr !$x 
+s\" fill-opacity=\"0.3\""       lableyattr !$x 
+s\" stroke=\"rgb(0,100,0)\""    lableyattr !$x 
+s\" stroke-opacity=\"0.0\""     lableyattr !$x 
+s\" stroke-width=\"4.0\""       lableyattr !$x 
+s\" font-size=\"20px\""         lableyattr !$x 
+
+s\" fill=\"rgb(0,255,0)\""      circleattr !$x 
+s\" fill-opacity=\"0.3\""       circleattr !$x 
+s\" stroke=\"rgb(0,100,0)\""    circleattr !$x 
+s\" stroke-opacity=\"0.0\""     circleattr !$x 
+s\" stroke-width=\"4.0\""       circleattr !$x 
+
+s\" fill=\"rgb(0,255,0)\""      lablelineattr !$x 
+s\" fill-opacity=\"0.3\""       lablelineattr !$x 
+s\" stroke=\"rgb(0,100,0)\""    lablelineattr !$x 
+s\" stroke-opacity=\"0.0\""     lablelineattr !$x 
+s\" stroke-width=\"4.0\""       lablelineattr !$x 
+
+5 1000 300       asvgchart setchart-prop
+10               asvgchart setdtpts-circle-prop
+200 40 10 10 10  asvgchart setylable-prop
+10 30 0          asvgchart setylable-text-prop
+140 10 70        asvgchart setxlable-prop
+
+$>
+<body>
+<h1> See last 100 data points<h1>
+<$
+
+
+$>
+</body>
+</html>
