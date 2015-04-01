@@ -141,7 +141,7 @@ object class
 	    index @ qty @ >=
 	    if 0 index ! then 
 	else 0 0 then ;m method @$x
-    m: ( caddr u strings -- caddr1 u1 caddr2 u2 ) \ retrieve string from aray at next index then
+    m: ( caddr u strings -- caddr1 u1 caddr2 u2 ) \ retrieve string from array at next index then
 	\ split that next string at caddr u if possible
 	\ caddr1 u1 is empty if caddr u string is not found
 	\ caddr2 u2 contains the left over string if caddr u string is found
