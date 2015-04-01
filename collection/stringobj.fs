@@ -33,7 +33,7 @@ object class
     m: ( string -- )     \ free allocated memory for this instance of object
 	this construct ;m method string-destruct
     m: ( caddr u string -- ) \ store string
-	dup 0 > if
+\	dup 0 > if
 	    dup allocate throw { u caddr1 }
 	    caddr1 u move
 	    string-test @ string-test =
@@ -44,8 +44,9 @@ object class
 	    caddr1 string-addr !
 	    u string-size ! 
 	    string-test string-test !
-	else 2drop
-	then ;m method !$
+\	else 2drop
+\	then
+    ;m method !$
     m: ( string -- caddr u ) \ retrieve string
 	string-test @ string-test =
 	if
@@ -71,7 +72,7 @@ object class
 	    else 2drop
 	    then
 	then ;m method !+$
-    m: ( caddr u -- caddr1 u1 caddr2 u2 nflag ) \ split the stored string at caddr u if found
+    m: ( caddr u string -- caddr1 u1 caddr2 u2 nflag ) \ split the stored string at caddr u if found
 	\ caddr u will be removed and caddr1 u1 will be split string before caddr u
 	\ caddr2 u2 will be the split string after caddr u
 	\ if no match found caddr1 u1 returns and empty string and caddr2 u2 contains the this objects string
@@ -151,6 +152,24 @@ object class
 	    index @ qty @ >=
 	    if 0 index ! then 
 	else 2drop 0 0 0 0 then ;m method split$s
+    m: ( nstring-split$ nstring-source$ strings -- ) \ split up nstring-source$ with nstring-split$
+	\ nstring-source$ is split each time nstring-split$ is found and place in this strings
+	\ nstring-split$ is removed each time it is found and when no more are found process is done
+	{ sp$ src$ }
+	sp$ len$ 0 > src$ len$ 0 > and true =
+	if
+	    begin
+		sp$ @$ src$ split$ true = if 2swap this !$x src$ !$ false else 2drop 2drop true then
+	    until
+	then ;m method split$to$s
+    m: ( ncaddrfd u ncaddrsrc u1 -- ) \ split up ncaddrsrc u1 string with ncaddrfd u string
+	\ same as split$to$s method but temporary strings are passed to this code
+	\ ncaddrfd u is the string to find
+	\ ncaddrsrc u1 is the string to find ncaddrfd u string in
+	string heap-new string heap-new { fd$ src$ }
+	src$ !$ fd$ !$
+	fd$ src$ this split$to$s
+	fd$ string-destruct src$ string-destruct ;m method split$>$s
     m: ( strings -- u ) \ report size of strings array
 	strings-test @ strings-test =
 	if qty @ else 0 then ;m method $qty

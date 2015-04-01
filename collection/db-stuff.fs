@@ -228,7 +228,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 : nlastlocaldata@ ( uqty -- ncaddr u ) \ retrieve nqty rows from local database taking rows from last row first
     setupsqlite3
     dup 100 * mkretbuff \ uqty * 100 = amount to change return buffer size to 
-    s" select row,datetime(dtime,'unixepoch','localtime'),humd,temp,pressure,co2,nh3 " temp$ !$
+    s" select datetime(dtime,'unixepoch','localtime'),humd,temp,pressure,co2,nh3 " temp$ !$
     s" from localData limit " temp$ !+$
     #to$ 2dup temp$ !+$ 
     s"  offset ((select max(row) from localData)-" temp$ !+$
