@@ -8,6 +8,7 @@
 warnings off
 require ../collection/stringobj.fs
 require ../collection/svgchart.fs
+require ../collection/db-stuff.fs
 
 svgchartmaker heap-new constant asvgchart
 strings heap-new constant txtattr1
@@ -17,6 +18,18 @@ strings heap-new constant labledata
 strings heap-new constant lablexattr
 strings heap-new constant lableyattr
 strings heap-new constant lablelineattr
+strings heap-new constant adataattr
+strings heap-new constant bdataattr
+
+strings heap-new constant xlable
+strings heap-new constant humd
+strings heap-new constant temp
+strings heap-new constant pres
+strings heap-new constant co2
+strings heap-new constant nh3
+strings heap-new constant alldata
+string heap-new constant parser
+string heap-new constant parsee
 
 
 s\" fill=\"rgb(0,0,255)\""      txtattr1 !$x 
@@ -26,44 +39,85 @@ s\" stroke-opacity=\"0.0\""     txtattr1 !$x
 s\" stroke-width=\"4.0\""       txtattr1 !$x 
 s\" font-size=\"20px\""         txtattr1 !$x 
 
-s\" fill=\"rgb(0,255,0)\""      lablexattr !$x 
-s\" fill-opacity=\"0.3\""       lablexattr !$x 
-s\" stroke=\"rgb(0,100,0)\""    lablexattr !$x 
-s\" stroke-opacity=\"0.0\""     lablexattr !$x 
-s\" stroke-width=\"4.0\""       lablexattr !$x 
-s\" font-size=\"20px\""         lablexattr !$x 
+s\" fill=\"rgb(0,0,255)\""      lablexattr !$x 
+s\" fill-opacity=\"1.0\""       lablexattr !$x 
+s\" stroke=\"rgb(0,0,255)\""    lablexattr !$x 
+s\" stroke-opacity=\"1.0\""     lablexattr !$x 
+s\" stroke-width=\"0.8\""       lablexattr !$x 
+s\" font-size=\"10px\""          lablexattr !$x 
 
-s\" fill=\"rgb(0,255,0)\""      lableyattr !$x 
-s\" fill-opacity=\"0.3\""       lableyattr !$x 
-s\" stroke=\"rgb(0,100,0)\""    lableyattr !$x 
-s\" stroke-opacity=\"0.0\""     lableyattr !$x 
-s\" stroke-width=\"4.0\""       lableyattr !$x 
+s\" fill=\"rgb(255,0,0)\""      lableyattr !$x 
+s\" fill-opacity=\"1.0\""       lableyattr !$x 
+s\" stroke=\"rgb(255,0,0)\""    lableyattr !$x 
+s\" stroke-opacity=\"1.0\""     lableyattr !$x 
+s\" stroke-width=\"1.0\""       lableyattr !$x 
 s\" font-size=\"20px\""         lableyattr !$x 
 
 s\" fill=\"rgb(0,255,0)\""      circleattr !$x 
-s\" fill-opacity=\"0.3\""       circleattr !$x 
+s\" fill-opacity=\"1.0\""       circleattr !$x 
 s\" stroke=\"rgb(0,100,0)\""    circleattr !$x 
-s\" stroke-opacity=\"0.0\""     circleattr !$x 
+s\" stroke-opacity=\"1.0\""     circleattr !$x 
 s\" stroke-width=\"4.0\""       circleattr !$x 
 
-s\" fill=\"rgb(0,255,0)\""      lablelineattr !$x 
-s\" fill-opacity=\"0.3\""       lablelineattr !$x 
-s\" stroke=\"rgb(0,100,0)\""    lablelineattr !$x 
-s\" stroke-opacity=\"0.0\""     lablelineattr !$x 
-s\" stroke-width=\"4.0\""       lablelineattr !$x 
+s\" fill-opacity=\"0.0\""       lablelineattr !$x 
+s\" stroke=\"rgb(0,255,0)\""    lablelineattr !$x 
+s\" stroke-opacity=\"1.0\""     lablelineattr !$x 
+s\" stroke-width=\"1.0\""       lablelineattr !$x 
 
-5 1000 300       asvgchart setchart-prop
-10               asvgchart setdtpts-circle-prop
-200 40 10 10 10  asvgchart setylable-prop
+\ s\" fill=\"rgb(255,0,0)\""      adataattr !$x 
+\ s\" fill-opacity=\"0.0\""       adataattr !$x
+\ s\" stroke=\"rgb(0,100,0)\""  adataattr !$x
+\ s\" stroke-opacity=\"1.0\""     adataattr !$x
+\ s\" stroke-width=\"2.0\""       adataattr !$x
+s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" bdataattr !$x
+
+\ s\" fill=\"rgb(0,0,255)\""      bdataattr !$x 
+\ s\" fill-opacity=\"0.0\""       bdataattr !$x
+\ s\" stroke=\"rgb(0,0,255)\""  bdataattr !$x
+\ s\" stroke-opacity=\"1.0\""     bdataattr !$x
+\ s\" stroke-width=\"2.0\""       bdataattr !$x
+s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" bdataattr !$x
+
+100 2000 200     asvgchart setchart-prop
+3                asvgchart setdtpts-circle-prop
+200 40 10 4 10   asvgchart setylable-prop
 10 30 0          asvgchart setylable-text-prop
-140 10 70        asvgchart setxlable-prop
+140 10 90        asvgchart setxlable-prop
+
+: splitdata ( -- )
+    s\" \n" parser !$
+    100 nlastlocaldata@ parsee !$
+    parser parsee alldata split$to$s ;
+
+: splitdatatobins ( -- )
+    alldata reset
+    alldata $qty 0 ?do
+        alldata @$x parsee !$
+        s" ," parsee split$ drop
+        2swap xlable !$x parsee !$
+        s" ," parsee split$ drop
+        2swap humd !$x parsee !$
+        s" ," parsee split$ drop
+        2swap temp !$x parsee !$
+        s" ," parsee split$ drop
+        2swap pres !$x parsee !$
+        s" ," parsee split$ drop
+        2swap co2 !$x parsee !$
+        s" ," parsee split$ drop
+        2drop nh3 !$x
+    loop ;
+
+splitdata splitdatatobins
 
 $>
 <body>
 <h1> See last 100 data points<h1>
 <$
-
-
+xlable reset co2 reset
+xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
+co2 adataattr circleattr asvgchart setdata
+nh3 bdataattr circleattr asvgchart setdata
+asvgchart makechart throw type
 $>
 </body>
 </html>
