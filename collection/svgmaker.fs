@@ -66,9 +66,12 @@ object class
 
     m: ( nstrings-attr nstrings-pathdata svgmaker -- ) \ make a svg path with nstring-attr and nstrings-pathdata
 	s" <path " this !svg$
-	swap this svgattr
+	\ swap this svgattr
 	s\" d=\"" this !svg$
-	this svgattr s\" \"\/> " this !svg$ ;m method svgpath
+	this svgattr s\" \" " this !svg$
+	this svgattr s\" \/>" this !svg$
+	\ s\" \" \/>" this !svg$
+    ;m method svgpath
 
     m: ( nstring-attr nx ny nr svgmaker -- ) \ make a svg circle with nstring-attr at nx and ny with radius nr
 	s\" <circle cx=\"" this !svg$ rot this #tosvg$

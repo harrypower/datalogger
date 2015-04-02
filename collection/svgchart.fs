@@ -90,13 +90,17 @@ svgmaker class
 	    data-attr$ @ strings-destruct
 	    circle-attr$ @ strings-destruct
 	loop
-	index-data 0 > if addr-data free throw then 
+	index-data 0 > if addr-data free throw then
+	0 [to-inst] index-data
+	0 [to-inst] addr-data
 	index-text 0 ?do
 	    addr-text text% %size i * + dup
 	    text$ @ string-destruct
 	    text-attr$ @ strings-destruct
 	loop
 	index-text 0 > if addr-text free throw then
+	0 [to-inst] index-text
+	0 [to-inst] addr-text
     ;m method free-text-data
 
   public
@@ -289,6 +293,7 @@ svgmaker class
     m: ( nxdata$ svgchart -- ) \ will produce the path strings to be used in chart
 	{ xdata$ }
 	xdata$ reset
+	pathdata$ construct
 	s" M " working$ !$ xlablesize #to$ working$ !+$ s"  " working$ !+$
 	xdata$ @$x >float
 	if
@@ -448,6 +453,7 @@ svgchartmaker heap-new constant test
 
 strings heap-new constant tdata
 strings heap-new constant tda
+strings heap-new constant tda2
 strings heap-new constant tdca
 strings heap-new constant tld
 strings heap-new constant tlla
@@ -468,10 +474,17 @@ s" 20"                         tdata !$x
 s" 53.9"                       tdata !$x
 s" 0.789"                      tdata !$x
 
-s\" fill-opacity=\"0.0\""      tda !$x
-s\" stroke=\"rgb(255,120,0)\"" tda !$x
-s\" stroke-opacity=\"1.0\""    tda !$x
-s\" stroke-width=\"2.0\""      tda !$x
+\ s\" fill-opacity=\"0.0\""      tda !$x
+\ s\" stroke=\"rgb(255,120,0)\"" tda !$x
+\ s\" stroke-opacity=\"1.0\""    tda !$x
+\ s\" stroke-width=\"2.0\""      tda !$x
+s\" style=\"stroke: #ff0000; fill: #ffffff;\"" tda !$x
+
+\ s\" fill-opacity=\"0.0\""      tda2 !$x
+\ s\" stroke=\"rgb(0,0,255)\""   tda2 !$x
+\ s\" stroke-opacity=\"1.0\""    tda2 !$x
+\ s\" stroke-width=\"2.0\""      tda2 !$x
+s\" style=\"stroke: #0000ff; fill: #ffffff;\"" tda2 !$x
 
 s\" fill=\"rgb(0,255,0)\""     tdca !$x
 s\" fill-opacity=\"0.7\""      tdca !$x
@@ -516,7 +529,7 @@ s" 19" tdata !$x
 s" 29" tdata !$x
 s" 3.92" tdata !$x
 s" 99.3" tdata !$x
-tdata tda tdca test setdata
+tdata tda2 tdca test setdata
 
 5 1000 300 test setchart-prop
 10 test setdtpts-circle-prop

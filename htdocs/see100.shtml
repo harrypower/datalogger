@@ -9,11 +9,15 @@ warnings off
 require ../collection/stringobj.fs
 require ../collection/svgchart.fs
 require ../collection/db-stuff.fs
+require ../collection/script.fs
 
 svgchartmaker heap-new constant asvgchart
 strings heap-new constant txtattr1
+strings heap-new constant txtattr2
+string heap-new constant textdata
 strings heap-new constant data
-strings heap-new constant circleattr
+strings heap-new constant acircleattr
+strings heap-new constant bcircleattr
 strings heap-new constant labledata
 strings heap-new constant lablexattr
 strings heap-new constant lableyattr
@@ -31,59 +35,60 @@ strings heap-new constant alldata
 string heap-new constant parser
 string heap-new constant parsee
 
+s\" fill=\"rgb(255,0,0)\""      txtattr1 !$x 
+s\" fill-opacity=\"1.0\""       txtattr1 !$x 
+s\" stroke=\"rgb(255,0,0)\""    txtattr1 !$x 
+s\" stroke-opacity=\"1.0\""     txtattr1 !$x 
+s\" stroke-width=\"1.0\""       txtattr1 !$x 
+s\" font-size=\"30px\""         txtattr1 !$x 
 
-s\" fill=\"rgb(0,0,255)\""      txtattr1 !$x 
-s\" fill-opacity=\"0.5\""       txtattr1 !$x 
-s\" stroke=\"rgb(0,100,200)\""  txtattr1 !$x 
-s\" stroke-opacity=\"0.0\""     txtattr1 !$x 
-s\" stroke-width=\"4.0\""       txtattr1 !$x 
-s\" font-size=\"20px\""         txtattr1 !$x 
+s\" fill=\"rgb(0,255,0)\""      txtattr2 !$x 
+s\" fill-opacity=\"1.0\""       txtattr2 !$x 
+s\" stroke=\"rgb(0,255,0)\""    txtattr2 !$x 
+s\" stroke-opacity=\"1.0\""     txtattr2 !$x 
+s\" stroke-width=\"1.0\""       txtattr2 !$x 
+s\" font-size=\"30px\""         txtattr2 !$x 
 
 s\" fill=\"rgb(0,0,255)\""      lablexattr !$x 
 s\" fill-opacity=\"1.0\""       lablexattr !$x 
 s\" stroke=\"rgb(0,0,255)\""    lablexattr !$x 
 s\" stroke-opacity=\"1.0\""     lablexattr !$x 
 s\" stroke-width=\"0.8\""       lablexattr !$x 
-s\" font-size=\"10px\""          lablexattr !$x 
+s\" font-size=\"10px\""         lablexattr !$x 
 
-s\" fill=\"rgb(255,0,0)\""      lableyattr !$x 
+s\" fill=\"rgb(0,0,255)\""      lableyattr !$x 
 s\" fill-opacity=\"1.0\""       lableyattr !$x 
-s\" stroke=\"rgb(255,0,0)\""    lableyattr !$x 
+s\" stroke=\"rgb(0,0,255)\""    lableyattr !$x 
 s\" stroke-opacity=\"1.0\""     lableyattr !$x 
 s\" stroke-width=\"1.0\""       lableyattr !$x 
 s\" font-size=\"20px\""         lableyattr !$x 
 
-s\" fill=\"rgb(0,255,0)\""      circleattr !$x 
-s\" fill-opacity=\"1.0\""       circleattr !$x 
-s\" stroke=\"rgb(0,100,0)\""    circleattr !$x 
-s\" stroke-opacity=\"1.0\""     circleattr !$x 
-s\" stroke-width=\"4.0\""       circleattr !$x 
+s\" fill=\"rgb(255,0,0)\""      acircleattr !$x 
+s\" fill-opacity=\"0.5\""       acircleattr !$x 
+s\" stroke=\"rgb(255,0,0)\""    acircleattr !$x 
+s\" stroke-opacity=\"1.0\""     acircleattr !$x 
+s\" stroke-width=\"2.0\""       acircleattr !$x 
+
+s\" fill=\"rgb(0,255,0)\""      bcircleattr !$x 
+s\" fill-opacity=\"0.5\""       bcircleattr !$x 
+s\" stroke=\"rgb(0,255,0)\""    bcircleattr !$x 
+s\" stroke-opacity=\"1.0\""     bcircleattr !$x 
+s\" stroke-width=\"2.0\""       bcircleattr !$x 
 
 s\" fill-opacity=\"0.0\""       lablelineattr !$x 
 s\" stroke=\"rgb(0,255,0)\""    lablelineattr !$x 
 s\" stroke-opacity=\"1.0\""     lablelineattr !$x 
 s\" stroke-width=\"1.0\""       lablelineattr !$x 
 
-\ s\" fill=\"rgb(255,0,0)\""      adataattr !$x 
-\ s\" fill-opacity=\"0.0\""       adataattr !$x
-\ s\" stroke=\"rgb(0,100,0)\""  adataattr !$x
-\ s\" stroke-opacity=\"1.0\""     adataattr !$x
-\ s\" stroke-width=\"2.0\""       adataattr !$x
-s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" bdataattr !$x
+s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" adataattr !$x
 
-\ s\" fill=\"rgb(0,0,255)\""      bdataattr !$x 
-\ s\" fill-opacity=\"0.0\""       bdataattr !$x
-\ s\" stroke=\"rgb(0,0,255)\""  bdataattr !$x
-\ s\" stroke-opacity=\"1.0\""     bdataattr !$x
-\ s\" stroke-width=\"2.0\""       bdataattr !$x
 s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" bdataattr !$x
 
-100 2000 200     asvgchart setchart-prop
+100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
 200 40 10 4 10   asvgchart setylable-prop
 10 30 0          asvgchart setylable-text-prop
 140 10 90        asvgchart setxlable-prop
-
 : splitdata ( -- )
     s\" \n" parser !$
     100 nlastlocaldata@ parsee !$
@@ -112,12 +117,77 @@ splitdata splitdatatobins
 $>
 <body>
 <h1> See last 100 data points<h1>
+<p>Current server time: <$ s" date" shget drop type $> </p>
 <$
-xlable reset co2 reset
+xlable reset co2 reset nh3 reset
 xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
-co2 adataattr circleattr asvgchart setdata
-nh3 bdataattr circleattr asvgchart setdata
-asvgchart makechart throw type
+co2 adataattr acircleattr asvgchart setdata
+nh3 bdataattr bcircleattr asvgchart setdata
+s" -co2" textdata !$ 
+textdata 200 30 txtattr1 asvgchart settext
+s" -nh3" textdata !$
+textdata 400 30 txtattr2 asvgchart settext
+asvgchart makechart dup false =
+[if]
+   drop type
+[else]
+   ." Error in getting data or rendering data: " #to$ type
+[then]
+
+xlable reset humd reset asvgchart construct
+100 1500 200     asvgchart setchart-prop
+3                asvgchart setdtpts-circle-prop
+200 40 10 4 10   asvgchart setylable-prop
+10 30 0          asvgchart setylable-text-prop
+140 10 90        asvgchart setxlable-prop
+
+xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
+humd adataattr acircleattr asvgchart setdata
+s" Relative Humidity (%)" textdata !$
+textdata 700 30 txtattr1 asvgchart settext
+asvgchart makechart dup false =
+[if]
+   drop type
+[else]
+   ." Error in getting data or rendering data: " #to$ type
+[then] 
+
+xlable reset humd reset asvgchart construct
+100 1500 200     asvgchart setchart-prop
+3                asvgchart setdtpts-circle-prop
+200 40 10 4 10   asvgchart setylable-prop
+10 30 0          asvgchart setylable-text-prop
+140 10 90        asvgchart setxlable-prop
+
+xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
+temp adataattr acircleattr asvgchart setdata
+s" Temperature (deg C)" textdata !$
+textdata 700 30 txtattr1 asvgchart settext
+asvgchart makechart dup false =
+[if]
+   drop type
+[else]
+   ." Error in getting data or rendering data: " #to$ type
+[then] 
+
+xlable reset humd reset asvgchart construct
+100 1500 200     asvgchart setchart-prop
+3                asvgchart setdtpts-circle-prop
+200 40 10 4 10   asvgchart setylable-prop
+10 30 0          asvgchart setylable-text-prop
+140 10 90        asvgchart setxlable-prop
+
+xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
+pres adataattr acircleattr asvgchart setdata
+s" Pressure (Pa)" textdata !$
+textdata 700 30 txtattr1 asvgchart settext
+asvgchart makechart dup false =
+[if]
+   drop type
+[else]
+   ." Error in getting data or rendering data: " #to$ type
+[then] 
+
 $>
 </body>
 </html>
