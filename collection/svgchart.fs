@@ -49,6 +49,7 @@ svgmaker class
     inst-value circleradius  \ the radius of the circle used on charts for lines
     inst-value xlablerot     \ the value for rotation orientation of xlable text
     inst-value ylablerot     \ the value for rotation orientation of ylable text
+    inst-value ylable#dec    \ the numbers after deciaml point displayed in y lable calculated value numbers 
     \ these will be string to hold string data 
     inst-value working$       \ used to work on a string temporarily in chart code
     inst-value lableref$
@@ -163,6 +164,7 @@ svgmaker class
 	4    [to-inst] circleradius
 	90   [to-inst] xlablerot
 	0    [to-inst] ylablerot
+	0    [to-inst] ylable#dec
     ;m overrides construct
 
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
@@ -200,11 +202,12 @@ svgmaker class
 	[to-inst] ymarksize [to-inst] ylableqty [to-inst] ylableoffset [to-inst] ytoplablesize [to-inst] ylablesize
     ;m method setylable-prop
 
-    m: ( nylabletextoff nylabletxtpos nylablerot ) \ y lable text propertys
+    m: ( nylable#dec nylabletextoff nylabletxtpos nylablerot ) \ y lable text propertys
 	\ nylabletextoff offset of the text from ( ymaxchart + ytoplablesize + ylabeloffset )
 	\ nylabletxtpos offset of y lable text from svg window
 	\ nylablerot rotation orientation of ylable text
-	[to-inst] ylablerot [to-inst] ylabletxtpos [to-inst] ylabletextoff ;m method setylable-text-prop
+	[to-inst] ylablerot [to-inst] ylabletxtpos [to-inst] ylabletextoff [to-inst] ylable#dec
+    ;m method setylable-text-prop
 
     m: ( nxlablesize nxlableoffset nxlablerot -- ) \ x lable position and quantity propertys
 	\ nxlablesize   size taken up by the ylabel on the left side of chart
@@ -347,7 +350,7 @@ svgmaker class
 	    s\"  transform=\"rotate(" ytransform$ !$ ylablerot #to$ ytransform$ !+$ s" , " ytransform$ !+$
 	    swap dup #to$ ytransform$ !+$ s" , " ytransform$ !+$ swap dup #to$ ytransform$ !+$
 	    s"  " ytransform$ !+$ s\" )\"" ytransform$ !+$ ytransform$ @$ ytempattr$s !$x ytempattr$s -rot
-	    myspread sf@ ylableqty s>f f/ i s>f f* mymax sf@ fswap f- fto$ ytransform$ !$ ytransform$ 
+	    myspread sf@ ylableqty s>f f/ i s>f f* mymax sf@ fswap f- ylable#dec nd>fto$ ytransform$ !$ ytransform$ 
 	    this svgtext 
 	loop
 	\ generate x lable text  
@@ -534,7 +537,7 @@ tdata tda2 tdca test setdata
 5 1000 300 test setchart-prop
 10 test setdtpts-circle-prop
 200 40 10 10 10 test setylable-prop
-10 30 0 test setylable-text-prop
+5 10 30 0 test setylable-text-prop
 140 10 70 test setxlable-prop
 
 \ test makechart throw 

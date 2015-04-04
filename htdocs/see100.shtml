@@ -87,7 +87,7 @@ s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" bdataattr !$x
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
 200 40 10 4 10   asvgchart setylable-prop
-10 30 0          asvgchart setylable-text-prop
+4 10 30 0          asvgchart setylable-text-prop
 140 10 90        asvgchart setxlable-prop
 : splitdata ( -- )
     s\" \n" parser !$
@@ -124,9 +124,9 @@ xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
 co2 adataattr acircleattr asvgchart setdata
 nh3 bdataattr bcircleattr asvgchart setdata
 s" -co2" textdata !$ 
-textdata 200 30 txtattr1 asvgchart settext
+textdata 600 30 txtattr1 asvgchart settext
 s" -nh3" textdata !$
-textdata 400 30 txtattr2 asvgchart settext
+textdata 800 30 txtattr2 asvgchart settext
 asvgchart makechart dup false =
 [if]
    drop type
@@ -138,7 +138,7 @@ xlable reset humd reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
 200 40 10 4 10   asvgchart setylable-prop
-10 30 0          asvgchart setylable-text-prop
+1 10 30 0        asvgchart setylable-text-prop
 140 10 90        asvgchart setxlable-prop
 
 xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
@@ -156,7 +156,7 @@ xlable reset humd reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
 200 40 10 4 10   asvgchart setylable-prop
-10 30 0          asvgchart setylable-text-prop
+1 10 30 0        asvgchart setylable-text-prop
 140 10 90        asvgchart setxlable-prop
 
 xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
@@ -174,7 +174,7 @@ xlable reset humd reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
 200 40 10 4 10   asvgchart setylable-prop
-10 30 0          asvgchart setylable-text-prop
+1 10 30 0        asvgchart setylable-text-prop
 140 10 90        asvgchart setxlable-prop
 
 xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
