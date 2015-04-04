@@ -477,17 +477,17 @@ s" 20"                         tdata !$x
 s" 53.9"                       tdata !$x
 s" 0.789"                      tdata !$x
 
-\ s\" fill-opacity=\"0.0\""      tda !$x
-\ s\" stroke=\"rgb(255,120,0)\"" tda !$x
-\ s\" stroke-opacity=\"1.0\""    tda !$x
-\ s\" stroke-width=\"2.0\""      tda !$x
-s\" style=\"stroke: #ff0000; fill: #ffffff;\"" tda !$x
+ s\" fill-opacity=\"0.0\""      tda !$x
+ s\" stroke=\"rgb(255,120,0)\"" tda !$x
+ s\" stroke-opacity=\"1.0\""    tda !$x
+ s\" stroke-width=\"2.0\""      tda !$x
+\ s\" style=\"stroke: #ff0000; fill: #ffffff;\"" tda !$x
 
-\ s\" fill-opacity=\"0.0\""      tda2 !$x
-\ s\" stroke=\"rgb(0,0,255)\""   tda2 !$x
-\ s\" stroke-opacity=\"1.0\""    tda2 !$x
-\ s\" stroke-width=\"2.0\""      tda2 !$x
-s\" style=\"stroke: #0000ff; fill: #ffffff;\"" tda2 !$x
+ s\" fill-opacity=\"0.0\""      tda2 !$x
+ s\" stroke=\"rgb(0,0,255)\""   tda2 !$x
+ s\" stroke-opacity=\"1.0\""    tda2 !$x
+ s\" stroke-width=\"2.0\""      tda2 !$x
+\ s\" style=\"stroke: #0000ff; fill: #000000;\"" tda2 !$x
 
 s\" fill=\"rgb(0,255,0)\""     tdca !$x
 s\" fill-opacity=\"0.7\""      tdca !$x
@@ -540,4 +540,5 @@ tdata tda2 tdca test setdata
 5 10 30 0 test setylable-text-prop
 140 10 70 test setxlable-prop
 
-\ test makechart throw 
+\ test makechart throw
+\ uncomment the line above to generate the svg string this example creates
