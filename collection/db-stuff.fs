@@ -30,7 +30,7 @@ string heap-new constant buffer$    \ a buffer string
 string heap-new constant db-path$   \ db path and name
 100 constant sqlite3-resend-time    \ this codes sqlite3 routines will wait for this time in ms if a locked database is found bef resending cmds
 
-path$ $@ db-path$ !$ s" /collection/datalogged.data" db-path$ !+$  \ this is the name of the database
+path$ @$ db-path$ !$ s" /collection/datalogged.data" db-path$ !+$  \ this is the name of the database
 
 \ These are the enumerated errors this code can produce
 next-exception @ constant sqlite-errorListStart  \ this is start of enumeration of errors for this code

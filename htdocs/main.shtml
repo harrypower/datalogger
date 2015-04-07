@@ -20,12 +20,12 @@ htu21d-i2c heap-new constant myhtu21d
 bmp180-i2c heap-new constant mybmp180
 
 s" node " junk$ !$
-path$ $@ junk$ !+$
+path$ @$ junk$ !+$
 s" /collection/get-co2.js" junk$ !+$
 junk$ @$ cmdlist$ !$X \ ;
 
 s" node " junk$ !$ 
-path$ $@ junk$ !+$
+path$ @$ junk$ !+$
 s" /collection/get-nh3.js" junk$ !+$
 junk$ @$ cmdlist$ !$x \ ;
 

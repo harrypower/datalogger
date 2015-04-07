@@ -39,12 +39,12 @@ myhtu21d display-th
 mybmp180 display-tp cr
 
 s" node " junk$ !$
-path$ $@ junk$ !+$
+path$ @$ junk$ !+$
 s" /collection/get-co2.js" junk$ !+$
 junk$ @$ cmdlist !$X
 
 s" node " junk$ !$ 
-path$ $@ junk$ !+$
+path$ @$ junk$ !+$
 s" /collection/get-nh3.js" junk$ !+$
 junk$ @$ cmdlist !$x
 

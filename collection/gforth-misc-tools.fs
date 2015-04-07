@@ -16,9 +16,14 @@
 \ This code is miscellaneous tools for Gforth
 
 require string.fs
+require stringobj.fs
 
-variable path$
-s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ configure sets this up to contain the full path
+string heap-new constant path$
+s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ !$
+\ this file is setup with configure to conatain the full path
+
+\ variable path$
+\ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ configure sets this up to contain the full path
 
 : dto$ ( d -- caddr u )  \ convert double signed to a string
     swap over dabs <<# #s rot sign #> #>> ;
