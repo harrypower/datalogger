@@ -36,16 +36,20 @@ object class
 	this !svg$ ;m method #tosvg$
     
   public
-    m: ( svgmaker -- ) \ init svt-output string
+    m: ( svgmaker -- ) \ init svg-output string
 	svgmaker-test svgmaker-test @ =
-	if
+	if \ svg-output alreadys has a string so remove then recreate
 	    svg-output @ string-destruct
+	    svg-output @ free throw
 	    string heap-new svg-output !
-	else string heap-new svg-output ! svgmaker-test svgmaker-test !
+	else \ svg-output never setup so just create string object
+	    string heap-new svg-output ! svgmaker-test svgmaker-test !
 	then  ;m overrides construct
 
     m: ( svgmaker -- ) \ free memory for this object and delete object
-	svg-output @ string-destruct ;m method destruct
+	svg-output @ string-destruct
+	svg-output @ free throw
+    ;m method destruct
     
     m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$

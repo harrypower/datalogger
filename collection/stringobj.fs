@@ -33,7 +33,6 @@ object class
     m: ( string -- )     \ free allocated memory for this instance of object
 	this construct ;m method string-destruct
     m: ( caddr u string -- ) \ store string
-\	dup 0 > if
 	    dup allocate throw { u caddr1 }
 	    caddr1 u move
 	    string-test @ string-test =
@@ -43,10 +42,7 @@ object class
 	    then
 	    caddr1 string-addr !
 	    u string-size ! 
-	    string-test string-test !
-\	else 2drop
-\	then
-    ;m method !$
+	    string-test string-test ! ;m method !$
     m: ( string -- caddr u ) \ retrieve string
 	string-test @ string-test =
 	if
@@ -106,8 +102,8 @@ object class
 	strings-test @ strings-test =
 	if
 	    array @ 0 >
-	    if \ deallocate memory allocated for the array
-		qty @ 0 ?do array @ i cell * + @ string-destruct loop
+	    if \ deallocate memory allocated for the array and free the string objects
+		qty @ 0 ?do array @ i cell * + @ dup string-destruct free throw loop
 		array @ free throw
 	    then
 	    0 qty !
