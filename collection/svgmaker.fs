@@ -45,7 +45,7 @@ object class
 	then  ;m overrides construct
 
     m: ( svgmaker -- ) \ free memory for this object and delete object
-	svg-output @ string-destruct ;m method svgmaker-destruct
+	svg-output @ string-destruct ;m method destruct
     
     m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$

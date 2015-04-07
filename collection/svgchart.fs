@@ -181,8 +181,8 @@ svgmaker class
 	ytempattr$s strings-destruct
 	xtempattr$s strings-destruct
 	this free-text-data
-	this svgmaker-destruct
-    ;m method svgchart-destruct
+	this [parent] destruct
+    ;m overrides destruct
 
     m: ( nxmaxpoints nxmaxchart nymaxchart -- ) \ values to change chart size and charting data use
 	\ nmaxpoints forces data points to be used up to this limit
