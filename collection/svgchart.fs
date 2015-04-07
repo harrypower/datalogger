@@ -23,6 +23,7 @@
 require svgmaker.fs
 require stringobj.fs
 require gforth-misc-tools.fs
+require string.fs
 
 svgmaker class
     cell% inst-var svgchartmaker-test \ used to see if construct is first being executed or not
@@ -87,17 +88,17 @@ svgmaker class
     m: ( -- ) \ this will free text and data strings and string that is dynamicaly created in this object
 	index-data 0 ?do
 	    addr-data data% %size i * + dup
-	    data$ @ strings-destruct dup
-	    data-attr$ @ strings-destruct
-	    circle-attr$ @ strings-destruct
+	    data$ @ dup strings-destruct free throw dup
+	    data-attr$ @ dup strings-destruct free throw 
+	    circle-attr$ @ dup strings-destruct free throw
 	loop
 	index-data 0 > if addr-data free throw then
 	0 [to-inst] index-data
 	0 [to-inst] addr-data
 	index-text 0 ?do
 	    addr-text text% %size i * + dup
-	    text$ @ string-destruct
-	    text-attr$ @ strings-destruct
+	    text$ @ dup string-destruct free throw
+	    text-attr$ @ dup strings-destruct free throw
 	loop
 	index-text 0 > if addr-text free throw then
 	0 [to-inst] index-text
@@ -168,18 +169,18 @@ svgmaker class
     ;m overrides construct
 
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
-	working$ string-destruct
-	lableref$ string-destruct
-	lablemark$ string-destruct
-	ytransform$ string-destruct
-	working$s strings-destruct
-	pathdata$ strings-destruct
-	xlabdata$ strings-destruct
-	xlab-attr$ strings-destruct
-	ylab-attr$ strings-destruct
-	labline-attr$ strings-destruct
-	ytempattr$s strings-destruct
-	xtempattr$s strings-destruct
+	working$      dup string-destruct free throw
+	lableref$     dup string-destruct free throw
+	lablemark$    dup string-destruct free throw
+	ytransform$   dup string-destruct free throw
+	working$s     dup strings-destruct free throw
+	pathdata$     dup strings-destruct free throw
+	xlabdata$     dup strings-destruct free throw
+	xlab-attr$    dup strings-destruct free throw
+	ylab-attr$    dup strings-destruct free throw
+	labline-attr$ dup strings-destruct free throw
+	ytempattr$s   dup strings-destruct free throw
+	xtempattr$s   dup strings-destruct free throw
 	this free-text-data
 	this [parent] destruct
     ;m overrides destruct
