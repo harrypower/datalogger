@@ -15,7 +15,6 @@
 
 \ This code is miscellaneous tools for Gforth
 
-\ require string.fs
 require stringobj.fs
 
 string heap-new constant path$
@@ -39,7 +38,6 @@ create floatoutputbuffer
 : nd>fto$ ( f: r -- ) ( nd -- caddr u ) \ convert r from float stack to string with nd digits after deciaml
     floatoutputbuffer 10 rot 0 f>buf-rdp floatoutputbuffer 10 ;
 
-\ variable mytemppad$
 : #to$, ( n -- caddr u ) \ convert n to string then add a "," at the end of the converted string
     #to$ mytemppad$ !$ s" ," mytemppad$ !+$ mytemppad$ @$ ;
 
