@@ -15,15 +15,13 @@
 
 \ This code is miscellaneous tools for Gforth
 
-require string.fs
+\ require string.fs
 require stringobj.fs
 
 string heap-new constant path$
 s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ !$
 \ this file is setup with configure to conatain the full path
-
-\ variable path$
-\ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ $!  \ configure sets this up to contain the full path
+string heap-new constant mytemppad$
 
 : dto$ ( d -- caddr u )  \ convert double signed to a string
     swap over dabs <<# #s rot sign #> #>> ;
@@ -41,15 +39,15 @@ create floatoutputbuffer
 : nd>fto$ ( f: r -- ) ( nd -- caddr u ) \ convert r from float stack to string with nd digits after deciaml
     floatoutputbuffer 10 rot 0 f>buf-rdp floatoutputbuffer 10 ;
 
-variable mytemppad$
+\ variable mytemppad$
 : #to$, ( n -- caddr u ) \ convert n to string then add a "," at the end of the converted string
-    #to$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
+    #to$ mytemppad$ !$ s" ," mytemppad$ !+$ mytemppad$ @$ ;
 
 : dto$, ( d -- caddr u ) \ convert d to string then add a "," at the end of the converted string
-    dto$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
+    dto$ mytemppad$ !$ s" ," mytemppad$ !+$ mytemppad$ @$ ;
 
 : fto$, ( f: r -- caddr u ) \ convert r from floating stack to string with a ',' added
-    fto$ mytemppad$ $! s" ," mytemppad$ $+! mytemppad$ $@ ;
+    fto$ mytemppad$ !$ s" ," mytemppad$ !+$ mytemppad$ @$ ;
 
 : datetime ( -- ntime ) \ get time from utime but return it as a truncated cell
     utime 1000000 fm/mod swap drop ;
@@ -58,17 +56,6 @@ variable mytemppad$
     utime 1000000 fm/mod swap drop
     #to$, ;
 
-: init$ ( addr -- ) >r r@ off s" " r> $! ;  \ this is the same as $init in higher version of gforth.
-\ use this to initalize a string variable before accessing the string in the variable
-
-: iter$ ( $addr char xt --  )  
-    \ this is from gforth verson 0.7.0 $iter but with out the bug
-    0 0 { char xt caddr u }
-    $@ BEGIN   ( caddr1 u1 -- )
-	dup    ( caddr1 u1 u1 -- )
-    WHILE      ( caddr1 u1 -- ) 
-	    char $split to u to caddr xt execute caddr u
-    REPEAT  2drop ;
 
 
 

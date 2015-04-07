@@ -101,7 +101,7 @@ bmp180-i2c heap-new constant mybmp180
 
 string heap-new constant co2cmd$
 s" node " co2cmd$ !$
-path$ $@ co2cmd$ !+$
+path$ @$ co2cmd$ !+$
 s" /collection/get-co2.js" co2cmd$ !+$ 
 : read-co2 ( -- nflag ) ( -- F: fco2 ) \ read co2 value
     \ nflag is false if co2 value is read with no errors
@@ -129,7 +129,7 @@ s" /collection/get-co2.js" co2cmd$ !+$
 
 string heap-new constant nh3cmd$
 s" node " nh3cmd$ !$
-path$ $@ nh3cmd$ !+$
+path$ @$ nh3cmd$ !+$
 s" /collection/get-nh3.js" nh3cmd$ !+$ 
 : read-nh3 ( -- nflag ) ( -- F: fco2 ) \ read nh3 value
     \ nflag is false if nh3 value is read with no errors
