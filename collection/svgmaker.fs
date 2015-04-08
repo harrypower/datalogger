@@ -31,25 +31,28 @@ object class
 	    dup @$x this !svg$ s"  " this !svg$
 	loop drop ;m method svgattr
 
-    m: ( n svgmaker -- caddr u ) \ convert n to string
+    m: ( n svgmaker -- ) \ convert n to string and send string to !svg$ method
 	s>d swap over dabs <<# #s rot sign #> #>>
 	this !svg$ ;m method #tosvg$
     
   public
     m: ( svgmaker -- ) \ init svg-output string
 	svgmaker-test svgmaker-test @ =
-	if \ svg-output alreadys has a string so remove then recreate
+	if \ svg-output should alreadys have a string so remove then recreate
 	    svg-output @ string-destruct
 	    svg-output @ free throw
 	    string heap-new svg-output !
-	else \ svg-output never setup so just create string object
+	else \ svg-output not setup so just create string object
 	    string heap-new svg-output ! svgmaker-test svgmaker-test !
 	then  ;m overrides construct
 
     m: ( svgmaker -- ) \ free memory for this object and delete object
-	svg-output @ string-destruct
-	svg-output @ free throw
-    ;m method destruct
+	svgmaker-test svgmaker-test @ =
+	if
+	    svg-output @ string-destruct
+	    svg-output @ free throw
+	    0 svgmaker-test !
+	then ;m method destruct
     
     m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$

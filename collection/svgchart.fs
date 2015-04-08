@@ -169,21 +169,24 @@ svgmaker class
     ;m overrides construct
 
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
-	working$      dup string-destruct free throw
-	lableref$     dup string-destruct free throw
-	lablemark$    dup string-destruct free throw
-	ytransform$   dup string-destruct free throw
-	working$s     dup strings-destruct free throw
-	pathdata$     dup strings-destruct free throw
-	xlabdata$     dup strings-destruct free throw
-	xlab-attr$    dup strings-destruct free throw
-	ylab-attr$    dup strings-destruct free throw
-	labline-attr$ dup strings-destruct free throw
-	ytempattr$s   dup strings-destruct free throw
-	xtempattr$s   dup strings-destruct free throw
-	this free-text-data
-	this [parent] destruct
-    ;m overrides destruct
+	svgchartmaker-test svgchartmaker-test @ =
+	if
+	    working$      dup string-destruct free throw
+	    lableref$     dup string-destruct free throw
+	    lablemark$    dup string-destruct free throw
+	    ytransform$   dup string-destruct free throw
+	    working$s     dup strings-destruct free throw
+	    pathdata$     dup strings-destruct free throw
+	    xlabdata$     dup strings-destruct free throw
+	    xlab-attr$    dup strings-destruct free throw
+	    ylab-attr$    dup strings-destruct free throw
+	    labline-attr$ dup strings-destruct free throw
+	    ytempattr$s   dup strings-destruct free throw
+	    xtempattr$s   dup strings-destruct free throw
+	    this free-text-data
+	    this [parent] destruct
+	    0 svgchartmaker-test !
+	then ;m overrides destruct
 
     m: ( nxmaxpoints nxmaxchart nymaxchart -- ) \ values to change chart size and charting data use
 	\ nmaxpoints forces data points to be used up to this limit
