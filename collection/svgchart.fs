@@ -23,7 +23,6 @@
 require svgmaker.fs
 require stringobj.fs
 require gforth-misc-tools.fs
-require string.fs
 
 svgmaker class
     cell% inst-var svgchartmaker-test \ used to see if construct is first being executed or not
@@ -285,17 +284,21 @@ svgmaker class
     
     m: ( nattr$ svgchart -- ) \ will produce the cicle svg strings to be used in chart
 	\ *** use the pathdata$ to make the circle data into the svgoutput
-	{ attr$ }
+	string heap-new 
+	{ attr$ atemp$ }
 	attr$ reset
 	pathdata$ reset
 	pathdata$ $qty 0 ?do
-	    s"  " pathdata$ split$s 2swap 2drop 32 $split >float
+	    s"  " pathdata$ split$s 2swap 2drop atemp$ !$ s"  " 
+	    atemp$ split$ drop >float
 	    if
 		>float if attr$ f>s f>s circleradius this svgcircle then 
 	    else
 		2drop
 	    then
-	loop ;m method makecircles
+	loop
+	atemp$ string-destruct atemp$ free throw
+    ;m method makecircles
     
     m: ( nxdata$ svgchart -- ) \ will produce the path strings to be used in chart
 	{ xdata$ }
