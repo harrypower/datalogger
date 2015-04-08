@@ -52,7 +52,7 @@ object class
 	    svg-output @ string-destruct
 	    svg-output @ free throw
 	    0 svgmaker-test !
-	then ;m method destruct
+	then ;m method svgmaker-destruct
     
     m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ !$

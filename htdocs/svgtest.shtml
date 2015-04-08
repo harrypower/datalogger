@@ -63,7 +63,7 @@ attr2 path2 thesvg svgpath
 attr1 30 20 text thesvg svgtext
 attr1 50 80 20 thesvg svgcircle
 thesvg svgend type
-thesvg destruct
+thesvg svgmaker-destruct
 thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 
 svgmaker heap-new to thesvg
@@ -74,16 +74,16 @@ attr2 path2 thesvg svgpath
 attr1 30 20 text thesvg svgtext
 attr1 50 80 20 thesvg svgcircle
 thesvg svgend type
-thesvg destruct
+thesvg svgmaker-destruct
 thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 
 test makechart 0 = [if] ." pass <br>" [else] ." fail <br>" [then] 
 type
-test destruct
+test svgchart-destruct
 test free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 svgchartmaker heap-new to test
 test construct 
-test destruct 
+test svgchart-destruct 
 test free  0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 $>
 </body>

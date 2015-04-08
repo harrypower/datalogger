@@ -107,7 +107,7 @@ svgmaker class
 
   public
     m: ( svgchart -- ) \ constructor to set some defaults
-	this [parent] construct
+	this [current] construct
 	svgchartmaker-test svgchartmaker-test @ =
 	if
 	    working$    construct
@@ -184,9 +184,9 @@ svgmaker class
 	    ytempattr$s   dup strings-destruct free throw
 	    xtempattr$s   dup strings-destruct free throw 
 	    this free-text-data 
-	    this [parent] destruct 
+	    this svgmaker-destruct 
 	    0 svgchartmaker-test !
-	then ;m overrides destruct
+	then ;m method svgchart-destruct
 
     m: ( nxmaxpoints nxmaxchart nymaxchart -- ) \ values to change chart size and charting data use
 	\ nmaxpoints forces data points to be used up to this limit

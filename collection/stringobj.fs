@@ -86,7 +86,7 @@ object class
 	string-test @ string-test =
 	if string-size @ else 0 then ;m method len$ 
     m: ( string -- ) \ retrieve string object info
-	this [parent] print
+	this [current] print
 	s"  string-test:" type string-test @ string-test = .
 	s"  addr:" type string-addr @ .
 	s"  size:" type string-size @ .
@@ -175,7 +175,7 @@ object class
 	dup reset
 	dup $qty 0 ?do dup @$x this !$x loop drop ;m method copy$s 
     m: ( string -- ) \ print object for debugging
-	this [parent] print
+	this [current] print
 	s" array:" type array @ .
 	s" size:" type qty @ .
 	s" iterate index:" type index @ . ;m overrides print
