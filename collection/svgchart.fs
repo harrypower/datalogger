@@ -85,7 +85,7 @@ svgmaker class
     inst-value addr-text  \ address of text structure
 
   protected
-    m: ( -- ) \ this will free text and data strings and string that is dynamicaly created in this object
+    m: ( -- ) \ this will free text and data strings and string that was dynamicaly created in object
 	index-data 0 ?do
 	    addr-data data% %size i * + dup
 	    data$ @ dup strings-destruct free throw dup
