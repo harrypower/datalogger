@@ -19,7 +19,7 @@ strings heap-new constant path1
 strings heap-new constant path2
 strings heap-new constant circle
 strings heap-new constant text
-svgmaker heap-new constant thesvg
+svgmaker heap-new value thesvg
 
 s\" width=\"300\""            head !$x
 s\" height=\"300\""           head !$x
@@ -64,12 +64,27 @@ attr1 30 20 text thesvg svgtext
 attr1 50 80 20 thesvg svgcircle
 thesvg svgend type
 thesvg destruct
-thesvg free throw
+thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 
-test makechart throw 
+svgmaker heap-new to thesvg
+
+head thesvg svgheader 
+attr1 path1 thesvg svgpath
+attr2 path2 thesvg svgpath
+attr1 30 20 text thesvg svgtext
+attr1 50 80 20 thesvg svgcircle
+thesvg svgend type
+thesvg destruct
+thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
+
+test makechart 0 = [if] ." pass <br>" [else] ." fail <br>" [then] 
 type
 test destruct
-test free throw
+test free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
+svgchartmaker heap-new to test
+test construct 
+test destruct 
+test free  0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 $>
 </body>
 </html>

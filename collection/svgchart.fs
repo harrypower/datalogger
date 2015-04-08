@@ -171,7 +171,7 @@ svgmaker class
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
 	svgchartmaker-test svgchartmaker-test @ =
 	if
-	    working$      dup string-destruct free throw
+	    working$      dup string-destruct free throw 
 	    lableref$     dup string-destruct free throw
 	    lablemark$    dup string-destruct free throw
 	    ytransform$   dup string-destruct free throw
@@ -182,9 +182,9 @@ svgmaker class
 	    ylab-attr$    dup strings-destruct free throw
 	    labline-attr$ dup strings-destruct free throw
 	    ytempattr$s   dup strings-destruct free throw
-	    xtempattr$s   dup strings-destruct free throw
-	    this free-text-data
-	    this [parent] destruct
+	    xtempattr$s   dup strings-destruct free throw 
+	    this free-text-data 
+	    this [parent] destruct 
 	    0 svgchartmaker-test !
 	then ;m overrides destruct
 
@@ -455,7 +455,7 @@ svgmaker class
     
 end-class svgchartmaker
 
-svgchartmaker heap-new constant test
+svgchartmaker heap-new value test
 
 
 strings heap-new constant tdata

@@ -195,8 +195,8 @@ end-class strings
     testing @$ type cr
     s" just this string!" testing !$
     testing @$ type cr
-    testing string-destruct
-    testb string-destruct ;
+    testing string-destruct testing free throw
+    testb string-destruct testb free throw ;
 
 : dotesting
     1000 0 ?do stringtest loop ;
@@ -208,15 +208,17 @@ end-class strings
     s" next string" testc !$x
     s" this is 2 or third item" testc !$x
     testc print cr
-    testc len$ . cr
+    testc $qty . cr
     testc @$x type cr
     testc @$x type cr
     testc @$x type cr
-    testc strings-destruct ;
+    testc strings-destruct
+    testc free throw
+;
 
 : testall
     1000 0 ?do ." stringtest" cr stringtest ." stringstest" cr stringstest loop ;
-)
 
+)
 
 
