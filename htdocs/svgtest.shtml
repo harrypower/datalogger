@@ -21,69 +21,71 @@ strings heap-new constant circle
 strings heap-new constant text
 svgmaker heap-new value thesvg
 
-s\" width=\"300\""            head !$x
-s\" height=\"300\""           head !$x
-s\" viewBox=\"0 0 300 300\""  head !$x
+s\" width=\"300\""            head bind strings !$x
+s\" height=\"300\""           head bind strings !$x
+s\" viewBox=\"0 0 300 300\""  head bind strings !$x
 
-s\" fill=\"rgb(0,0,255)\""      attr1 !$x 
-s\" fill-opacity=\"0.5\""       attr1 !$x 
-s\" stroke=\"rgb(0,100,200)\""  attr1 !$x 
-s\" stroke-opacity=\"0.0\""     attr1 !$x 
-s\" stroke-width=\"4.0\""       attr1 !$x 
-s\" font-size=\"20px\""         attr1 !$x 
+s\" fill=\"rgb(0,0,255)\""      attr1 bind strings !$x 
+s\" fill-opacity=\"0.5\""       attr1 bind strings !$x 
+s\" stroke=\"rgb(0,100,200)\""  attr1 bind strings !$x 
+s\" stroke-opacity=\"0.0\""     attr1 bind strings !$x 
+s\" stroke-width=\"4.0\""       attr1 bind strings !$x 
+s\" font-size=\"20px\""         attr1 bind strings !$x 
 
-s\" fill=\"rgb(0,255,0)\""      attr2 !$x 
-s\" fill-opacity=\"0.3\""       attr2 !$x 
-s\" stroke=\"rgb(0,100,0)\""    attr2 !$x 
-s\" stroke-opacity=\"0.0\""     attr2 !$x 
-s\" stroke-width=\"4.0\""       attr2 !$x 
-s\" font-size=\"20px\""         attr2 !$x 
+s\" fill=\"rgb(0,255,0)\""      attr2 bind strings !$x 
+s\" fill-opacity=\"0.3\""       attr2 bind strings !$x 
+s\" stroke=\"rgb(0,100,0)\""    attr2 bind strings !$x 
+s\" stroke-opacity=\"0.0\""     attr2 bind strings !$x 
+s\" stroke-width=\"4.0\""       attr2 bind strings !$x 
+s\" font-size=\"20px\""         attr2 bind strings !$x 
 
 
-s" M 10 30" path1 !$x 
-s" L 15 35" path1 !$x 
-s" L 27 40" path1 !$x 
-s" L 48 50" path1 !$x 
-s" L 97 20" path1 !$x 
+s" M 10 30" path1 bind strings !$x 
+s" L 15 35" path1 bind strings !$x 
+s" L 27 40" path1 bind strings !$x 
+s" L 48 50" path1 bind strings !$x 
+s" L 97 20" path1 bind strings !$x 
 
-s" M 300 0" path2 !$x
-s" L 0 0"   path2 !$x
-s" L 0 300" path2 !$x
+s" M 300 0" path2 bind strings !$x
+s" L 0 0"   path2 bind strings !$x
+s" L 0 300" path2 bind strings !$x
 
-s" Some text in the svg! " text !$x
+s" Some text in the svg! " text bind strings !$x
 
 
 $>
 <body>
 <h1> SVG test <h1>
 <$
-head thesvg svgheader 
-attr1 path1 thesvg svgpath
-attr2 path2 thesvg svgpath
-attr1 30 20 text thesvg svgtext
-attr1 50 80 20 thesvg svgcircle
-thesvg svgend type
-thesvg svgmaker-destruct
+head thesvg bind svgmaker svgheader 
+attr1 path1 thesvg bind svgmaker svgpath
+attr2 path2 thesvg bind svgmaker svgpath
+attr1 30 20 text thesvg bind svgmaker svgtext
+attr1 50 80 20 thesvg bind svgmaker svgcircle
+thesvg bind svgmaker svgend type
+thesvg bind svgmaker svgmaker-destruct
 thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 
 svgmaker heap-new to thesvg
 
-head thesvg svgheader 
-attr1 path1 thesvg svgpath
-attr2 path2 thesvg svgpath
-attr1 30 20 text thesvg svgtext
-attr1 50 80 20 thesvg svgcircle
-thesvg svgend type
-thesvg svgmaker-destruct
+head thesvg bind svgmaker svgheader 
+attr1 path1 thesvg bind svgmaker svgpath
+attr2 path2 thesvg bind svgmaker svgpath
+attr1 30 20 text thesvg bind svgmaker svgtext
+attr1 50 80 20 thesvg bind svgmaker svgcircle
+thesvg bind svgmaker svgend type
+thesvg bind svgmaker svgmaker-destruct
 thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 
+test #to$ type ." <br>"
 test makechart 0 = [if] ." pass <br>" [else] ." fail <br>" [then] 
 type
-test svgchart-destruct
+test bind svgchartmaker svgchart-destruct
 test free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 svgchartmaker heap-new to test
-test construct 
-test svgchart-destruct 
+test #to$ type ." <br>"
+test bind svgchartmaker construct 
+test bind svgchartmaker svgchart-destruct 
 test free  0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 $>
 </body>
