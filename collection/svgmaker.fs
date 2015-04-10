@@ -24,22 +24,22 @@ object class
     cell% inst-var svgmaker-test \ a construct test value to prevent memory leaks
   protected
     m: ( caddr u svgmaker -- ) \ append string into svg-output string
-	svg-output @ !+$ ;m method !svg$
+	svg-output @ [bind] string !+$ ;m method !svg$
 
     m: ( nstrings svgmaker -- ) \ place contents of nstrings into svg string as attribute propertys
 	dup $qty 0 ?do
-	    dup @$x this !svg$ s"  " this !svg$
+	    dup [bind] strings @$x this [current] !svg$ s"  " this [current] !svg$
 	loop drop ;m method svgattr
 
     m: ( n svgmaker -- ) \ convert n to string and send string to !svg$ method
 	s>d swap over dabs <<# #s rot sign #> #>>
-	this !svg$ ;m method #tosvg$
+	this [current] !svg$ ;m method #tosvg$
     
   public
     m: ( svgmaker -- ) \ init svg-output string
 	svgmaker-test svgmaker-test @ =
 	if \ svg-output should alreadys have a string so remove then recreate
-	    svg-output @ string-destruct
+	    svg-output @ [bind] string string-destruct
 	    svg-output @ free throw
 	    string heap-new svg-output !
 	else \ svg-output not setup so just create string object
@@ -49,50 +49,49 @@ object class
     m: ( svgmaker -- ) \ free memory for this object and delete object
 	svgmaker-test svgmaker-test @ =
 	if
-	    svg-output @ string-destruct
+	    svg-output @ [bind] string string-destruct
 	    svg-output @ free throw
 	    0 svgmaker-test !
 	then ;m method svgmaker-destruct
     
     m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
-	s" <svg " svg-output @ !$
+	s" <svg " svg-output @ [bind] string !$
 	this svgattr
-	s\" >" this !svg$ ;m method svgheader
+	s\" >" this [current] !svg$ ;m method svgheader
 
     m: ( nstrings-attr nx ny nstring-text svgmaker -- ) \ to make svg text 
 	\ nstirngs-attr is strings for attribute of text
 	\ nx ny are text x and y of svg text tag
 	\ nstring-text is the string object address of the string
-	s\" <text x=\"" this !svg$ rot
-	this #tosvg$
-	s\" \" y=\"" this !svg$
-	swap this #tosvg$
-	s\" \" " this !svg$
-	swap this svgattr s" >" this !svg$
-        @$ this !svg$ s" </text>" this !svg$ ;m method svgtext
+	s\" <text x=\"" this [current] !svg$ rot
+	this [current] #tosvg$
+	s\" \" y=\"" this [current] !svg$
+	swap this [current] #tosvg$
+	s\" \" " this [current] !svg$
+	swap this [current] svgattr s" >" this [current] !svg$
+        @$ this [current] !svg$ s" </text>" this [current] !svg$ ;m method svgtext
 
     m: ( nstrings-attr nstrings-pathdata svgmaker -- ) \ make a svg path with nstring-attr and nstrings-pathdata
-	s" <path " this !svg$
-	\ swap this svgattr
-	s\" d=\"" this !svg$
-	this svgattr s\" \" " this !svg$
-	this svgattr s\" \/>" this !svg$
+	s" <path " this [current] !svg$
+	s\" d=\"" this [current] !svg$
+	this [current] svgattr s\" \" " this [current] !svg$
+	this [current] svgattr s\" \/>" this [current] !svg$
 	\ s\" \" \/>" this !svg$
     ;m method svgpath
 
     m: ( nstring-attr nx ny nr svgmaker -- ) \ make a svg circle with nstring-attr at nx and ny with radius nr
-	s\" <circle cx=\"" this !svg$ rot this #tosvg$
-	s\" \" cy=\"" this !svg$ swap this #tosvg$
-	s\" \" r=\"" this !svg$ this #tosvg$
-	s\" \" " this !svg$ this svgattr
-	s" />" this !svg$ ;m method svgcircle
+	s\" <circle cx=\"" this [current] !svg$ rot this [current] #tosvg$
+	s\" \" cy=\"" this [current] !svg$ swap this [current] #tosvg$
+	s\" \" r=\"" this [current] !svg$ this [current] #tosvg$
+	s\" \" " this [current] !svg$ this [current] svgattr
+	s" />" this [current] !svg$ ;m method svgcircle
 
     m: ( svgmaker -- caddr u ) \ finish forming the svg string and output it
-	s" </svg>" svg-output @ !+$
-	svg-output @ @$ ;m method svgend
+	s" </svg>" svg-output @ [bind] string !+$
+	svg-output @ [bind] string @$ ;m method svgend
     
     m: ( svgmaker -- caddr u ) \ view string directly
-	svg-output @ @$ ;m overrides print
+	svg-output @ [bind] string @$ ;m overrides print
 end-class svgmaker
 
 
