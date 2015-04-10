@@ -20,7 +20,12 @@
 
 require objects.fs
 
+interface
+    selector destruct ( -- ) \ to free allocated memory in objects that use this
+end-interface destruction
+
 object class
+    destruction implementation
     cell% inst-var string-addr
     cell% inst-var string-size
     cell% inst-var string-test
@@ -32,6 +37,8 @@ object class
 	0 string-size ! ;m overrides construct
     m: ( string -- )     \ free allocated memory for this instance of object
 	this [current] construct ;m method string-destruct
+    m: ( string -- ) \ free allocated memory
+	this [current] construct ;m overrides destruct
     m: ( caddr u string -- ) \ store string
 	    dup allocate throw { u caddr1 }
 	    caddr1 u move
@@ -94,6 +101,7 @@ object class
 end-class string
 
 object class
+    destruction implementation
     cell% inst-var array \ contains first address of allocated string object
     cell% inst-var qty
     cell% inst-var index
@@ -103,7 +111,7 @@ object class
 	if
 	    array @ 0 >
 	    if \ deallocate memory allocated for the array and free the string objects
-		qty @ 0 ?do array @ i cell * + @ dup [bind] string string-destruct free throw loop
+		qty @ 0 ?do array @ i cell * + @ dup [bind] string destruct free throw loop
 		array @ free throw
 	    then
 	    0 qty !
@@ -117,6 +125,8 @@ object class
 	then ;m overrides construct
     m: ( strings -- ) \ deallocate this object and other allocated memory in this object
 	this [current] construct ;m method strings-destruct
+    m: ( strings -- ) \ free allocated memory
+	this [current] construct ;m overrides destruct
     m: ( caddr u strings -- ) \ store a string in handler
 	array @ 0 =
 	if
@@ -166,7 +176,7 @@ object class
 	string heap-new string heap-new { fd$ src$ }
 	src$ [bind] string !$ fd$ [bind] string !$
 	fd$ src$ this [current] split$to$s
-	fd$ [bind] string string-destruct src$ [bind] string string-destruct ;m method split$>$s
+	fd$ [bind] string destruct src$ [bind] string destruct ;m method split$>$s
     m: ( strings -- u ) \ report size of strings array
 	strings-test @ strings-test =
 	if qty @ else 0 then ;m method $qty
@@ -196,8 +206,8 @@ end-class strings
     testing [bind] string @$ type cr
     s" just this string!" testing !$
     testing [bind] string @$ type cr
-    testing [bind] string string-destruct testing free throw
-    testb [bind] string string-destruct testb free throw ;
+    testing [bind] string destruct testing free throw
+    testb [bind] string destruct testb free throw ;
 
 : dotesting
     1000 0 ?do stringtest loop ;
