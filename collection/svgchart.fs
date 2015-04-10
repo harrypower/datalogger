@@ -87,17 +87,17 @@ svgmaker class
     m: ( -- ) \ this will free text and data strings and string that was dynamicaly created in object
 	index-data 0 ?do
 	    addr-data data% %size i * + dup
-	    data$ @ dup strings-destruct free throw dup
-	    data-attr$ @ dup strings-destruct free throw 
-	    circle-attr$ @ dup strings-destruct free throw
+	    data$ @ dup [bind] strings strings-destruct free throw dup
+	    data-attr$ @ dup [bind] strings strings-destruct free throw 
+	    circle-attr$ @ dup [bind] strings strings-destruct free throw
 	loop
 	index-data 0 > if addr-data free throw then
 	0 [to-inst] index-data
 	0 [to-inst] addr-data
 	index-text 0 ?do
 	    addr-text text% %size i * + dup
-	    text$ @ dup string-destruct free throw
-	    text-attr$ @ dup strings-destruct free throw
+	    text$ @ dup [bind] string string-destruct free throw
+	    text-attr$ @ dup [bind] strings strings-destruct free throw
 	loop
 	index-text 0 > if addr-text free throw then
 	0 [to-inst] index-text
@@ -106,23 +106,23 @@ svgmaker class
 
   public
     m: ( svgchart -- ) \ constructor to set some defaults
-	this [current] construct
+	this [parent] construct
 	svgchartmaker-test svgchartmaker-test @ =
 	if
-	    working$    construct
-	    lableref$   construct
-	    lablemark$  construct
-	    ytransform$ construct
+	    working$    [bind] string construct
+	    lableref$   [bind] string construct
+	    lablemark$  [bind] string construct
+	    ytransform$ [bind] string construct
 
-	    working$s   construct
-	    pathdata$   construct
-	    xlabdata$   construct
-	    xlab-attr$  construct
-	    ylab-attr$  construct
-	    labline-attr$ construct
-	    ytempattr$s construct
-	    xtempattr$s construct
-	    this free-text-data
+	    working$s   [bind] strings construct
+	    pathdata$   [bind] strings construct
+	    xlabdata$   [bind] strings construct
+	    xlab-attr$  [bind] strings construct
+	    ylab-attr$  [bind] strings construct
+	    labline-attr$ [bind] strings construct
+	    ytempattr$s [bind] strings construct
+	    xtempattr$s [bind] strings construct
+	    this [current] free-text-data
 	else
 	    \ dynamicaly created objects
 	    string  heap-new [to-inst] working$
@@ -170,20 +170,20 @@ svgmaker class
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
 	svgchartmaker-test svgchartmaker-test @ =
 	if
-	    working$      dup string-destruct free throw 
-	    lableref$     dup string-destruct free throw
-	    lablemark$    dup string-destruct free throw
-	    ytransform$   dup string-destruct free throw
-	    working$s     dup strings-destruct free throw
-	    pathdata$     dup strings-destruct free throw
-	    xlabdata$     dup strings-destruct free throw
-	    xlab-attr$    dup strings-destruct free throw
-	    ylab-attr$    dup strings-destruct free throw
-	    labline-attr$ dup strings-destruct free throw
-	    ytempattr$s   dup strings-destruct free throw
-	    xtempattr$s   dup strings-destruct free throw 
-	    this free-text-data 
-	    this svgmaker-destruct 
+	    working$      dup [bind] string string-destruct free throw 
+	    lableref$     dup [bind] string string-destruct free throw
+	    lablemark$    dup [bind] string string-destruct free throw
+	    ytransform$   dup [bind] string string-destruct free throw
+	    working$s     dup [bind] strings strings-destruct free throw
+	    pathdata$     dup [bind] strings strings-destruct free throw
+	    xlabdata$     dup [bind] strings strings-destruct free throw
+	    xlab-attr$    dup [bind] strings strings-destruct free throw
+	    ylab-attr$    dup [bind] strings strings-destruct free throw
+	    labline-attr$ dup [bind] strings strings-destruct free throw
+	    ytempattr$s   dup [bind] strings strings-destruct free throw
+	    xtempattr$s   dup [bind] strings strings-destruct free throw 
+	    this [current] free-text-data 
+	    this [parent] svgmaker-destruct 
 	    0 svgchartmaker-test !
 	then ;m method svgchart-destruct
 
@@ -220,9 +220,9 @@ svgmaker class
 
     \ fudge test words ... will be deleted after object is done
     m: ( -- caddr u ) \ test word to show svg output
-	svg-output @ @$ ;m method seeoutput
+	svg-output @ [bind] string @$ ;m method seeoutput
     m: ( --  caddr u )
-	working$ @$ ;m method seeworking
+	working$ [bind] string @$ ;m method seeworking
     m: ( -- naddr )
 	working$s ;m method working$s@
     
@@ -261,43 +261,43 @@ svgmaker class
     m: ( nxdata$ svgchart -- )  \ finds the min and max values of the localdata strings
 	\ note results stored in mymax and mymin float variables
 	{ xdata$ }
-	xdata$ $qty xmaxpoints min 0 ?do
-	    xdata$ @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! then
+	xdata$ [bind] strings $qty xmaxpoints min 0 ?do
+	    xdata$ [bind] strings @$x >float if fdup mymin sf@ fmin mymin sf! mymax sf@ fmax mymax sf! then
 	loop ;m method findminmaxdata
 
     m: ( svgchart -- ) \ will produce the svg header for this chart
-	working$s construct
-	s\" width=" working$ !$ s\" \"" working$ !+$
-	xmaxchart xlablesize + #to$ working$ !+$ s\" \"" working$ !+$
-	working$ @$ working$s !$x
+	working$s [bind] strings construct
+	s\" width=" working$ [bind] string !$ s\" \"" working$ [bind] string !+$
+	xmaxchart xlablesize + #to$ working$ [bind] string !+$ s\" \"" working$ [bind] string !+$
+	working$ [bind] string @$ working$s [bind] strings !$x
 
-	s\" height=" working$ !$ s\" \"" working$ !+$
-	ymaxchart ylablesize + ytoplablesize + #to$ working$ !+$ s\" \"" working$ !+$
-	working$ @$ working$s !$x
+	s\" height=" working$ [bind] string !$ s\" \"" working$ [bind] string !+$
+	ymaxchart ylablesize + ytoplablesize + #to$ working$ [bind] string !+$ s\" \"" working$ [bind] string !+$
+	working$ [bind] string @$ working$s [bind] strings !$x
 	
-	s\" viewBox=" working$ !$ s\" \"0 0 " working$ !+$
-	xmaxchart xlablesize + #to$ working$ !+$ s"  " working$ !+$
-	ymaxchart ylablesize + ytoplablesize + #to$ working$ !+$ s\" \"" working$ !+$
-	working$ @$ working$s !$x
+	s\" viewBox=" working$ [bind] string !$ s\" \"0 0 " working$ [bind] string !+$
+	xmaxchart xlablesize + #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	ymaxchart ylablesize + ytoplablesize + #to$ working$ [bind] string !+$ s\" \"" working$ [bind] string !+$
+	working$ [bind] string @$ working$s [bind] strings !$x
 
-	working$s this svgheader ;m method makeheader
+	working$s this [parent] svgheader ;m method makeheader
     
     m: ( nattr$ svgchart -- ) \ will produce the cicle svg strings to be used in chart
 	\ *** use the pathdata$ to make the circle data into the svgoutput
 	string heap-new 
 	{ attr$ atemp$ }
-	attr$ reset
-	pathdata$ reset
-	pathdata$ $qty 0 ?do
-	    s"  " pathdata$ split$s 2swap 2drop atemp$ !$ s"  " 
-	    atemp$ split$ drop >float
+	attr$ [bind] strings reset
+	pathdata$ [bind] strings reset
+	pathdata$ [bind] strings $qty 0 ?do
+	    s"  " pathdata$ [bind] strings split$s 2swap 2drop atemp$ [bind] string !$ s"  " 
+	    atemp$ [bind] string split$ drop >float
 	    if
-		>float if attr$ f>s f>s circleradius this svgcircle then 
+		>float if attr$ f>s f>s circleradius this [parent] svgcircle then 
 	    else
 		2drop
 	    then
 	loop
-	atemp$ string-destruct atemp$ free throw
+	atemp$ [bind] string string-destruct atemp$ free throw
     ;m method makecircles
     
     m: ( nxdata$ svgchart -- ) \ will produce the path strings to be used in chart
