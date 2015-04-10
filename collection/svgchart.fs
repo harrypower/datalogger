@@ -302,73 +302,81 @@ svgmaker class
     
     m: ( nxdata$ svgchart -- ) \ will produce the path strings to be used in chart
 	{ xdata$ }
-	xdata$ reset
-	pathdata$ construct
-	s" M " working$ !$ xlablesize #to$ working$ !+$ s"  " working$ !+$
-	xdata$ @$x >float
+	xdata$ [bind] strings reset
+	pathdata$ [bind] strings construct
+	s" M " working$ [bind] string !$ xlablesize #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	xdata$ [bind] strings @$x >float
 	if
 	    yscale sf@ f*
 	else \ if fist string is not a number just plot with mymin value
 	    mymin sf@ yscale sf@ f*
 	then
-	mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ !+$ working$ @$ pathdata$ !$x
+	mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ [bind] string !+$
+	working$ [bind] string @$ pathdata$ [bind] strings !$x
 	xdata$ $qty xmaxpoints min 1
 	?do
-	    s" L " working$ !$
-	    i s>f xstep sf@ f* f>s xlablesize + #to$ working$ !+$ s"  " working$ !+$
-	    xdata$ @$x >float
+	    s" L " working$ [bind] string !$
+	    i s>f xstep sf@ f* f>s xlablesize + #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	    xdata$ [bind] strings @$x >float
 	    if
 		yscale sf@ f*
 	    else \ if string is not a number just plot with mymin value
 		mymin sf@ yscale sf@ f*
 	    then
-	    mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ !+$ working$ @$ pathdata$ !$x
+	    mymax sf@ yscale sf@ f* fswap f- f>s ytoplablesize + #to$ working$ [bind] string !+$
+	    working$ [bind] string @$ pathdata$ [bind] strings !$x
 	loop ;m method makepath
 
     m: ( svgchart -- ) \ will make the chart lables both lines and text
-	pathdata$ construct
+	pathdata$ [bind] strings construct
 	\ make the ylable line
-	s" M " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
-	ytoplablesize #to$ working$ !+$ s"  " working$ !+$ working$ @$ 2dup lableref$ !$ pathdata$ !$x
-	s" L " working$ !$ xlablesize xlableoffset - #to$ working$ !+$ s"  " working$ !+$
-	ymaxchart ytoplablesize + ylableoffset + #to$ working$ !+$ s"  " working$ !+$ working$ @$ pathdata$ !$x
+	s" M " working$ [bind] string !$ xlablesize xlableoffset - #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	ytoplablesize #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	working$ [bind] string @$ 2dup lableref$ [bind] string !$ pathdata$ [bind] strings !$x
+	s" L " working$ [bind] string !$ xlablesize xlableoffset - #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	ymaxchart ytoplablesize + ylableoffset + #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	working$ [bind] string @$ pathdata$ [bind] strings !$x
 	\ make the xlable line
-	s" L " working$ !$ xmaxchart xlablesize + #to$ working$ !+$ s"  " working$ !+$
-	ymaxchart ytoplablesize + ylableoffset + #to$ working$ !+$ s"  " working$ !+$ working$ @$ pathdata$ !$x
+	s" L " working$ [bind] string !$ xmaxchart xlablesize + #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	ymaxchart ytoplablesize + ylableoffset + #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	working$ [bind] string @$ pathdata$ [bind] strings !$x
 	\ make ylable line marks
-	lableref$ @$ pathdata$ !$x
-	s" l " working$ !$ ymarksize -1 * #to$ working$ !+$ s"  " working$ !+$ 0 #to$ working$ !+$
-	working$ @$ 2dup lablemark$ !$ pathdata$ !$x
+	lableref$ [bind] string @$ pathdata$ [bind] strings !$x
+	s" l " working$ [bind] string !$ ymarksize -1 * #to$ working$ [bind] string !+$
+	s"  " working$ [bind] string !+$ 0 #to$ working$ [bind] string !+$
+	working$ [bind] string @$ 2dup lablemark$ [bind] string !$ pathdata$ [bind] strings !$x
 	ylableqty 1 + 1 ?do
-	    lableref$ @$ pathdata$ !$x
-	    s" m " working$ !$ 0 #to$ working$ !+$ s"  " working$ !+$
-	    ymaxchart s>f ylableqty s>f f/ i s>f f* f>s #to$ working$ !+$
-	    working$ @$ pathdata$ !$x
-	    lablemark$ @$ pathdata$ !$x
+	    lableref$ [bind] string @$ pathdata$ [bind] strings !$x
+	    s" m " working$ [bind] string !$ 0 #to$ working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	    ymaxchart s>f ylableqty s>f f/ i s>f f* f>s #to$ working$ [bind] string !+$
+	    working$ [bind] string @$ pathdata$ [bind] strings !$x
+	    lablemark$ [bind] string @$ pathdata$ [bind] strings !$x
 	loop
-	labline-attr$ pathdata$ this svgpath
+	labline-attr$ pathdata$ this [parent] svgpath
 	\ generate y lable text
 	ylableqty 1 + 0 ?do
-	    ytempattr$s construct
-	    ylab-attr$ ytempattr$s copy$s
+	    ytempattr$s [bind] strings construct
+	    ylab-attr$ ytempattr$s [bind] strings copy$s
 	    ylabletxtpos ytoplablesize
 	    yscale sf@ myspread sf@ ylableqty s>f f/ f* i s>f f* f>s + ( nx ny )
 	    \ add transformation for ylable rotation
-	    s\"  transform=\"rotate(" ytransform$ !$ ylablerot #to$ ytransform$ !+$ s" , " ytransform$ !+$
-	    swap dup #to$ ytransform$ !+$ s" , " ytransform$ !+$ swap dup #to$ ytransform$ !+$
-	    s"  " ytransform$ !+$ s\" )\"" ytransform$ !+$ ytransform$ @$ ytempattr$s !$x ytempattr$s -rot
-	    myspread sf@ ylableqty s>f f/ i s>f f* mymax sf@ fswap f- ylable#dec nd>fto$ ytransform$ !$ ytransform$ 
-	    this svgtext 
+	    s\"  transform=\"rotate(" ytransform$ [bind] string !$ ylablerot #to$ ytransform$ [bind] string !+$ s" , " ytransform$ [bind] string !+$
+	    swap dup #to$ ytransform$ [bind] string !+$ s" , " ytransform$ [bind] string !+$ swap dup #to$ ytransform$ [bind] string !+$
+	    s"  " ytransform$ [bind] string !+$ s\" )\"" ytransform$ [bind] string !+$
+	    ytransform$ [bind] string @$ ytempattr$s [bind] strings !$x ytempattr$s -rot
+	    myspread sf@ ylableqty s>f f/ i s>f f* mymax sf@ fswap f- ylable#dec nd>fto$ ytransform$ [bind] string !$ ytransform$ 
+	    this [parent] svgtext 
 	loop
 	\ generate x lable text  
-	xlabdata$ $qty 0 ?do
-	    xtempattr$s construct
-	    xlab-attr$ xtempattr$s copy$s
-	    xlablesize xmaxchart s>f xlabdata$ $qty s>f f/ i s>f f* f>s + ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
-	    s\"  transform=\"rotate(" working$ !$ xlablerot #to$ working$ !+$ s" , " working$ !+$
-	    swap dup #to$ working$ !+$ s" , " working$ !+$ swap dup #to$ working$ !+$ s"  " working$ !+$
-	    s\" )\"" working$ !+$ working$ @$ xtempattr$s !$x xtempattr$s -rot xlabdata$
-	    this svgtext
+	xlabdata$ [bind] strings $qty 0 ?do
+	    xtempattr$s [bind] strings construct
+	    xlab-attr$ xtempattr$s [bind] strings copy$s
+	    xlablesize xmaxchart s>f xlabdata$ [bind] strings $qty s>f f/ i s>f f* f>s + ylableoffset ymaxchart + ytoplablesize + ylabletextoff +
+	    s\"  transform=\"rotate(" working$ [bind] string !$ xlablerot #to$ working$ [bind] string !+$ s" , " working$ [bind] string !+$
+	    swap dup #to$ working$ [bind] string !+$ s" , " working$ [bind] string !+$ swap dup #to$
+	    working$ [bind] string !+$ s"  " working$ [bind] string !+$
+	    s\" )\"" working$ [bind] string !+$ working$ [bind] string @$ xtempattr$s [bind] strings !$x xtempattr$s -rot xlabdata$
+	    this [parent] svgtext
 	loop ;m method makelables
 
     m: ( svgchart -- ) \ will put the text onto the chart
