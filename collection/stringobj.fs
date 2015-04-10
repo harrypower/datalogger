@@ -31,7 +31,7 @@ object class
 	0 string-addr !
 	0 string-size ! ;m overrides construct
     m: ( string -- )     \ free allocated memory for this instance of object
-	this construct ;m method string-destruct
+	this [current] construct ;m method string-destruct
     m: ( caddr u string -- ) \ store string
 	    dup allocate throw { u caddr1 }
 	    caddr1 u move
@@ -86,7 +86,7 @@ object class
 	string-test @ string-test =
 	if string-size @ else 0 then ;m method len$ 
     m: ( string -- ) \ retrieve string object info
-	this [current] print
+	this [parent] print
 	s"  string-test:" type string-test @ string-test = .
 	s"  addr:" type string-addr @ .
 	s"  size:" type string-size @ .
@@ -103,7 +103,7 @@ object class
 	if
 	    array @ 0 >
 	    if \ deallocate memory allocated for the array and free the string objects
-		qty @ 0 ?do array @ i cell * + @ dup string-destruct free throw loop
+		qty @ 0 ?do array @ i cell * + @ dup [bind] string string-destruct free throw loop
 		array @ free throw
 	    then
 	    0 qty !
@@ -116,23 +116,23 @@ object class
 	    strings-test strings-test !
 	then ;m overrides construct
     m: ( strings -- ) \ deallocate this object and other allocated memory in this object
-	this construct ;m method strings-destruct
+	this [current] construct ;m method strings-destruct
     m: ( caddr u strings -- ) \ store a string in handler
 	array @ 0 =
 	if
 	    cell allocate throw array !
 	    1 qty !
-	    string heap-new dup array @ ! !$
+	    string heap-new dup array @ ! [bind] string !$
 	else
 	    array @ cell qty @ 1 + * resize throw dup array !
 	    cell qty @ * + dup 
-	    string heap-new swap ! @ !$
+	    string heap-new swap ! @ [bind] string !$
 	    qty @ 1+ qty !
 	then 0 index ! ;m method !$x
     m: ( strings -- caddr u ) \ retrieve string from array at next index
 	qty @ 0 >
 	if
-	    array @ index @ cell * + @ @$
+	    array @ index @ cell * + @ [bind] string @$
 	    index @ 1+ index !
 	    index @ qty @ >=
 	    if 0 index ! then 
@@ -143,7 +143,7 @@ object class
 	\ caddr2 u2 contains the left over string if caddr u string is found
 	qty @ 0 >
 	if
-	    array @ index @ cell * + @ split$ drop
+	    array @ index @ cell * + @ [bind] string split$ drop
 	    index @ 1+ index !
 	    index @ qty @ >=
 	    if 0 index ! then 
@@ -152,10 +152,11 @@ object class
 	\ nstring-source$ is split each time nstring-split$ is found and place in this strings
 	\ nstring-split$ is removed each time it is found and when no more are found process is done
 	{ sp$ src$ }
-	sp$ len$ 0 > src$ len$ 0 > and true =
+	sp$ [bind] string len$ 0 > src$ [bind] string len$ 0 > and true =
 	if
 	    begin
-		sp$ @$ src$ split$ true = if 2swap this !$x src$ !$ false else 2drop 2drop true then
+		sp$ [bind] string @$ src$ [bind] string split$ true =
+		if 2swap this [current] !$x src$ [bind] string !$ false else 2drop 2drop true then
 	    until
 	then ;m method split$to$s
     m: ( ncaddrfd u ncaddrsrc u1 -- ) \ split up ncaddrsrc u1 string with ncaddrfd u string
@@ -163,19 +164,19 @@ object class
 	\ ncaddrfd u is the string to find
 	\ ncaddrsrc u1 is the string to find ncaddrfd u string in
 	string heap-new string heap-new { fd$ src$ }
-	src$ !$ fd$ !$
-	fd$ src$ this split$to$s
-	fd$ string-destruct src$ string-destruct ;m method split$>$s
+	src$ [bind] string !$ fd$ [bind] string !$
+	fd$ src$ this [current] split$to$s
+	fd$ [bind] string string-destruct src$ [bind] string string-destruct ;m method split$>$s
     m: ( strings -- u ) \ report size of strings array
 	strings-test @ strings-test =
 	if qty @ else 0 then ;m method $qty
     m: ( strings -- ) \ reset index to start of strings list for output purposes
 	0 index ! ;m method reset
     m: ( nstrings strings -- ) \ copy strings object to this strings object
-	dup reset
-	dup $qty 0 ?do dup @$x this !$x loop drop ;m method copy$s 
+	dup [current] reset
+	dup [current] $qty 0 ?do dup [current] @$x this [current] !$x loop drop ;m method copy$s 
     m: ( string -- ) \ print object for debugging
-	this [current] print
+	this [parent] print
 	s" array:" type array @ .
 	s" size:" type qty @ .
 	s" iterate index:" type index @ . ;m overrides print
