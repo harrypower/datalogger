@@ -27,7 +27,7 @@ object class
 	svg-output @ [bind] string !+$ ;m method !svg$
 
     m: ( nstrings svgmaker -- ) \ place contents of nstrings into svg string as attribute propertys
-	dup $qty 0 ?do
+	dup [bind] strings $qty 0 ?do
 	    dup [bind] strings @$x this [current] !svg$ s"  " this [current] !svg$
 	loop drop ;m method svgattr
 
