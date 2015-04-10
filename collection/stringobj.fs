@@ -190,14 +190,14 @@ end-class strings
     string heap-new to testb
     testing print cr
     testb print cr
-    s" somestring !" testing !$
-    testing @$ type cr
-    s"  other string!" testing !+$
-    testing @$ type cr
+    s" somestring !" testing [bind] string !$
+    testing [bind] string @$ type cr
+    s"  other string!" testing [bind] string !+$
+    testing [bind] string @$ type cr
     s" just this string!" testing !$
-    testing @$ type cr
-    testing string-destruct testing free throw
-    testb string-destruct testb free throw ;
+    testing [bind] string @$ type cr
+    testing [bind] string string-destruct testing free throw
+    testb [bind] string string-destruct testb free throw ;
 
 : dotesting
     1000 0 ?do stringtest loop ;
@@ -205,15 +205,15 @@ end-class strings
 0 value testc
 : stringstest
     strings heap-new to testc
-    s" hello world" testc !$x
-    s" next string" testc !$x
-    s" this is 2 or third item" testc !$x
+    s" hello world" testc [bind] strings !$x
+    s" next string" testc [bind] strings !$x
+    s" this is 2 or third item" testc [bind] strings !$x
     testc print cr
-    testc $qty . cr
-    testc @$x type cr
-    testc @$x type cr
-    testc @$x type cr
-    testc strings-destruct
+    testc [bind] strings $qty . cr
+    testc [bind] strings @$x type cr
+    testc [bind] strings @$x type cr
+    testc [bind] strings @$x type cr
+    testc [bind] strings strings-destruct
     testc free throw
 ;
 
