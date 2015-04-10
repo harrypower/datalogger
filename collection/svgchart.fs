@@ -385,7 +385,7 @@ svgmaker class
 	    text-attr$ @ swap dup
 	    text-x @ swap dup
 	    text-y @ swap
-	    text$ @ this svgtext
+	    text$ @ this [parent] svgtext
 	loop ;m method maketexts
 
   public
@@ -402,18 +402,18 @@ svgmaker class
 	    1 [to-inst] index-data
 	then
 	addr-data index-data 1 - data% %size * + dup
-	-rot circle-attr$ strings heap-new dup rot ! copy$s dup
-	-rot data-attr$ strings heap-new dup rot ! copy$s
-	data$ strings heap-new dup rot ! copy$s ;m method setdata
+	-rot circle-attr$ strings heap-new dup rot ! [bind] strings copy$s dup
+	-rot data-attr$ strings heap-new dup rot ! [bind] strings copy$s
+	data$ strings heap-new dup rot ! [bind] strings copy$s ;m method setdata
     
     m: ( nstrings-xlabdata nstrings-xlab-attr nstrings-ylab-attr nstrings-labline-attr svgchart -- )
 	\ to place xlabel data onto svg chart with x,y text and line attributes
 	\ note xlabdata is a strings object containing all data to be placed on xlabel but quantity must match xdata quantity
 	\ the data passed to this method is stored only once so last time it is called that data is used to make chart 
-	labline-attr$ copy$s
-	ylab-attr$ copy$s
-	xlab-attr$ copy$s
-	xlabdata$ copy$s ;m method setlabledataattr
+	labline-attr$ [bind] strings copy$s
+	ylab-attr$ [bind] strings copy$s
+	xlab-attr$ [bind] strings copy$s
+	xlabdata$ [bind] strings copy$s ;m method setlabledataattr
     
     m: ( nstring-txt nx ny nstrings-attr svgchart -- ) \ to place txt on svg with x and y location and attributes
 	\ every time this is called before makechart method the string,x,y and attributes are stored to be placed into svgchart
@@ -425,42 +425,44 @@ svgmaker class
 	    1 [to-inst] index-text 
 	then
 	addr-text index-text 1 - text% %size * + dup
-	-rot text-attr$ strings heap-new dup rot ! copy$s dup
+	-rot text-attr$ strings heap-new dup rot ! [bind] strings copy$s dup
 	-rot text-y ! dup
 	-rot text-x !
-	text$ string heap-new dup rot ! swap @$ rot !$ ;m method settext
+	text$ string heap-new dup rot ! swap [bind] string @$ rot [bind] string !$ ;m method settext
     
     m: ( svgchart -- caddr u nflag )  \ top level word to make the svg chart 
 	\ test for data available for chart making and valid
 	index-data 0 = if abort" No data for chart!" then
-	0 this ndata@ 2drop $qty 0 = if abort" Data for chart is empty!" then
-	xlabdata$ $qty 0 = if abort" No lable data for chart!" then
-	0 this ndata@ 2drop $qty index-data 1 ?do dup i this ndata@ 2drop $qty <> if abort" Data quantitys not the same!" then loop
-	xlabdata$ $qty <> if abort" Data quantitys not the same!" then 
+	0 this [current] ndata@ 2drop [bind] strings $qty 0 = if abort" Data for chart is empty!" then
+	xlabdata$ [bind] strings $qty 0 = if abort" No lable data for chart!" then
+	0 this [current] ndata@ 2drop [bind] strings $qty index-data 1
+	?do dup i this [current] ndata@ 2drop [bind] strings $qty <> if abort" Data quantitys not the same!" then loop
+	xlabdata$ [bind] strings $qty <> if abort" Data quantitys not the same!" then 
 	\ set mymin and mymax to start values
-	0 this ndata@ 2drop dup reset @$x >float if fdup mymax sf! mymin sf! else abort" Data not a number!" then  
+	0 this [current] ndata@ 2drop dup [bind] strings reset [bind] strings @$x >float
+	if fdup mymax sf! mymin sf! else abort" Data not a number!" then  
 	\ find all min and max values from all data sets
 	index-data 0 ?do
-	    i this ndata@ 2drop dup reset this findminmaxdata
+	    i this [current] ndata@ 2drop dup [bind] strings reset this [current] findminmaxdata
 	loop
 	\ calculate myspread
 	mymax sf@ mymin sf@ f- myspread sf!
 	\ calculate xstep
-	xmaxchart s>f 0 this ndata@ 2drop $qty xmaxpoints min s>f f/ xstep sf!
+	xmaxchart s>f 0 this [current] ndata@ 2drop [bind] strings $qty xmaxpoints min s>f f/ xstep sf!
 	\ calculate yscale
 	ymaxchart s>f myspread sf@ f/ yscale sf!
 	\ execute makeheader
-	this makeheader
+	this [current] makeheader
 	\ make path and cicle svg elements with there associated attributes 
 	index-data 0 ?do
-	    i this ndata@ swap rot this makepath pathdata$ this svgpath this makecircles
+	    i this [current] ndata@ swap rot this [current] makepath pathdata$ this [parent] svgpath this [current] makecircles
 	loop
 	\ execute makelables
-	this makelables
+	this [current] makelables
 	\ execute maketext
-	this maketexts
+	this [current] maketexts
 	\ finish svg with svgend to return the svg string
-	this svgend
+	this [parent] svgend
 	\ return false if no other errors
 	false ;m method makechart
     
@@ -480,80 +482,80 @@ string  heap-new constant tt
 strings heap-new constant yla
 strings heap-new constant xla
 
-s\" fill=\"rgb(0,0,255)\""     ta !$x
-s\" fill-opacity=\"1.0\""      ta !$x
-s\" stroke=\"rgb(0,100,200)\"" ta !$x
-s\" stroke-opacity=\"1.0\""    ta !$x
-s\" stroke-width=\"2.0\""      ta !$x
-s\" font-size=\"30px\""        ta !$x
+s\" fill=\"rgb(0,0,255)\""     ta bind strings !$x
+s\" fill-opacity=\"1.0\""      ta bind strings !$x
+s\" stroke=\"rgb(0,100,200)\"" ta bind strings !$x
+s\" stroke-opacity=\"1.0\""    ta bind strings !$x
+s\" stroke-width=\"2.0\""      ta bind strings !$x
+s\" font-size=\"30px\""        ta bind strings !$x
 
-s" 10"                         tdata !$x
-s" 20"                         tdata !$x
-s" 53.9"                       tdata !$x
-s" 0.789"                      tdata !$x
+s" 10"                         tdata bind strings !$x
+s" 20"                         tdata bind strings !$x
+s" 53.9"                       tdata bind strings !$x
+s" 0.789"                      tdata bind strings !$x
 
- s\" fill-opacity=\"0.0\""      tda !$x
- s\" stroke=\"rgb(255,120,0)\"" tda !$x
- s\" stroke-opacity=\"1.0\""    tda !$x
- s\" stroke-width=\"2.0\""      tda !$x
-\ s\" style=\"stroke: #ff0000; fill: #ffffff;\"" tda !$x
+ s\" fill-opacity=\"0.0\""      tda bind strings !$x
+ s\" stroke=\"rgb(255,120,0)\"" tda bind strings !$x
+ s\" stroke-opacity=\"1.0\""    tda bind strings !$x
+ s\" stroke-width=\"2.0\""      tda bind strings !$x
+\ s\" style=\"stroke: #ff0000; fill: #ffffff;\"" tda bind strings !$x
 
- s\" fill-opacity=\"0.0\""      tda2 !$x
- s\" stroke=\"rgb(0,0,255)\""   tda2 !$x
- s\" stroke-opacity=\"1.0\""    tda2 !$x
- s\" stroke-width=\"2.0\""      tda2 !$x
-\ s\" style=\"stroke: #0000ff; fill: #000000;\"" tda2 !$x
+ s\" fill-opacity=\"0.0\""      tda2 bind strings !$x
+ s\" stroke=\"rgb(0,0,255)\""   tda2 bind strings !$x
+ s\" stroke-opacity=\"1.0\""    tda2 bind strings !$x
+ s\" stroke-width=\"2.0\""      tda2 bind strings !$x
+\ s\" style=\"stroke: #0000ff; fill: #000000;\"" tda2 bind strings !$x
 
-s\" fill=\"rgb(0,255,0)\""     tdca !$x
-s\" fill-opacity=\"0.7\""      tdca !$x
-s\" stroke=\"rgb(255,0,0)\""   tdca !$x
-s\" stroke-opacity=\"1.0\""    tdca !$x
-s\" stroke-width=\"3.0\""      tdca !$x
+s\" fill=\"rgb(0,255,0)\""     tdca bind strings !$x
+s\" fill-opacity=\"0.7\""      tdca bind strings !$x
+s\" stroke=\"rgb(255,0,0)\""   tdca bind strings !$x
+s\" stroke-opacity=\"1.0\""    tdca bind strings !$x
+s\" stroke-width=\"3.0\""      tdca bind strings !$x
 
-s\" fill=\"rgb(0,0,255)\""     yla !$x
-s\" fill-opacity=\"1.0\""      yla !$x
-s\" stroke=\"rgb(0,120,255)\"" yla !$x
-s\" stroke-opacity=\"1.0\""    yla !$x
-s\" stroke-width=\"2.0\""      yla !$x
-s\" font-size=\"20px\""        yla !$x
+s\" fill=\"rgb(0,0,255)\""     yla bind strings !$x
+s\" fill-opacity=\"1.0\""      yla bind strings !$x
+s\" stroke=\"rgb(0,120,255)\"" yla bind strings !$x
+s\" stroke-opacity=\"1.0\""    yla bind strings !$x
+s\" stroke-width=\"2.0\""      yla bind strings !$x
+s\" font-size=\"20px\""        yla bind strings !$x
 
-s\" fill=\"rgb(255,0,0)\""     xla !$x
-s\" fill-opacity=\"1.0\""      xla !$x
-s\" stroke=\"rgb(50,255,0)\""  xla !$x
-s\" stroke-opacity=\"1.0\""    xla !$x
-s\" stroke-width=\"2.0\""      xla !$x
-s\" font-size=\"20px\""        xla !$x
+s\" fill=\"rgb(255,0,0)\""     xla bind strings !$x
+s\" fill-opacity=\"1.0\""      xla bind strings !$x
+s\" stroke=\"rgb(50,255,0)\""  xla bind strings !$x
+s\" stroke-opacity=\"1.0\""    xla bind strings !$x
+s\" stroke-width=\"2.0\""      xla bind strings !$x
+s\" font-size=\"20px\""        xla bind strings !$x
 
-s" first"                      tld !$x
-s" second"                     tld !$x
-s" third"                      tld !$x
-s" fourth"                     tld !$x
+s" first"                      tld bind strings !$x
+s" second"                     tld bind strings !$x
+s" third"                      tld bind strings !$x
+s" fourth"                     tld bind strings !$x
 
-s\" fill-opacity=\"0.0\""      tlla !$x
-s\" stroke=\"rgb(0,0,255)\""   tlla !$x
-s\" stroke-opacity=\"1.0\""    tlla !$x
-s\" stroke-width=\"2.0\""      tlla !$x
+s\" fill-opacity=\"0.0\""      tlla bind strings !$x
+s\" stroke=\"rgb(0,0,255)\""   tlla bind strings !$x
+s\" stroke-opacity=\"1.0\""    tlla bind strings !$x
+s\" stroke-width=\"2.0\""      tlla bind strings !$x
 
-s" here is first text"          tt !$
-tt 10 20  ta test settext
-s" second texts" tt !$
-tt 200 300 ta test settext
+s" here is first text"          tt bind string !$
+tt 10 20  ta test bind svgchartmaker settext
+s" second texts"                tt bind string !$
+tt 200 300 ta test bind svgchartmaker settext
 
-tld xla yla tlla test setlabledataattr
+tld xla yla tlla test bind svgchartmaker setlabledataattr
 
-tdata tda tdca test setdata
-tdata construct
-s" 19" tdata !$x
-s" 29" tdata !$x
-s" 3.92" tdata !$x
-s" 99.3" tdata !$x
-tdata tda2 tdca test setdata
+tdata tda tdca test bind svgchartmaker setdata
+tdata bind strings construct
+s" 19" tdata bind strings !$x
+s" 29" tdata bind strings !$x
+s" 3.92" tdata bind strings !$x
+s" 99.3" tdata bind strings !$x
+tdata tda2 tdca test bind svgchartmaker setdata
 
-5 1000 300 test setchart-prop
-10 test setdtpts-circle-prop
-200 40 10 10 10 test setylable-prop
-5 10 30 0 test setylable-text-prop
-140 10 70 test setxlable-prop
+5 1000 300 test bind svgchartmaker setchart-prop
+10 test bind svgchartmaker setdtpts-circle-prop
+200 40 10 10 10 test bind svgchartmaker setylable-prop
+5 10 30 0 test bind svgchartmaker setylable-text-prop
+140 10 70 test bind svgchartmaker setxlable-prop
 
-\ test makechart throw
+\ test bind svgchartmaker makechart throw
 \ uncomment the line above to generate the svg string this example creates
