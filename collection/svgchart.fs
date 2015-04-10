@@ -184,7 +184,7 @@ svgmaker class
 	    ytempattr$s   dup [bind] strings destruct free throw
 	    xtempattr$s   dup [bind] strings destruct free throw 
 	    this [current] free-text-data 
-	    this [parent] svgmaker-destruct 
+	    this [parent] destruct 
 	    0 svgchartmaker-test !
 	then ;m method svgchart-destruct
 
@@ -204,7 +204,7 @@ svgmaker class
 	    ytempattr$s   dup [bind] strings destruct free throw
 	    xtempattr$s   dup [bind] strings destruct free throw 
 	    this [current] free-text-data 
-	    this [parent] svgmaker-destruct 
+	    this [parent] destruct 
 	    0 svgchartmaker-test !
 	then ;m overrides destruct
     

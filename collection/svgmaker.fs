@@ -53,14 +53,6 @@ object class
 	    svg-output @ [bind] string destruct
 	    svg-output @ free throw
 	    0 svgmaker-test !
-	then ;m method svgmaker-destruct
-
-    m: ( svgmaker -- ) \ free memory for this object and delete object
-	svgmaker-test svgmaker-test @ =
-	if
-	    svg-output @ [bind] string destruct
-	    svg-output @ free throw
-	    0 svgmaker-test !
 	then ;m overrides destruct
 
     m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
