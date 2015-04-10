@@ -25,6 +25,7 @@ require stringobj.fs
 require gforth-misc-tools.fs
 
 svgmaker class
+    destruction implementation
     cell% inst-var svgchartmaker-test \ used to see if construct is first being executed or not
     \ these variables and values are calcuated or used in the following code
     cell% inst-var mymin      \ will contain the chart data min absolute value
@@ -87,17 +88,17 @@ svgmaker class
     m: ( -- ) \ this will free text and data strings and string that was dynamicaly created in object
 	index-data 0 ?do
 	    addr-data data% %size i * + dup
-	    data$ @ dup [bind] strings strings-destruct free throw dup
-	    data-attr$ @ dup [bind] strings strings-destruct free throw 
-	    circle-attr$ @ dup [bind] strings strings-destruct free throw
+	    data$ @ dup [bind] strings destruct free throw dup
+	    data-attr$ @ dup [bind] strings destruct free throw 
+	    circle-attr$ @ dup [bind] strings destruct free throw
 	loop
 	index-data 0 > if addr-data free throw then
 	0 [to-inst] index-data
 	0 [to-inst] addr-data
 	index-text 0 ?do
 	    addr-text text% %size i * + dup
-	    text$ @ dup [bind] string string-destruct free throw
-	    text-attr$ @ dup [bind] strings strings-destruct free throw
+	    text$ @ dup [bind] string destruct free throw
+	    text-attr$ @ dup [bind] strings destruct free throw
 	loop
 	index-text 0 > if addr-text free throw then
 	0 [to-inst] index-text
@@ -170,23 +171,43 @@ svgmaker class
     m: ( svgchart -- ) \ destruct all allocated memory and free this object
 	svgchartmaker-test svgchartmaker-test @ =
 	if
-	    working$      dup [bind] string string-destruct free throw 
-	    lableref$     dup [bind] string string-destruct free throw
-	    lablemark$    dup [bind] string string-destruct free throw
-	    ytransform$   dup [bind] string string-destruct free throw
-	    working$s     dup [bind] strings strings-destruct free throw
-	    pathdata$     dup [bind] strings strings-destruct free throw
-	    xlabdata$     dup [bind] strings strings-destruct free throw
-	    xlab-attr$    dup [bind] strings strings-destruct free throw
-	    ylab-attr$    dup [bind] strings strings-destruct free throw
-	    labline-attr$ dup [bind] strings strings-destruct free throw
-	    ytempattr$s   dup [bind] strings strings-destruct free throw
-	    xtempattr$s   dup [bind] strings strings-destruct free throw 
+	    working$      dup [bind] string destruct free throw 
+	    lableref$     dup [bind] string destruct free throw
+	    lablemark$    dup [bind] string destruct free throw
+	    ytransform$   dup [bind] string destruct free throw
+	    working$s     dup [bind] strings destruct free throw
+	    pathdata$     dup [bind] strings destruct free throw
+	    xlabdata$     dup [bind] strings destruct free throw
+	    xlab-attr$    dup [bind] strings destruct free throw
+	    ylab-attr$    dup [bind] strings destruct free throw
+	    labline-attr$ dup [bind] strings destruct free throw
+	    ytempattr$s   dup [bind] strings destruct free throw
+	    xtempattr$s   dup [bind] strings destruct free throw 
 	    this [current] free-text-data 
 	    this [parent] svgmaker-destruct 
 	    0 svgchartmaker-test !
 	then ;m method svgchart-destruct
 
+    m: ( svgchart -- ) \ destruct all allocated memory and free this object
+	svgchartmaker-test svgchartmaker-test @ =
+	if
+	    working$      dup [bind] string destruct free throw 
+	    lableref$     dup [bind] string destruct free throw
+	    lablemark$    dup [bind] string destruct free throw
+	    ytransform$   dup [bind] string destruct free throw
+	    working$s     dup [bind] strings destruct free throw
+	    pathdata$     dup [bind] strings destruct free throw
+	    xlabdata$     dup [bind] strings destruct free throw
+	    xlab-attr$    dup [bind] strings destruct free throw
+	    ylab-attr$    dup [bind] strings destruct free throw
+	    labline-attr$ dup [bind] strings destruct free throw
+	    ytempattr$s   dup [bind] strings destruct free throw
+	    xtempattr$s   dup [bind] strings destruct free throw 
+	    this [current] free-text-data 
+	    this [parent] svgmaker-destruct 
+	    0 svgchartmaker-test !
+	then ;m overrides destruct
+    
     m: ( nxmaxpoints nxmaxchart nymaxchart -- ) \ values to change chart size and charting data use
 	\ nmaxpoints forces data points to be used up to this limit
 	\ nxmaxchart max x absolute px size of chart
@@ -297,7 +318,7 @@ svgmaker class
 		2drop
 	    then
 	loop
-	atemp$ [bind] string string-destruct atemp$ free throw
+	atemp$ [bind] string destruct atemp$ free throw
     ;m method makecircles
     
     m: ( nxdata$ svgchart -- ) \ will produce the path strings to be used in chart

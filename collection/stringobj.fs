@@ -35,8 +35,6 @@ object class
 	0 string-test !
 	0 string-addr !
 	0 string-size ! ;m overrides construct
-    m: ( string -- )     \ free allocated memory for this instance of object
-	this [current] construct ;m method string-destruct
     m: ( string -- ) \ free allocated memory
 	this [current] construct ;m overrides destruct
     m: ( caddr u string -- ) \ store string
@@ -123,8 +121,6 @@ object class
 	    0 array !
 	    strings-test strings-test !
 	then ;m overrides construct
-    m: ( strings -- ) \ deallocate this object and other allocated memory in this object
-	this [current] construct ;m method strings-destruct
     m: ( strings -- ) \ free allocated memory
 	this [current] construct ;m overrides destruct
     m: ( caddr u strings -- ) \ store a string in handler

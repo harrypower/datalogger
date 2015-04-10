@@ -20,6 +20,7 @@
 require stringobj.fs  \ this is my own string package for single strings and array of strings
 
 object class
+    destruction implementation
     cell% inst-var svg-output \ the svg output string object
     cell% inst-var svgmaker-test \ a construct test value to prevent memory leaks
   protected
@@ -39,7 +40,7 @@ object class
     m: ( svgmaker -- ) \ init svg-output string
 	svgmaker-test svgmaker-test @ =
 	if \ svg-output should alreadys have a string so remove then recreate
-	    svg-output @ [bind] string string-destruct
+	    svg-output @ [bind] string destruct
 	    svg-output @ free throw
 	    string heap-new svg-output !
 	else \ svg-output not setup so just create string object
@@ -49,11 +50,19 @@ object class
     m: ( svgmaker -- ) \ free memory for this object and delete object
 	svgmaker-test svgmaker-test @ =
 	if
-	    svg-output @ [bind] string string-destruct
+	    svg-output @ [bind] string destruct
 	    svg-output @ free throw
 	    0 svgmaker-test !
 	then ;m method svgmaker-destruct
-    
+
+    m: ( svgmaker -- ) \ free memory for this object and delete object
+	svgmaker-test svgmaker-test @ =
+	if
+	    svg-output @ [bind] string destruct
+	    svg-output @ free throw
+	    0 svgmaker-test !
+	then ;m overrides destruct
+
     m: ( nstrings-header svgmaker -- ) \ start svg string and place nstrings contents as header to svg
 	s" <svg " svg-output @ [bind] string !$
 	this svgattr

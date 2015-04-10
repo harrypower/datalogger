@@ -63,7 +63,7 @@ attr2 path2 thesvg bind svgmaker svgpath
 attr1 30 20 text thesvg bind svgmaker svgtext
 attr1 50 80 20 thesvg bind svgmaker svgcircle
 thesvg bind svgmaker svgend type
-thesvg bind svgmaker svgmaker-destruct
+thesvg bind svgmaker destruct
 thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 
 svgmaker heap-new to thesvg
@@ -74,18 +74,18 @@ attr2 path2 thesvg bind svgmaker svgpath
 attr1 30 20 text thesvg bind svgmaker svgtext
 attr1 50 80 20 thesvg bind svgmaker svgcircle
 thesvg bind svgmaker svgend type
-thesvg bind svgmaker svgmaker-destruct
+thesvg bind svgmaker destruct
 thesvg free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 
 test #to$ type ." <br>"
 test makechart 0 = [if] ." pass <br>" [else] ." fail <br>" [then] 
 type
-test bind svgchartmaker svgchart-destruct
+test bind svgchartmaker destruct
 test free 0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 svgchartmaker heap-new to test
 test #to$ type ." <br>"
 test bind svgchartmaker construct 
-test bind svgchartmaker svgchart-destruct 
+test bind svgchartmaker destruct 
 test free  0 = [if] ." pass <br>" [else] ." fail <br>" [then]
 $>
 </body>
