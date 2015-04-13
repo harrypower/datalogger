@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Sensor Data info.</title>
+</head>
+<link rel="stylesheet" type="text/css" href="styleA.css">
+<$
+\ require ../collection/gforth-misc-tools.fs
+\ require ../collection/stringobj.fs
+\ require ../collection/script.fs
+
+\ string heap-new constant junk$
+\ strings heap-new constant junk$s
+
+
+$>
+<body>
+<$
+posted @ .
+host $@ type
+." <br>" 
+content-length .s @ .s 
+." <br>" 
+referer .s @ .s
+." <br>" 
+url .s $@ type .s 
+." <br>"
+x-forwarded-for .s @ .s
+." <br>"
+." <br>"
+words 
+$>
+</body>
+</html>
