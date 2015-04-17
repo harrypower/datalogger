@@ -54,6 +54,11 @@ create floatoutputbuffer
     utime 1000000 fm/mod swap drop
     #to$, ;
 
-
-
+string heap-new constant ftest$
+: filetest ( ncaddr u - nflag ) \ ncaddr u is a file name string to test if present
+    \ nflag is false if file is not present
+    \ nflag is true if file is present
+    s" test -e " ftest$ !$ ftest$ !+$
+    s" && exit 1 || exit 0 " ftest$ !+$
+    ftest$ @$ system $? 0 = if false else true then ;
 
