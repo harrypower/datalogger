@@ -20,6 +20,7 @@
 \ Also most attributes can be setup in this chart for how the data looks and how the text looks
 \ and how the chart looks.
 
+require objects.fs
 require svgmaker.fs
 require stringobj.fs
 require gforth-misc-tools.fs

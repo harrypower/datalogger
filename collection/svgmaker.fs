@@ -17,6 +17,7 @@
 \ The code makes an object using object.fs to create and work with SVG 
 \ output for using in a web server for example!
 
+require objects.fs
 require stringobj.fs  \ this is my own string package for single strings and array of strings
 
 object class
