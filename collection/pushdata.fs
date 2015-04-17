@@ -16,41 +16,63 @@
 \    You should have received a copy of the GNU General Public License
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+warnings off
 require stringobj.fs
 require gforth-misc-tools.fs
-require script.fs
 
 string heap-new constant encrypted_data$
 string heap-new constant passfile$
 string heap-new value junky$
 string heap-new value data_to_send$
+string heap-new value send-file$
+string heap-new constant encryptedfile$
 string heap-new constant cmd$
 string heap-new constant cmd2$
-string heap-new value test$
-string heap-new value output$ 
+string heap-new constant decryptedfile$
 
+cr
 path$ @$ passfile$ !$ s" /collection/passphrase.data" passfile$ !+$
 ." passfile$: " passfile$ @$ type cr
 
+path$ @$ send-file$ !$ s" /collection/toencrypt.data" send-file$ !+$
+." send-file$: " send-file$ @$ type cr
+
+path$ @$ encryptedfile$ !$ s" /collection/encrypted.data" encryptedfile$ !+$
+." encryptedfile$: " encryptedfile$ @$ type cr
+
+path$ @$ decryptedfile$ !$ s" /collection/decrypted.data" decryptedfile$ !+$
+." *****************" cr
+
 s" just a test of the idea for encryption!" data_to_send$ !$
 
-s" gpg -c --passphrase-file " cmd$ !$ passfile$ @$ cmd$ !+$
-s"  --batch " cmd$ !+$
-s" echo " junky$ !$ data_to_send$ @$ junky$ !+$ s"  | " junky$ !+$
-cmd$ @$ junky$ !+$
+\ s" mkfifo " junky$ !$ send-file$ @$ junky$ !+$ s"  &" junky$ !+$ junky$ @$ system $? throw 
+\ s" mkfifo " junky$ !$ encryptedfile$ @$ junky$ !+$ s"  &" junky$ !+$ junky$ @$ system $? throw
 
-." cmd$: " junky$ @$ type cr
-junky$ @$ shget throw encrypted_data$ !$
+s" echo " cmd$ !$ data_to_send$ @$ cmd$ !+$ s"  > " cmd$ !+$ send-file$ @$ cmd$ !+$ s"  &" cmd$ !+$
+." data: " cmd$ @$ type cr
+cmd$ @$ system $? ." system error:" . cr
 
-s" gpg --decrypt --passphrase-file " cmd2$ !$ passfile$ @$ cmd2$ !+$
-s"  --batch " cmd2$ !+$
-s" echo " test$ !$ encrypted_data$ @$ test$ !+$ s"  | " test$ !+$
-cmd2$ @$ test$ !+$
+s" gpg --passphrase-file " cmd$ !$ passfile$ @$ cmd$ !+$
+s"  --output - " cmd$ !+$ 
+s"  --batch --symmetric " cmd$ !+$ send-file$ @$ cmd$ !+$
+s"  > " cmd$ !+$ encryptedfile$ @$ cmd$ !+$ 
+s"  &" cmd$ !+$
+." cmd$: " cmd$ @$ type cr
+." **********" cr 
+cmd$ @$ system $? ." system error:" . cr
 
-." cmd2$: " test$ @$ type cr
-test$ @$ shget throw output$ !$
+s" gpg --batch --passphrase-file " cmd2$ !$ passfile$ @$ cmd2$ !+$
+s"  --output - " cmd2$ !+$ 
+s"  --decrypt " cmd2$ !+$ encryptedfile$ @$ cmd2$ !+$
+s"  > " cmd2$ !+$ decryptedfile$ @$ cmd2$ !+$
+." cmd2$: " cmd2$ @$ type cr
+cmd2$ @$ system $? ." system error:" . cr 
+." **************" cr
 
-data_to_send$ @$ type cr
-encrypted_data$ @$ type cr
-output$ @$ type cr
+decryptedfile$ @$ r/o open-file throw value dfid
+dfid slurp-fid junky$ !$
+dfid close-file throw
+." decrypted data: " junky$ @$ type cr
+." data_to_send$: "  data_to_send$ @$ type cr
+
+bye
