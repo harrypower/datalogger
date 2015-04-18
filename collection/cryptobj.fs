@@ -34,7 +34,28 @@ object class
     inst-value cmd$
     inst-value cmds$
     cell% inst-var ed_test      \ used to test for constructor execution 
-    
+  protected
+    m: ( encrypt_decrypt -- ) \ will make the fifo's for use by this code
+	passphraseF$ @$ filetest false =
+	if s" mkfifo " cmd$ !$ passphraseF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	toencryptF$ @$ filetest false =
+	if s" mkfifo " cmd$ !$ toencryptF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	encrypt_outputF$ @$ filetest false =
+	if s" mkfifo " cmd$ !$ encrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	decrypt_outputF$ @$ filetest false =
+	if s" mkfifo " cmd$ !$ decrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+    ;m method makefifos
+    m: ( encrypt_decrypt -- ) \ will remove fifo's that were created in construct
+	passphraseF$ @$ filetest true =
+	if s" rm " cmd$ !$ passphraseF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	toencryptF$ @$ filetest true =
+	if s" rm " cmd$ !$ toencryptF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	encrypt_outputF$ @$ filetest true =
+	if s" rm " cmd$ !$ encrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	decrypt_outputF$ @$ filetest true =
+	if s" rm " cmd$ !$ decrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+    ;m method rmfifos
+  public
     m: ( ncaddr u encrypt_decrypt -- )
 	\ ncaddr u is the string that contains the base path for where files are at and should be placed
 	ed_test ed_test @ <>
@@ -49,23 +70,25 @@ object class
 	    string heap-new [to-inst] decrypt_output$
 	    string heap-new [to-inst] cmd$
 	    string heap-new [to-inst] cmds$
-	else \ constructor has run before
-	    basepath$ !$
-	    basepath$ @$ passphraseF$ !$ s" /passphrase.data" passphraseF$ !+$
-	    basepath$ @$ toencryptF$ !$ s" /toencrypt.data" toencryptF$ !+$
-	    basepath$ @$ encrypt_outputF$ !$ s" /encrypted.data" encrypt_outputF$ !+$
-	    basepath$ @$ decrypt_outputF$ !$ s" /decrypted.data" decrypt_outputF$ !+$
-	    toencrypt$ [bind] string construct
-	    encrypt_output$ [bind] string construct
-	    decrypt_output$ [bind] string construct
-	    cmd$ [bind] string construct
-	    cmds$ [bind] string construct
 	then
+	\ constructor has run before
+	basepath$ !$
+	basepath$ @$ passphraseF$ !$ s" /passphrase.data" passphraseF$ !+$
+	basepath$ @$ toencryptF$ !$ s" /toencrypt.data" toencryptF$ !+$
+	basepath$ @$ encrypt_outputF$ !$ s" /encrypted.data" encrypt_outputF$ !+$
+	basepath$ @$ decrypt_outputF$ !$ s" /decrypted.data" decrypt_outputF$ !+$
+	toencrypt$ [bind] string construct
+	encrypt_output$ [bind] string construct
+	decrypt_output$ [bind] string construct
+	cmd$ [bind] string construct
+	cmds$ [bind] string construct
+	this [current] makefifos
 	ed_test ed_test ! \ set constructor test now that constructor has run
     ;m overrides construct
     m: ( encrypt_decrypt -- )
 	ed_test ed_test @ =
 	if
+	    this [current] rmfifos
 	    basepath$        dup [bind] string destruct free throw
 	    passphraseF$     dup [bind] string destruct free throw
 	    toencryptF$      dup [bind] string destruct free throw
@@ -78,5 +101,7 @@ object class
 	    cmds$            dup [bind] string destruct free throw
 	    0 ed_test ! \ clear construct test because nothing is allocated anymore
 	then ;m overrides destruct
+
 end-class encrypt_decrypt
 
+path$ @$ encrypt_decrypt heap-new constant tested
