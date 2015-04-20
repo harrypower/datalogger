@@ -33,10 +33,6 @@ object class
     inst-value toencryptF$
     inst-value encrypt_outputF$
     inst-value decrypt_outputF$
-    
-    inst-value toencrypt$
-    inst-value encrypt_output$
-    inst-value decrypt_output$
     inst-value cmd$
     cell% inst-var ed_test      \ used to test for constructor execution 
   protected
@@ -61,9 +57,6 @@ object class
 	    string heap-new [to-inst] toencryptF$
 	    string heap-new [to-inst] encrypt_outputF$
 	    string heap-new [to-inst] decrypt_outputF$
-	    string heap-new [to-inst] toencrypt$
-	    string heap-new [to-inst] encrypt_output$
-	    string heap-new [to-inst] decrypt_output$
 	    string heap-new [to-inst] cmd$
 	then
 	basepath$ !$
@@ -71,9 +64,6 @@ object class
 	basepath$ @$ toencryptF$ !$ s" /toencrypt.data" toencryptF$ !+$
 	basepath$ @$ encrypt_outputF$ !$ s" /encrypted.data" encrypt_outputF$ !+$
 	basepath$ @$ decrypt_outputF$ !$ s" /decrypted.data" decrypt_outputF$ !+$
-	toencrypt$ [bind] string construct
-	encrypt_output$ [bind] string construct
-	decrypt_output$ [bind] string construct
 	cmd$ [bind] string construct
 	this [current] rmfiles
 	ed_test ed_test ! \ set constructor test now that constructor has run
@@ -87,9 +77,6 @@ object class
 	    toencryptF$      dup [bind] string destruct free throw
 	    encrypt_outputF$ dup [bind] string destruct free throw
 	    decrypt_outputF$ dup [bind] string destruct free throw
-	    toencrypt$       dup [bind] string destruct free throw
-	    encrypt_output$  dup [bind] string destruct free throw
-	    decrypt_output$  dup [bind] string destruct free throw
 	    cmd$             dup [bind] string destruct free throw
 	    0 ed_test ! \ clear construct test because nothing is allocated anymore
 	then ;m overrides destruct
