@@ -18,6 +18,10 @@
 
 \ This code simply is a front end for GPG encryption program in most debian distros.
 \ The encryption and decryption is using symmetric with a passphrase.
+\ AES256 is used as cipher algoritom and modification detection code is used!
+\ Several files are created in the use of code but removed at the end of each method call.
+\ The passphrase is retrieved from a file so it needs to be present to use this object.
+
 require objects.fs
 require stringobj.fs
 require gforth-misc-tools.fs
@@ -92,6 +96,7 @@ object class
     m: ( ncaddr u -- ) \ ncaddr u a string containing the path and file name for passphrase
 	slurp-file     \ note gpg only uses first line for pass phrase
 	0 { caddr1 u1 fid }
+	this [current] rmfiles
 	passphraseF$ @$ w/o create-file throw to fid
 	caddr1 u1 fid write-file throw
 	fid flush-file throw
@@ -106,9 +111,10 @@ object class
 
 	s" gpg --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
 	s"  --output " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
-	s"  --batch --force-mdc " cmd$ !+$
+	s"  --batch --force-mdc --cipher-algo AES256 " cmd$ !+$
 	s"  --symmetric " cmd$ !+$ toencryptF$ @$ cmd$ !+$
-	cmd$ @$ dump cr
+	s"  2> /dev/null" cmd$ !+$ 
+	\ cmd$ @$ dump cr
 	cmd$ @$ system $? throw
 	encrypt_outputF$ @$ slurp-file
 	this [current] rmfiles
@@ -123,7 +129,8 @@ object class
 	s" gpg --batch --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
 	s"  --output " cmd$ !+$ decrypt_outputF$ @$ cmd$ !+$
 	s"  --decrypt " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
-	cmd$ @$ dump cr
+	s"  2> /dev/null" cmd$ !+$
+	\ cmd$ @$ dump cr
 	cmd$ @$ system $? throw
 	decrypt_outputF$ @$ slurp-file
 	this [current] rmfiles
