@@ -16,6 +16,8 @@
 \    You should have received a copy of the GNU General Public License
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+\ This code simply is a front end for GPG encryption program in most debian distros.
+\ The encryption and decryption is using symmetric with a passphrase.
 require objects.fs
 require stringobj.fs
 require gforth-misc-tools.fs
@@ -32,32 +34,22 @@ object class
     inst-value encrypt_output$
     inst-value decrypt_output$
     inst-value cmd$
-    inst-value cmds$
     cell% inst-var ed_test      \ used to test for constructor execution 
   protected
-    m: ( encrypt_decrypt -- ) \ will make the fifo's for use by this code
-	passphraseF$ @$ filetest false =
-	if s" mkfifo " cmd$ !$ passphraseF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
-	toencryptF$ @$ filetest false =
-	if s" mkfifo " cmd$ !$ toencryptF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
-	encrypt_outputF$ @$ filetest false =
-	if s" mkfifo " cmd$ !$ encrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
-	decrypt_outputF$ @$ filetest false =
-	if s" mkfifo " cmd$ !$ decrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
-    ;m method makefifos
-    m: ( encrypt_decrypt -- ) \ will remove fifo's that were created in construct
+    
+    m: ( encrypt_decrypt -- ) \ will removes files used in this code
 	passphraseF$ @$ filetest true =
-	if s" rm " cmd$ !$ passphraseF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	if passphraseF$ @$ delete-file throw then
 	toencryptF$ @$ filetest true =
-	if s" rm " cmd$ !$ toencryptF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	if toencryptF$ @$ delete-file throw then
 	encrypt_outputF$ @$ filetest true =
-	if s" rm " cmd$ !$ encrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
+	if encrypt_outputF$ @$ delete-file throw then
 	decrypt_outputF$ @$ filetest true =
-	if s" rm " cmd$ !$ decrypt_outputF$ @$ cmd$ !+$ cmd$ @$ system $? throw then
-    ;m method rmfifos
+	if decrypt_outputF$ @$ delete-file throw then
+    ;m method rmfiles
   public
     m: ( ncaddr u encrypt_decrypt -- )
-	\ ncaddr u is the string that contains the base path for where files are at and should be placed
+	\ ncaddr u is string that contains the base path for where files are at and should be placed
 	ed_test ed_test @ <>
 	if \ constructor run for first time
 	    string heap-new [to-inst] basepath$
@@ -69,9 +61,7 @@ object class
 	    string heap-new [to-inst] encrypt_output$
 	    string heap-new [to-inst] decrypt_output$
 	    string heap-new [to-inst] cmd$
-	    string heap-new [to-inst] cmds$
 	then
-	\ constructor has run before
 	basepath$ !$
 	basepath$ @$ passphraseF$ !$ s" /passphrase.data" passphraseF$ !+$
 	basepath$ @$ toencryptF$ !$ s" /toencrypt.data" toencryptF$ !+$
@@ -81,14 +71,13 @@ object class
 	encrypt_output$ [bind] string construct
 	decrypt_output$ [bind] string construct
 	cmd$ [bind] string construct
-	cmds$ [bind] string construct
-	this [current] makefifos
+	this [current] rmfiles
 	ed_test ed_test ! \ set constructor test now that constructor has run
     ;m overrides construct
     m: ( encrypt_decrypt -- )
 	ed_test ed_test @ =
 	if
-	    this [current] rmfifos
+	    this [current] rmfiles
 	    basepath$        dup [bind] string destruct free throw
 	    passphraseF$     dup [bind] string destruct free throw
 	    toencryptF$      dup [bind] string destruct free throw
@@ -98,10 +87,51 @@ object class
 	    encrypt_output$  dup [bind] string destruct free throw
 	    decrypt_output$  dup [bind] string destruct free throw
 	    cmd$             dup [bind] string destruct free throw
-	    cmds$            dup [bind] string destruct free throw
 	    0 ed_test ! \ clear construct test because nothing is allocated anymore
 	then ;m overrides destruct
+    m: ( ncaddr u -- ) \ ncaddr u a string containing the path and file name for passphrase
+	slurp-file     \ note gpg only uses first line for pass phrase
+	0 { caddr1 u1 fid }
+	passphraseF$ @$ w/o create-file throw to fid
+	caddr1 u1 fid write-file throw
+	fid flush-file throw
+	fid close-file throw
+    ;m method set_passphrase
+    m: ( ncaddr u -- ncaddr1 u1 ) \ ncaddr u is the string to encrypt ncaddr1 u1 is the returned encrypted string
+	0 { ncaddr u fid }
+	toencryptF$ @$ w/o create-file throw to fid
+	ncaddr u fid write-file throw
+	fid flush-file throw
+	fid close-file throw
 
+	s" gpg --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
+	s"  --output " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
+	s"  --batch --force-mdc " cmd$ !+$
+	s"  --symmetric " cmd$ !+$ toencryptF$ @$ cmd$ !+$
+	cmd$ @$ dump cr
+	cmd$ @$ system $? throw
+	encrypt_outputF$ @$ slurp-file
+	this [current] rmfiles
+    ;m method encrypt$
+    m: ( ncaddr u -- ncaddr1 u1 ) \ ncaddr u is encrypted string ncaddr1 u1 is decrypted string
+	0 { ncaddr u fid }
+	encrypt_outputF$ @$ r/w create-file throw to fid
+	ncaddr u fid write-file throw
+	fid flush-file throw
+	fid close-file throw 
+
+	s" gpg --batch --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
+	s"  --output " cmd$ !+$ decrypt_outputF$ @$ cmd$ !+$
+	s"  --decrypt " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
+	cmd$ @$ dump cr
+	cmd$ @$ system $? throw
+	decrypt_outputF$ @$ slurp-file
+	this [current] rmfiles
+    ;m method decrypt$
 end-class encrypt_decrypt
 
 path$ @$ encrypt_decrypt heap-new constant tested
+s" mypass.data" tested set_passphrase
+s" some crap, to encrypt, as a test!" tested encrypt$
+s" mypass.data" tested set_passphrase
+tested decrypt$ dump cr
