@@ -36,7 +36,6 @@ object class
     inst-value cmd$
     cell% inst-var ed_test      \ used to test for constructor execution 
   protected
-    
     m: ( encrypt_decrypt -- ) \ will removes files used in this code
 	passphraseF$ @$ filetest true =
 	if passphraseF$ @$ delete-file throw then
@@ -80,6 +79,7 @@ object class
 	    cmd$             dup [bind] string destruct free throw
 	    0 ed_test ! \ clear construct test because nothing is allocated anymore
 	then ;m overrides destruct
+  protected
     m: ( ncaddr u -- ) \ ncaddr u a string containing the path and file name for passphrase
 	slurp-file     \ note gpg only uses first line for pass phrase
 	0 { caddr1 u1 fid }
@@ -89,7 +89,11 @@ object class
 	fid flush-file throw
 	fid close-file throw
     ;m method set_passphrase
-    m: ( ncaddr u -- ncaddr1 u1 ) \ ncaddr u is the string to encrypt ncaddr1 u1 is the returned encrypted string
+  public
+    m: ( ncaddr u ncaddr-pass up -- ncaddr1 u1 )
+	\ ncaddr u is the string to encrypt ncaddr1 u1 is the returned encrypted string
+	\ ncaddr-pass up is string containing the path and name of passphrase file
+	this [current] set_passphrase
 	0 { ncaddr u fid }
 	toencryptF$ @$ w/o create-file throw to fid
 	ncaddr u fid write-file throw
@@ -106,7 +110,10 @@ object class
 	encrypt_outputF$ @$ slurp-file
 	this [current] rmfiles
     ;m method encrypt$
-    m: ( ncaddr u -- ncaddr1 u1 ) \ ncaddr u is encrypted string ncaddr1 u1 is decrypted string
+    m: ( ncaddr u ncaddr-pass up -- ncaddr1 u1 )
+	\ ncaddr u is encrypted string ncaddr1 u1 is decrypted string
+	\ ncaddr-pass up is string containing path and name of passphrase file
+	this [current] set_passphrase
 	0 { ncaddr u fid }
 	encrypt_outputF$ @$ r/w create-file throw to fid
 	ncaddr u fid write-file throw
@@ -124,8 +131,12 @@ object class
     ;m method decrypt$
 end-class encrypt_decrypt
 
-path$ @$ encrypt_decrypt heap-new constant tested
-s" mypass.data" tested set_passphrase
-s" some crap, to encrypt, as a test!" tested encrypt$
-s" mypass.data" tested set_passphrase
-tested decrypt$ dump cr
+\ example use below needs a file called mypass.data with a passphrase in it 
+(  
+path$ @$ encrypt_decrypt heap-new value tested
+s" some crap, to encrypt, as a test!" 2dup dump cr s" mypass.data"  tested encrypt$
+s" mypass.data" tested decrypt$ dump cr
+tested destruct
+tested free throw
+0 to tested
+) 
