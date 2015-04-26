@@ -42,7 +42,10 @@
 
 require script.fs
 
-: get-co2 ( -- nraw-ain1 nflag ) \ nraw-ain1 is the value from AIN1 or P9-40 on BBB
+: raw>real ( nraw -- ) ( f: -- freal ) \ takes analog raw value and converts to between 0 - 1 real value
+    s>f 4095e f/ ;
+
+: get-co2-raw ( -- nraw-ain1 nflag ) \ nraw-ain1 is the value from AIN1 or P9-40 on BBB
     try  \ nflag is false if nraw-ain1 is a valid reading
 	s" cat /sys/bus/iio/devices/iio:device0/in_voltage1_raw" shget throw
 	s>unumber? false = if d>s else -1 throw then
@@ -50,7 +53,16 @@ require script.fs
     restore dup false <> if 0 swap then 
     endtry ;
 
-: get-nh3 ( -- nraw-ain1 nflag ) \ nraw-ain1 is the value from AIN0 or P9-39 on BBB
+: get-co2 ( -- nflag ) ( f: -- fain1 )
+    try
+	get-co2-raw throw
+	4095 swap -  \ sensor inversion so low value means low co2
+	raw>real
+	false
+    restore dup false <> if 0e then 
+    endtry ;
+
+: get-nh3-raw ( -- nraw-ain0 nflag ) \ nraw-ain0 is the value from AIN0 or P9-39 on BBB
     try  \ nflag is false if nraw-ain1 is a valid reading
 	s" cat /sys/bus/iio/devices/iio:device0/in_voltage0_raw" shget throw
 	s>unumber? false = if d>s else -1 throw then
@@ -58,3 +70,11 @@ require script.fs
     restore dup false <> if 0 swap then 
     endtry ;
 
+: get-nh3 ( -- nflag ) ( f: -- fain0 )
+    try
+	get-nh3-raw throw
+	4095 swap - \ sensor inversion so low value means low nh3
+	raw>real
+	false
+    restore dup false <> if 0e then
+    endtry ;

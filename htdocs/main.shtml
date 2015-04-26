@@ -7,27 +7,13 @@
 <link rel="stylesheet" type="text/css" href="styleA.css">
 <$
 require ../collection/gforth-misc-tools.fs
-require ../collection/stringobj.fs
-require ../collection/script.fs
 require ../BBB_Gforth_gpio/htu21d-object.fs
 require ../BBB_Gforth_gpio/bmp180-object.fs
 require ../collection/db-stuff.fs
-
-string heap-new constant junk$
-strings heap-new constant cmdlist$
+require ../collection/get-co2nh3.fs
 
 htu21d-i2c heap-new constant myhtu21d
 bmp180-i2c heap-new constant mybmp180
-
-s" node " junk$ !$
-path$ @$ junk$ !+$
-s" /collection/get-co2.js" junk$ !+$
-junk$ @$ cmdlist$ !$X \ ;
-
-s" node " junk$ !$ 
-path$ @$ junk$ !+$
-s" /collection/get-nh3.js" junk$ !+$
-junk$ @$ cmdlist$ !$x \ ;
 
 $>
 <body>
@@ -39,9 +25,9 @@ $>
 <h2> BMP180 sensor<h2>
 <p> <$ mybmp180 display-tp  $> </p>
 <h2> CO2 M811 sensor <h2>
-<p> <$ cmdlist$ @$x shget dup false = [if] drop type [else] ." co2 reading error #" . [then] $> </p>
+<p> <$ get-co2 dup false = [if] drop 4 nd>fto$ type [else] fdrop ." co2 reading error #" . [then] $> </p>
 <h2> NH3 MQ137 sensor <h2>
-<p> <$ cmdlist$ @$x shget dup false = [if] drop type [else] ." nh3 reading error #" . [then] $> </p>
+<p> <$ get-nh3 dup false = [if] drop 4 nd>fto$ type [else] fdrop ." nh3 reading error #" . [then] $> </p>
 <h1> Last Database entry: <h1>
 <p> <$ lastlocaldata@ dberrmsg dup false = [if] drop 2drop type [else] . space type 2drop [then] $> </p>
 </body>
