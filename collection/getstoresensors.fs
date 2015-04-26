@@ -28,6 +28,7 @@ require script.fs
 require ../BBB_Gforth_gpio/htu21d-object.fs
 require ../BBB_Gforth_gpio/bmp180-object.fs
 require db-stuff.fs
+require get-co2nh3.fs
 
 string heap-new constant shlast$
 string heap-new constant junk$
@@ -99,61 +100,19 @@ bmp180-i2c heap-new constant mybmp180
 	if nflag2 else nflag1 then
     then ;
 
-string heap-new constant co2cmd$
-s" node " co2cmd$ !$
-path$ @$ co2cmd$ !+$
-s" /collection/get-co2.js" co2cmd$ !+$ 
-: read-co2 ( -- nflag ) ( -- F: fco2 ) \ read co2 value
+: read-co2 ( -- nflag ) ( f: -- fco2 ) \ read co2 value
     \ nflag is false if co2 value is read with no errors
     \ nflag is non false for some reading or system error
     \ note floating stack will contain 0.0e if nflag is non false
     \ note the errors are reported to database at end of this word
-    try
-	co2cmd$ @$ shgets throw 
-	junk$ !$ s" co2: " junk$ split$ true =
-	if
-	    junk$ !$ 2drop 
-	    s\" \n" junk$ split$ true =
-	    if
-		s" err: undefined" search -rot 2drop true =
-		if >float false = if co2-err throw else false then
-		else co2-err throw then
-	    else
-		co2-err throw
-	    then
-	else
-	    co2-err throw
-	then 
-    restore dup if 0.0e dup co2-err <> if dup error! then co2-err error! then
-    endtry ;
+    get-co2 dup if dup error! co2-err error! then ;
 
-string heap-new constant nh3cmd$
-s" node " nh3cmd$ !$
-path$ @$ nh3cmd$ !+$
-s" /collection/get-nh3.js" nh3cmd$ !+$ 
-: read-nh3 ( -- nflag ) ( -- F: fco2 ) \ read nh3 value
+: read-nh3 ( -- nflag ) ( -- F: fnh3 ) \ read nh3 value
     \ nflag is false if nh3 value is read with no errors
     \ nflag is non false for some reading or system error
     \ note floating stack will contain 0.0e if nflag is non false
     \ note the errors are reported to database at end of this word
-    try
-	nh3cmd$ @$ shgets throw 
-	junk$ !$ s" nh3: " junk$ split$ true =
-	if
-	    junk$ !$ 2drop 
-	    s\" \n" junk$ split$ true =
-	    if
-		s" err: undefined" search -rot 2drop true =
-		if >float false = if nh3-err throw else false then
-		else nh3-err throw then
-	    else
-		nh3-err throw
-	    then
-	else
-	    nh3-err throw
-	then 
-    restore dup if 0.0e dup nh3-err <> if dup error! then nh3-err error! then
-    endtry ;
+    get-nh3 dup if dup error! nh3-err error! then ;
 
 : read-all-store ( -- ) \ read all sensors and store data in db
     try
