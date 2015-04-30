@@ -187,26 +187,6 @@ svgmaker class
 	    this [current] free-text-data 
 	    this [parent] destruct 
 	    0 svgchartmaker-test !
-	then ;m method svgchart-destruct
-
-    m: ( svgchart -- ) \ destruct all allocated memory and free this object
-	svgchartmaker-test svgchartmaker-test @ =
-	if
-	    working$      dup [bind] string destruct free throw 
-	    lableref$     dup [bind] string destruct free throw
-	    lablemark$    dup [bind] string destruct free throw
-	    ytransform$   dup [bind] string destruct free throw
-	    working$s     dup [bind] strings destruct free throw
-	    pathdata$     dup [bind] strings destruct free throw
-	    xlabdata$     dup [bind] strings destruct free throw
-	    xlab-attr$    dup [bind] strings destruct free throw
-	    ylab-attr$    dup [bind] strings destruct free throw
-	    labline-attr$ dup [bind] strings destruct free throw
-	    ytempattr$s   dup [bind] strings destruct free throw
-	    xtempattr$s   dup [bind] strings destruct free throw 
-	    this [current] free-text-data 
-	    this [parent] destruct 
-	    0 svgchartmaker-test !
 	then ;m overrides destruct
     
     m: ( nxmaxpoints nxmaxchart nymaxchart -- ) \ values to change chart size and charting data use
