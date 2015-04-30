@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Sensor Data info.</title>
+<title>Local Sensor Data</title>
 </head>
 <link rel="stylesheet" type="text/css" href="styleA.css">
 <$
@@ -17,18 +17,20 @@ bmp180-i2c heap-new constant mybmp180
 
 $>
 <body>
-<h1> Realtime Sensor Data as follows: <h1>
-<h2> Server current time <h2>
+<h1> Realtime Local Sensor Data as follows: </h1>
+<h2> Server current time </h2>
 <p> <$ s" date" shget drop type  $> </p>
-<h2> HTU21D sensor<h2>
+<h2> HTU21D sensor</h2>
 <p> <$ myhtu21d display-th $> </p>
-<h2> BMP180 sensor<h2>
+<h2> BMP180 sensor</h2>
 <p> <$ mybmp180 display-tp  $> </p>
-<h2> CO2 M811 sensor <h2>
+<h2> CO2 M811 sensor </h2>
 <p> <$ get-co2 dup false = [if] drop 4 nd>fto$ type [else] fdrop ." co2 reading error #" . [then] $> </p>
-<h2> NH3 MQ137 sensor <h2>
+<h2> NH3 MQ137 sensor </h2>
 <p> <$ get-nh3 dup false = [if] drop 4 nd>fto$ type [else] fdrop ." nh3 reading error #" . [then] $> </p>
-<h1> Last Database entry: <h1>
+<h1> Last Database entry: </h1>
 <p> <$ lastlocaldata@ dberrmsg dup false = [if] drop 2drop type [else] . space type 2drop [then] $> </p>
+<h2> Last Error </h2>
+<p> <$ lastlocalerror#@ type $> </p>
 </body>
 </html>
