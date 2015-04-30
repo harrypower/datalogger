@@ -165,7 +165,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     setupsqlite3
     dup -2 <>  \ this is needed because -2 error does not report a message even though it is Abort !
     if
-	s" insert into errorList values(" temp$ !$
+s" insert into errorList values(" temp$ !$
 	dup  #to$, temp$ !+$ s\" \'" temp$ !+$
 	error#to$ temp$ !+$ s\" \', 0);" temp$ !+$ temp$ @$ dbcmds
     else
@@ -199,11 +199,23 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     dup error-sqlite3!
     errorlist-sqlite3! ;
 
+: lastlocalerror#@ ( -- ncaddr-error uerror ) \ retreave the last error stored in errors table
+    setupsqlite3
+    s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
+    s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+
+: lastlocalerror#>$@ ( nerrorID -- ncaddr-error uerror ) \ retreave the error string from nerrorID
+    setupsqlite3
+    s" select error,errorText,errorSent from errorList where error = " temp$ !$
+    #to$ temp$ !+$ s" ;" temp$ !+$ 
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+
 : create-localdata ( -- ) \ create the local table of data from sensors
     setupsqlite3
     s" CREATE TABLE IF NoT EXISTS localData(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
-    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,dataSent INT );" temp$ !+$ temp$ @$ dbcmds
-    sendsqlite3cmd dberrorthrow ;
+    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,dataSent INT );" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : localdata! ( ntime npress -- ) ( F: ftemp fhumd fco2 fnh3 -- ) \ store local data!
     { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 -- } \ store data into localData table of DB
@@ -220,19 +232,45 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 
 : lastlocaldata@ ( -- ncaddr u ) \ simply output a string of the last data point stored in localData table
     setupsqlite3
-    s" select row,datetime(dtime,'unixepoch','localtime'),humd,temp,pressure,co2,nh3,dataSent " temp$ !$
+    s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd,pressure,co2,nh3,dataSent " temp$ !$
     s" from localData limit 1 offset ((select max(row) from localData)-1);" temp$ !+$
-    temp$ @$ dbcmds
-    sendsqlite3cmd dberrorthrow dbret$ ;
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
 : nlastlocaldata@ ( uqty -- ncaddr u ) \ retrieve nqty rows from local database taking rows from last row first
     setupsqlite3
     dup 100 * mkretbuff \ uqty * 100 = amount to change return buffer size to 
-    s" select datetime(dtime,'unixepoch','localtime'),humd,temp,pressure,co2,nh3 " temp$ !$
+    s" select datetime(dtime,'unixepoch','localtime'),temp,humd,pressure,co2,nh3 " temp$ !$
     s" from localData limit " temp$ !+$
     #to$ 2dup temp$ !+$ 
     s"  offset ((select max(row) from localData)-" temp$ !+$
     temp$ !+$
     s" );" temp$ !+$
-    temp$ @$ dbcmds
-    sendsqlite3cmd dberrorthrow dbret$ ;
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+
+: create-remotedata ( -- ) \ create the remote table of data for remote sensor storage
+    setupsqlite3
+    s" CREATE TABLE IF NOT EXISTS remoteData(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
+    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,deviceID TEXT,receivedtime INT);" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+: remotedata! ( ntime npres ncaddr-id uid nrtime -- ) ( f: ftemp fhumd fco2 fnh3 -- )
+    { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 ncaddr-id uid nrtime }
+    setupsqlite3
+    s" insert into remoteData values(NULL," temp$ !$
+    ntime #to$, temp$ !+$   \ remember ntime is a one cell size
+    ftemp fto$, temp$ !+$
+    fhumd fto$, temp$ !+$
+    npres #to$, temp$ !+$
+    fco2  fto$, temp$ !+$
+    fnh3  fto$, temp$ !+$
+    ncaddr-id uid temp$ !+$ s" ," temp$ !+$
+    nrtime #to$, temp$ !+$
+    s" );" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+: lastremotedata@ ( -- ncaddr u ) \ output string of last data point stored in remotedata table
+    setupsqlite3
+    s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd,pressure,co2,nh3" temp$ !$
+    s" ,deviceID,datetime(recievedtime,'unixepoch','localtime') "
+    s" from remoteData limit 1 offset ((select max(row) from remoteData)-1);" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
