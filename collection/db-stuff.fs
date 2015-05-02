@@ -110,7 +110,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     s" CREATE TABLE IF NOT EXISTS errors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INTEGER,error INT,errorSent INT);" dbcmds
     sendsqlite3cmd dberrorthrow
     setupsqlite3
-    s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT,errorSent INT);" dbcmds
+    s" CREATE TABLE IF NOT EXISTS errorList(error INT UNIQUE,errorText TEXT);" dbcmds
     sendsqlite3cmd dberrorthrow ;
 
 : error-sqlite3! ( nerror -- ) \ used to store error values into errors table
@@ -167,10 +167,10 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     if
 s" insert into errorList values(" temp$ !$
 	dup  #to$, temp$ !+$ s\" \'" temp$ !+$
-	error#to$ temp$ !+$ s\" \', 0);" temp$ !+$ temp$ @$ dbcmds
+	error#to$ temp$ !+$ s\" \');" temp$ !+$ temp$ @$ dbcmds
     else
 	drop
-	s\" insert into errorList values(-2, \'Abort has occured!\', 0);" dbcmds
+	s\" insert into errorList values(-2, \'Abort has occured!\');" dbcmds
     then
     sendsqlite3cmd drop \ ****note if there is a sqlite3 error here this new error will not be stored in list*****
     \ **** positive error numbers can come from sqlite3 but the proper string may not get placed in db for the number
@@ -207,7 +207,7 @@ s" insert into errorList values(" temp$ !$
 
 : lastlocalerror#>$@ ( nerrorID -- ncaddr-error uerror ) \ retreave the error string from nerrorID
     setupsqlite3
-    s" select error,errorText,errorSent from errorList where error = " temp$ !$
+    s" select error,errorText from errorList where error = " temp$ !$
     #to$ temp$ !+$ s" ;" temp$ !+$ 
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
