@@ -200,7 +200,7 @@ s" insert into errorList values(" temp$ !$
     errorlist-sqlite3! ;
 
 string heap-new constant junky$ 
-: lastlocalerror#@ ( -- ncaddr-error uerror )
+: lastlocalerror$@ ( -- ncaddr-error uerror ) \ retreave the last error full string with #'s
     setupsqlite3
     s" " sqlmessg fseparator-$ z$!
     s" " sqlmessg rseparator-$ z$!
@@ -212,6 +212,12 @@ string heap-new constant junky$
     s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
     s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ temp$ !$ junky$ @$ temp$ !+$ temp$ @$ ;
+
+: lastlocalerror#@ ( -- ncaddr-error uerror ) \ retreave the last error stored in errors table
+    setupsqlite3
+    s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
+    s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
 : lastlocalerror#>$@ ( nerrorID -- ncaddr-error uerror ) \ retreave the error string from nerrorID
     setupsqlite3
@@ -258,7 +264,13 @@ string heap-new constant junky$
 : create-remotedata ( -- ) \ create the remote table of data for remote sensor storage
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS remoteData(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
-    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,deviceID TEXT,receivedtime INT);" temp$ !+$
+    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,deviceID TEXT,receivedTime INT);" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+: create-remoterror ( -- ) \ create the remote table of errors for remote error data 
+    setupsqlite3
+    s" CREATE TABLE IF NOT EXISTS remoteErrors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
+    s" error INT,errorText TEXT,deviceID TEXT,receivedTime INT,remoteRow INT);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : remotedata! ( ntime npres ncaddr-id uid nrtime -- ) ( f: ftemp fhumd fco2 fnh3 -- )
@@ -282,3 +294,23 @@ string heap-new constant junky$
     s" ,deviceID,datetime(recievedtime,'unixepoch','localtime') "
     s" from remoteData limit 1 offset ((select max(row) from remoteData)-1);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+
+: remoterror!  { ntime nerror ncaddrerror uerror ncaddrid uid nrtime nrrow -- }
+    \ store the remote error data into remoteErrors table 
+    setupsqlite3
+    s" insert into remoteErrors values(NULL," temp$ !$
+    ntime   #to$, temp$ !+$
+    nerror  #to$, temp$ !+$
+    ncaddrerror uerror temp$ !+$ s" ," temp$ !+$
+    ncaddrid uid  temp$ !+$ s" ," temp$ !+$
+    nrtime  #to$, temp$ !+$
+    nrrow   #to$, temp$ !+$
+    s" );" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+: lastremoterror@ ( -- ncaddr u ) \ output string of last remote error in remoteErrors table
+    s" select row,datetime(dtime,'unixepoch','localtime'),error,errorText," temp$ !$
+    s" deviceID,datetime(receivedTime,'unixepoch','localtime'),remoteRow " temp$ !+$
+    s" from remoteErrors limit 1 offset ((select max(row) from remoteErrors)-1);" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+
