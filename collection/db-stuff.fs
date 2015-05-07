@@ -283,7 +283,7 @@ string heap-new constant junky$
     npres #to$, temp$ !+$
     fco2  fto$, temp$ !+$
     fnh3  fto$, temp$ !+$
-    ncaddr-id uid temp$ !+$ s" ," temp$ !+$
+    ncaddr-id uid $>wrapped$ temp$ !+$ s" ," temp$ !+$
     nrtime #to$, temp$ !+$
     s" );" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
@@ -301,8 +301,8 @@ string heap-new constant junky$
     s" insert into remoteErrors values(NULL," temp$ !$
     ntime   #to$, temp$ !+$
     nerror  #to$, temp$ !+$
-    ncaddrerror uerror temp$ !+$ s" ," temp$ !+$
-    ncaddrid uid  temp$ !+$ s" ," temp$ !+$
+    ncaddrerror uerror $>wrapped$ temp$ !+$ s" ," temp$ !+$
+    ncaddrid uid $>wrapped$ temp$ !+$ s" ," temp$ !+$
     nrtime  #to$, temp$ !+$
     nrrow   #to$, temp$ !+$
     s" );" temp$ !+$

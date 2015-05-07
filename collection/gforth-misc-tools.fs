@@ -30,6 +30,9 @@ string heap-new constant mytemppad$
     swap over dabs
     <<# #s rot sign #> #>> ;
 
+: $>wrapped$ ( caddr u -- caddr1 u1 ) \ wrap a string with single quote to allow sending string to sqlite3 for example
+    s" '" mytemppad$ !$ mytemppad$ !+$ s" '" mytemppad$ !+$ mytemppad$ @$ ;
+
 create floatoutputbuffer
 10 allot 
 : fto$ ( f: r -- ) ( -- caddr u ) \ convert r from float stack to string
