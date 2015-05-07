@@ -130,5 +130,5 @@ bmp180-i2c heap-new constant mybmp180
 	read-all-store
 	rtimes ms 
     again ;
-
+30000 ms \ simple wait 30 seconds for system time to be set from RTC
 main-read-loop bye
