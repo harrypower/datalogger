@@ -199,11 +199,19 @@ s" insert into errorList values(" temp$ !$
     dup error-sqlite3!
     errorlist-sqlite3! ;
 
-: lastlocalerror#@ ( -- ncaddr-error uerror ) \ retreave the last error stored in errors table
+string heap-new constant junky$ 
+: lastlocalerror#@ ( -- ncaddr-error uerror )
     setupsqlite3
+    s" " sqlmessg fseparator-$ z$!
+    s" " sqlmessg rseparator-$ z$!
+    s" select error from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
+    s" select errorText from errorList where error = " temp$ !$ temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ junky$ !$
+    s" ," sqlmessg fseparator-$ z$!
     s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
     s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
-    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ temp$ !$ junky$ @$ temp$ !+$ temp$ @$ ;
 
 : lastlocalerror#>$@ ( nerrorID -- ncaddr-error uerror ) \ retreave the error string from nerrorID
     setupsqlite3
