@@ -264,7 +264,8 @@ string heap-new constant junky$
 : create-remotedata ( -- ) \ create the remote table of data for remote sensor storage
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS remoteData(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
-    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,deviceID TEXT,receivedTime INT);" temp$ !+$
+    s" temp REAL,humd REAL,pressure INT,co2 REAL,nh3 REAL,deviceID TEXT,receivedTime INT," temp$ !+$
+    s" remoteRow INT);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : create-remoterror ( -- ) \ create the remote table of errors for remote error data 
@@ -274,7 +275,7 @@ string heap-new constant junky$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : remotedata! ( ntime npres ncaddr-id uid nrtime -- ) ( f: ftemp fhumd fco2 fnh3 -- )
-    { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 ncaddr-id uid nrtime }
+    { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 ncaddr-id uid nrtime nrrow }
     setupsqlite3
     s" insert into remoteData values(NULL," temp$ !$
     ntime #to$, temp$ !+$   \ remember ntime is a one cell size
@@ -285,18 +286,19 @@ string heap-new constant junky$
     fnh3  fto$, temp$ !+$
     ncaddr-id uid $>wrapped$ temp$ !+$ s" ," temp$ !+$
     nrtime #to$, temp$ !+$
+    nrrow  #to$  temp$ !+$
     s" );" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : lastremotedata@ ( -- ncaddr u ) \ output string of last data point stored in remotedata table
     setupsqlite3
-    s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd,pressure,co2,nh3" temp$ !$
-    s" ,deviceID,datetime(recievedtime,'unixepoch','localtime') "
+    s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd,pressure,co2,nh3," temp$ !$
+    s" deviceID,datetime(receivedTime,'unixepoch','localtime'),remoteRow " temp$ !+$
     s" from remoteData limit 1 offset ((select max(row) from remoteData)-1);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
 : remoterror!  { ntime nerror ncaddrerror uerror ncaddrid uid nrtime nrrow -- }
-    \ store the remote error data into remoteErrors table 
+    \ store the remote error data into remoteError table 
     setupsqlite3
     s" insert into remoteErrors values(NULL," temp$ !$
     ntime   #to$, temp$ !+$
@@ -304,7 +306,7 @@ string heap-new constant junky$
     ncaddrerror uerror $>wrapped$ temp$ !+$ s" ," temp$ !+$
     ncaddrid uid $>wrapped$ temp$ !+$ s" ," temp$ !+$
     nrtime  #to$, temp$ !+$
-    nrrow   #to$, temp$ !+$
+    nrrow   #to$ temp$ !+$
     s" );" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
