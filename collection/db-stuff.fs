@@ -316,3 +316,12 @@ string heap-new constant junky$
     s" from remoteErrors limit 1 offset ((select max(row) from remoteErrors)-1);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
+: makedb ( -- ) \ will create the db file and set up the tables if this file does not exist already
+    db-path$ @$ filetest false =
+    if \ there is no db file now
+	db-path$ @$ w/o create-file throw close-file throw
+    then
+    create-error-tables
+    create-localdata
+    create-remotedata
+    create-remoterror ;
