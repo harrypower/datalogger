@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<HTML> 
+<HEAD>  
+<meta charset="utf-8">
+<TITLE>Post test</TITLE>  
+</HEAD>  
+<BODY>  
+<H1>Post:</H1>
+
+<P>url-args are :  <$ url-args $@ type $>  </P>  
+<p>Post is: 
+<$
+posted @ 0 = [if] ." nothing posted yet!" [then]
+posted @ 0 > [if] posted $@ type [then]
+$> 
+</p>
+</BODY>  
+</HTML>
