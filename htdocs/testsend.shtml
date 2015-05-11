@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<$
+require ../collection/cryptobj.fs
+
+string heap-new constant passphrase$ 
+path$ @$ passphrase$ !$ s" testpassphrase" passphrase$ !+$
+
+posted @ 0 = [if] ." fail no post data" [then]
+posted @ 0 > 
+[if]
+path$ @$ encrypt_decrypt heap-new value edtest
+posted $@ passphrase$ @$ edtest decrypt$ 
+." Recieved decrypted data is: " type
+[then]
+$>
+</html>
