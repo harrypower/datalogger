@@ -10,8 +10,12 @@ posted @ 0 = [if] ." fail no post data" [then]
 posted @ 0 > 
 [if]
 path$ @$ encrypt_decrypt heap-new value edtest
-posted $@ passphrase$ @$ edtest decrypt$ 
-." Recieved decrypted data is: " type
+posted $@ passphrase$ @$ edtest ' decrypt$ catch
+0 = [if] ." Recieved decrypted data is: " type 
+[else]
+drop \ this is to drop the object handle after an error was found
+." fail decryption did not work!"
+[then]
 [then]
 $>
 </html>
