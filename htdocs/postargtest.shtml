@@ -13,6 +13,11 @@
 posted @ 0 = [if] ." nothing posted yet!" [then]
 posted @ 0 > [if] posted $@ type [then]
 $> 
+<p>url is: 
+<$
+url @ 0 = [if] ." no data here!" [then]
+url @ 0 > [if] url $@ type [then]
+$>
 </p>
 </BODY>  
 </HTML>
