@@ -32,12 +32,16 @@ string heap-new constant senddata$
 path$ @$ encrypt_decrypt heap-new value myed
 
 s" stuff to send as test 12345"
-path$ @$ passf$ !$ s" testpassphrase" passf$ !+$
-passf$ @$ myed ' encrypt$ catch dup 0 = [if] drop edata$ !$ [else] . ."  encryption failed exiting now!" bye [then]
+path$ @$ passf$ !$ s" /collection/testpassphrase" passf$ !+$
+passf$ @$ myed ' encrypt$ catch dup 0 =
+[if] drop edata$ !$ [else] . ."  encryption failed exiting now!" bye [then]
 
-s" curl --data '" senddata$ !$
-edata$ @$ senddata$ !+$
-s" ' 192.168.0.113:4445/testsend.shtml" senddata$ !+$
+0 value enfid 
+s" endata.data" w/o open-file throw to enfid
+edata$ @$ enfid write-file throw
+enfid flush-file throw
+enfid close-file throw
+s" curl --data-binary @endata.data 192.168.0.113:4445/testsend.shtml" senddata$ !$
 senddata$ @$ shgets dup 0 =
 [if]
     drop type
