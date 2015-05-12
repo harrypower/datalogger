@@ -4,7 +4,7 @@
 require ../collection/cryptobj.fs
 
 string heap-new constant passphrase$ 
-path$ @$ passphrase$ !$ s" testpassphrase" passphrase$ !+$
+path$ @$ passphrase$ !$ s" /collection/testpassphrase" passphrase$ !+$
 
 posted @ 0 = [if] ." fail no post data" [then]
 posted @ 0 > 
