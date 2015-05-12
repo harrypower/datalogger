@@ -36,12 +36,15 @@ path$ @$ passf$ !$ s" /collection/testpassphrase" passf$ !+$
 passf$ @$ myed ' encrypt$ catch dup 0 =
 [if] drop edata$ !$ [else] . ."  encryption failed exiting now!" bye [then]
 
-0 value enfid 
-s" endata.data" w/o open-file throw to enfid
-edata$ @$ enfid write-file throw
-enfid flush-file throw
-enfid close-file throw
-s" curl --data-binary @endata.data 192.168.0.113:4445/testsend.shtml" senddata$ !$
+\ s" curl --data-binary '" senddata$ !$
+\ edata$ @$ senddata$ !+$
+\ s" ' 192.168.0.113:4445/testsend.shtml" senddata$ !+$
+ 0 value enfid 
+ s" endata.data" w/o open-file throw to enfid
+ edata$ @$ enfid write-file throw
+ enfid flush-file throw
+ enfid close-file throw
+ s" curl --data-binary @endata.data 192.168.0.113:4445/testsend.shtml" senddata$ !$
 senddata$ @$ shgets dup 0 =
 [if]
     drop type
