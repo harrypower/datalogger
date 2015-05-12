@@ -21,7 +21,7 @@ string heap-new constant senddata$
 	    if
 		shlast$ @$ 6 - shlast$ !$ shlast$ @$
 	    else      
-		shlast	$ @$
+		shlast$ @$
 	    then
 	else
 	    shlast$ @$
@@ -32,17 +32,17 @@ string heap-new constant senddata$
 path$ @$ encrypt_decrypt heap-new value myed
 
 s" stuff to send as test 12345"
-path$ @$ pass$ !$ s" testpassphrase" pass$ !+$
-pass$ @$ myed ' encrypt$ catch 0 = [if] edata$ !$ [else] ." encryption failed exiting now!" bye [then]
+path$ @$ passf$ !$ s" testpassphrase" passf$ !+$
+passf$ @$ myed ' encrypt$ catch dup 0 = [if] drop edata$ !$ [else] . ."  encryption failed exiting now!" bye [then]
 
 s" curl --data '" senddata$ !$
 edata$ @$ senddata$ !+$
 s" ' 192.168.0.113:4445/testsend.shtml" senddata$ !+$
-senddata$ @$ shgets 0 =
+senddata$ @$ shgets dup 0 =
 [if]
-    type
+    drop type
 [else]
-    ." some error in the curl statement occured!"
+    . ."  some error in the curl statement occured!"
 [then]
 
 bye
