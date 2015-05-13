@@ -151,11 +151,11 @@ object class
     ;m method decrypt$
 end-class encrypt_decrypt
 
-\ example use below needs a file called mypass.data with a passphrase in it 
+\ example use below needs a file called testpassphrase with a passphrase in it 
 (  
 path$ @$ encrypt_decrypt heap-new value tested
-s" some crap, to encrypt, as a test!" 2dup dump cr s" mypass.data"  tested encrypt$
-s" mypass.data" tested decrypt$ dump cr
+s" some crap, to encrypt, as a test!" 2dup dump cr s" testpassphrase"  tested encrypt$ throw 
+s" testpassphrase" tested decrypt$ throw dump cr
 tested destruct
 tested free throw
 0 to tested
