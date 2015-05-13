@@ -33,7 +33,7 @@ path$ @$ encrypt_decrypt heap-new value myed
 
 s" stuff to send as test 12345"
 path$ @$ passf$ !$ s" /collection/testpassphrase" passf$ !+$
-passf$ @$ myed ' encrypt$ catch dup 0 =
+passf$ @$ myed encrypt$ dup 0 =
 [if] drop edata$ !$ [else] . ."  encryption failed exiting now!" bye [then]
 
 \ s" curl --data-binary '" senddata$ !$

@@ -25,6 +25,7 @@
 require objects.fs
 require stringobj.fs
 require gforth-misc-tools.fs
+require random.fs
 
 object class
     destruction implementation
@@ -34,6 +35,7 @@ object class
     inst-value encrypt_outputF$
     inst-value decrypt_outputF$
     inst-value cmd$
+    inst-value rnd$
     cell% inst-var ed_test      \ used to test for constructor execution 
   protected
     m: ( encrypt_decrypt -- ) \ will removes files used in this code
@@ -46,6 +48,19 @@ object class
 	decrypt_outputF$ @$ filetest true =
 	if decrypt_outputF$ @$ delete-file throw then
     ;m method rmfiles
+    m: ( -- ) \ create file names to use in encryption and decryption
+	\ note the file names have a pattern but old names are destroyed each time this is executed
+	utime drop utime drop um* drop seed !
+	10000000 random #to$ rnd$ !$
+	basepath$ @$ passphraseF$ !$ s" /passphrase" passphraseF$ !+$
+	rnd$ @$ passphraseF$ !+$ s" .data" passphraseF$ !+$
+	basepath$ @$ toencryptF$ !$ s" /toencrypt" toencryptF$ !+$
+	rnd$ @$ toencryptF$ !+$ s" .data" toencryptF$ !+$
+	basepath$ @$ encrypt_outputF$ !$ s" /encrypted" encrypt_outputF$ !+$
+	rnd$ @$ encrypt_outputF$ !+$ s" .data" encrypt_outputF$ !+$
+	basepath$ @$ decrypt_outputF$ !$ s" /decrypted" decrypt_outputF$ !+$
+	rnd$ @$ decrypt_outputF$ !+$ s" .data" decrypt_outputF$ !+$
+	;m method make-filenames
   public
     m: ( ncaddr u encrypt_decrypt -- )
 	\ ncaddr u is string that contains the base path for where files are at and should be placed
@@ -57,26 +72,21 @@ object class
 	    string heap-new [to-inst] encrypt_outputF$
 	    string heap-new [to-inst] decrypt_outputF$
 	    string heap-new [to-inst] cmd$
+	    string heap-new [to-inst] rnd$
 	then
 	basepath$ !$
-	basepath$ @$ passphraseF$ !$ s" /passphrase.data" passphraseF$ !+$
-	basepath$ @$ toencryptF$ !$ s" /toencrypt.data" toencryptF$ !+$
-	basepath$ @$ encrypt_outputF$ !$ s" /encrypted.data" encrypt_outputF$ !+$
-	basepath$ @$ decrypt_outputF$ !$ s" /decrypted.data" decrypt_outputF$ !+$
-	cmd$ [bind] string construct
-	this [current] rmfiles
 	ed_test ed_test ! \ set constructor test now that constructor has run
     ;m overrides construct
     m: ( encrypt_decrypt -- )
 	ed_test ed_test @ =
 	if
-	    this [current] rmfiles
 	    basepath$        dup [bind] string destruct free throw
 	    passphraseF$     dup [bind] string destruct free throw
 	    toencryptF$      dup [bind] string destruct free throw
 	    encrypt_outputF$ dup [bind] string destruct free throw
 	    decrypt_outputF$ dup [bind] string destruct free throw
 	    cmd$             dup [bind] string destruct free throw
+	    rnd$             dup [bind] string destruct free throw
 	    0 ed_test ! \ clear construct test because nothing is allocated anymore
 	then ;m overrides destruct
   protected
@@ -90,44 +100,54 @@ object class
 	fid close-file throw
     ;m method set_passphrase
   public
-    m: ( ncaddr u ncaddr-pass up -- ncaddr1 u1 )
-	\ ncaddr u is the string to encrypt ncaddr1 u1 is the returned encrypted string
+    m: ( ncaddr u ncaddr-pass up -- ncaddr1 u1 nflag )
+	\ nflag is false for no errors and anything else is an error 
+	\ ncaddr u is the string to encrypt ncaddr1 u1 is the returned encrypted string if nflag is false
 	\ ncaddr-pass up is string containing the path and name of passphrase file
-	this [current] set_passphrase
-	0 { ncaddr u fid }
-	toencryptF$ @$ w/o create-file throw to fid
-	ncaddr u fid write-file throw
-	fid flush-file throw
-	fid close-file throw
-
-	s" gpg --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
-	s"  --output " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
-	s"  --batch --force-mdc --cipher-algo AES256 " cmd$ !+$
-	s"  --symmetric " cmd$ !+$ toencryptF$ @$ cmd$ !+$
-	s"  2> /dev/null" cmd$ !+$ 
-	\ cmd$ @$ dump cr
-	cmd$ @$ system $? throw
-	encrypt_outputF$ @$ slurp-file
-	this [current] rmfiles
+	try
+	    this [current] make-filenames
+	    this [current] set_passphrase
+	    0 { ncaddr u fid }
+	    toencryptF$ @$ w/o create-file throw to fid
+	    ncaddr u fid write-file throw
+	    fid flush-file throw
+	    fid close-file throw
+	    
+	    s" gpg --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
+	    s"  --output " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
+	    s"  --batch --force-mdc --cipher-algo AES256 " cmd$ !+$
+	    s"  --symmetric " cmd$ !+$ toencryptF$ @$ cmd$ !+$
+	    s"  2> /dev/null" cmd$ !+$ 
+	    cmd$ @$ system $? throw
+	    encrypt_outputF$ @$ slurp-file
+	    this [current] rmfiles
+	    false
+	restore dup if swap drop swap drop then
+	endtry
     ;m method encrypt$
-    m: ( ncaddr u ncaddr-pass up -- ncaddr1 u1 )
-	\ ncaddr u is encrypted string ncaddr1 u1 is decrypted string
+    m: ( ncaddr u ncaddr-pass up -- ncaddr1 u1 nflag )
+	\ nflag is false for no errors and anything else is an error
+	\ ncaddr u is encrypted string ncaddr1 u1 is decrypted string if nflag is false
 	\ ncaddr-pass up is string containing path and name of passphrase file
-	this [current] set_passphrase
-	0 { ncaddr u fid }
-	encrypt_outputF$ @$ r/w create-file throw to fid
-	ncaddr u fid write-file throw
-	fid flush-file throw
-	fid close-file throw 
-
-	s" gpg --batch --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
-	s"  --output " cmd$ !+$ decrypt_outputF$ @$ cmd$ !+$
-	s"  --decrypt " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
-	s"  2> /dev/null" cmd$ !+$
-	\ cmd$ @$ dump cr
-	cmd$ @$ system $? throw
-	decrypt_outputF$ @$ slurp-file
-	this [current] rmfiles
+	try
+	    this [current] make-filenames
+	    this [current] set_passphrase
+	    0 { ncaddr u fid }
+	    encrypt_outputF$ @$ r/w create-file throw to fid
+	    ncaddr u fid write-file throw
+	    fid flush-file throw
+	    fid close-file throw 
+	    
+	    s" gpg --batch --passphrase-file " cmd$ !$ passphraseF$ @$ cmd$ !+$
+	    s"  --output " cmd$ !+$ decrypt_outputF$ @$ cmd$ !+$
+	    s"  --decrypt " cmd$ !+$ encrypt_outputF$ @$ cmd$ !+$
+	    s"  2> /dev/null" cmd$ !+$
+	    cmd$ @$ system $? throw
+	    decrypt_outputF$ @$ slurp-file
+	    this [current] rmfiles
+	    false
+	restore dup if swap drop swap drop then
+	endtry
     ;m method decrypt$
 end-class encrypt_decrypt
 
