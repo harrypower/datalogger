@@ -23,12 +23,10 @@ s" /var/lib/datalogger-gforth/datalogger_home_path" slurp-file path$ !$
 string heap-new constant mytemppad$
 
 : dto$ ( d -- caddr u )  \ convert double signed to a string
-    swap over dabs <<# #s rot sign #> #>> ;
+    swap over dabs <<# #s rot sign #> #>> mytemppad$ !$ mytemppad$ @$ ;
 
 : #to$ ( n -- c-addr u1 ) \ convert n to string 
-    s>d
-    swap over dabs
-    <<# #s rot sign #> #>> ;
+    s>d swap over dabs <<# #s rot sign #> #>> mytemppad$ !$ mytemppad$ @$ ;
 
 : $>wrapped$ ( caddr u -- caddr1 u1 ) \ wrap a string with single quote to allow sending string to sqlite3 for example
     s" '" mytemppad$ !$ mytemppad$ !+$ s" '" mytemppad$ !+$ mytemppad$ @$ ;

@@ -334,7 +334,7 @@ string heap-new constant junky$
     s" pressure,co2,nh3 from localData where (dataSent is 0) limit 1;" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
-: setlocalrowsent ( nrow# -- ) \ will set the dataSent flag to sent of nrow 
+: setlocalrowsent ( nrow -- ) \ will set the dataSent flag to sent of nrow 
     setupsqlite3
     s" update localData set dataSent = '-1' where row = '" temp$ !$
     #to$ temp$ !+$ s" ';" temp$ !+$
@@ -347,10 +347,20 @@ string heap-new constant junky$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
 
-: getlocalRownonsent ( nrow -- caddr u )
+: getlocalRownonsent ( nrow -- caddr u ) \ will return data of nrow that meets requirement of non sent
     setupsqlite3
     s" " dbrecordseparator
     s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd," temp$ !$
     s" pressure,co2,nh3 from localData where ((dataSent is 0) and (row is " temp$ !+$
     #to$ temp$ !+$ s" ));" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+
+: getlocalrow#nonsent ( -- nrow ) \ will return nrow of first non sent row number in database
+    setupsqlite3                 \ will throw for errors  
+    s" " dbrecordseparator       \ if nrow is 0 then there are no rows in database to sent
+    s" " dbfieldseparator
+    s" select row from localData where dataSent is 0 limit 1;" temp$ !$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
+    s>number? true = if d>s else -1 throw then ;
+
+\ now make the same get set and clear functions for retrieveing local error information
