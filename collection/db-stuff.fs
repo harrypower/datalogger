@@ -311,6 +311,7 @@ string heap-new constant junky$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
 : lastremoterror@ ( -- ncaddr u ) \ output string of last remote error in remoteErrors table
+    setupsqlite3
     s" select row,datetime(dtime,'unixepoch','localtime'),error,errorText," temp$ !$
     s" deviceID,datetime(receivedTime,'unixepoch','localtime'),remoteRow " temp$ !+$
     s" from remoteErrors limit 1 offset ((select max(row) from remoteErrors)-1);" temp$ !+$
@@ -325,3 +326,31 @@ string heap-new constant junky$
     create-localdata
     create-remotedata
     create-remoterror ;
+
+: getlocalnonsent ( -- caddr u ) \ gets first non sent local data set in a string format
+    setupsqlite3
+    s" " dbrecordseparator
+    s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd," temp$ !$
+    s" pressure,co2,nh3 from localData where (dataSent is 0) limit 1;" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+
+: setlocalrowsent ( nrow# -- ) \ will set the dataSent flag to sent of nrow 
+    setupsqlite3
+    s" update localData set dataSent = '-1' where row = '" temp$ !$
+    #to$ temp$ !+$ s" ';" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+: clearlocalrowsent ( nrow -- ) \ will clear the dataSent flag of nrow
+    setupsqlite3
+    s" update localData set dataSent = '0' where row = '" temp$ !$
+    #to$ temp$ !+$ s" ';" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+
+: getlocalRownonsent ( nrow -- caddr u )
+    setupsqlite3
+    s" " dbrecordseparator
+    s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd," temp$ !$
+    s" pressure,co2,nh3 from localData where ((dataSent is 0) and (row is " temp$ !+$
+    #to$ temp$ !+$ s" ));" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
