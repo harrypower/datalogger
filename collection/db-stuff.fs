@@ -363,4 +363,28 @@ string heap-new constant junky$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
     s>number? true = if d>s else -1 throw then ;
 
-\ now make the same get set and clear functions for retrieveing local error information
+: getlocalerrorow#nonset ( -- nrow )
+    setupsqlite3
+    s" " dbrecordseparator
+    s" " dbfieldseparator
+    s" select row from errors where errorSent is 0 limit 1;" temp$ !$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
+    s>number? true = if d>s else -1 throw then ;
+
+: setlocalerrorowsent ( nrow -- )
+    setupsqlite3
+    s" update errors set errorSent = '-1' where row = '" temp$ !$
+    #to$ temp$ !+$ s" ';" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+: clearlocalerrorowsent  ( nrow -- )
+    setupsqlite3
+    s" update errors set errorSent = '0' where row = '" temp$ !$
+    #to$ temp$ !+$ s" ';" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
+
+: getlocalerrorownonsent ( nrow -- caddr u )
+
+;
+
+
