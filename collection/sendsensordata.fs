@@ -30,6 +30,8 @@ string heap-new constant edata$     \ encrypted data file name and path to send 
 string heap-new constant senddata$  
 string heap-new constant identity$
 string heap-new constant junk$
+strings heap-new constant data$s
+
 variable sendingrow#                \ the data or error row that is being sent 
 
 \ this passphrase file must exist
@@ -65,9 +67,23 @@ string heap-new constant shlast$
     RESTORE
     ENDTRY ;
 
+: makesenddata$ ( -- ) \ used to reorder data for sending
+    2 data$s []@$ throw senddata$ !$  s" ," senddata$ !+$
+    3 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    4 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    5 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    6 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    7 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    0 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$ ;
 
-: getencryptdata ( -- )
+: makeencryptdata$ ( -- ) \ encrypted the data for sending
+    senddata$ @$ passf$ @$ myed encrypt$ throw 
+    senddata$ !$ ;
+
+: getencryptdata ( -- ) \ get, order and encrypt data for sending
     getlocalrow#nonsent dup sendingrow# !
     getlocalRownonsent junk$ !$ identity$ @$ junk$ !+$ s" ," junk$ !+$
-    
-;
+    data$s construct
+    s" ," junk$ @$ data$s split$>$s
+    makesenddata$
+    makeencryptdata$ ;
