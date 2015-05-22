@@ -151,7 +151,7 @@ object class
 	if
 	    array @ swap cell * + @ [bind] string @$ false
 	else drop 0 0 true
-	then ;m method n@$
+	then ;m method []@$
     m: ( caddr u strings -- caddr1 u1 caddr2 u2 ) \ retrieve string from array at next index then
 	\ split that next string at caddr u if possible
 	\ caddr1 u1 is empty if caddr u string is not found
