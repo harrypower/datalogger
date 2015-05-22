@@ -68,5 +68,6 @@ string heap-new constant shlast$
 
 : getencryptdata ( -- )
     getlocalrow#nonsent dup sendingrow# !
-    getlocalRownonsent junk$ !$ identity$ @$ junk$ !+$
+    getlocalRownonsent junk$ !$ identity$ @$ junk$ !+$ s" ," junk$ !+$
+    
 ;

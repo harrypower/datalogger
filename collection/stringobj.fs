@@ -143,6 +143,15 @@ object class
 	    index @ qty @ >=
 	    if 0 index ! then 
 	else 0 0 then ;m method @$x
+    m: ( nindex strings -- caddr u nflag ) \ retrieve nindex string from strings array
+	\ caddr u contain the string if nflag is false
+	\ if nflag is true caddr u do not contain nindex string
+	abs dup qty @ < 
+	qty @ 0 > and
+	if
+	    array @ swap cell * + @ [bind] string @$ false
+	else drop 0 0 true
+	then ;m method n@$
     m: ( caddr u strings -- caddr1 u1 caddr2 u2 ) \ retrieve string from array at next index then
 	\ split that next string at caddr u if possible
 	\ caddr1 u1 is empty if caddr u string is not found
