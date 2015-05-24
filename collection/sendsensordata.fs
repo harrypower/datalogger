@@ -42,6 +42,9 @@ passf$ @$ filetest false = [if] abort" The passphrase file is not present!" [the
 path$ @$ junk$ !$ s" /identityinfo.data" junk$ !+$ junk$ @$ slurp-file
 s" id: " search true = [if] 4 - swap 4 + swap identity$ !$ [else] abort" Identity not present!" [then]
 
+\ this is the name of the encrypted data file that is used 
+path$ @$ junk$ !$ s" /collection/endata.data" junk$ !+$ junk$ @$ edata$ !$
+
 \ this is the encrypt_decrypt object named myed
 path$ @$ junk$ !$ s" /collection" junk$ !+$ junk$ @$ encrypt_decrypt heap-new constant myed
 
@@ -87,3 +90,31 @@ string heap-new constant shlast$
     s" ," junk$ @$ data$s split$>$s
     makesenddata$
     makeencryptdata$ ;
+
+: data>file ( -- ) \ store the encrypted data to a file for later use
+    0 { efid }
+    edata$ @$ filetest true =
+    if
+	edata$ @$ delete-file throw
+    then
+    edata$ @$ w/o bin create-file throw to efid
+    senddata$ @$ efid write-file throw
+    efid flush-file throw
+    efid close-file throw ;
+
+: data>server ( -- ) \ send encrypted data via curl to server
+    s" curl --data-binary @" junk$ !$ edata$ @$ junk$ !+$
+    s"  192.168.0.113:4445/testsend.shtml" junk$ !+$
+    junk$ @$ shgets dup 0 =
+    if
+	drop ." message recieved is:" cr type
+    else
+	. ."  some error in the curl statement occured!"
+    then
+;
+
+: doencryptsend ( -- )
+    getencryptdata
+    data>file
+    data>server
+    edata$ @$ delete-file throw ;
