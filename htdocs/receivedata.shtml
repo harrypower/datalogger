@@ -2,15 +2,17 @@
 <html>
 <$
 require ../collection/cryptobj.fs
+require ../collection/stringobj.fs
 
 string heap-new constant passphrase$ 
 path$ @$ passphrase$ !$ s" /collection/testpassphrase" passphrase$ !+$
 
 posted @ 0 = [if] ." fail no post data" [then]
+
 posted @ 0 > 
 [if]
-    path$ @$ encrypt_decrypt heap-new value edtest
-    posted $@ passphrase$ @$ edtest decrypt$ 
+    path$ @$ encrypt_decrypt heap-new value edata
+    posted $@ passphrase$ @$ edata decrypt$ 
     0 = [if] ." Recieved decrypted data is: " type 
     [else]
 	2drop 
