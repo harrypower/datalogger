@@ -1,0 +1,6 @@
+# This file shows the format to register device identification's for data logging on server.
+# The registerd devices are in a list following these notes.
+# Format per registerd device is as follows:
+# "registerd device id" followed by ":" followed by identity followed by ":"
+# Below is an example of identity of 192.168.0.114
+registerd device id:192.168.0.114:
