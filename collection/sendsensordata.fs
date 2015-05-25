@@ -31,22 +31,24 @@ string heap-new constant senddata$
 string heap-new constant identity$
 string heap-new constant junk$
 strings heap-new constant data$s
+0 value myed                        \ contains the encrypt_dectryp object after setup
 
 variable sendingrow#                \ the data or error row that is being sent 
 
+: setup-stuff ( -- ) \ setup strings initalized and encryption object started
 \ this passphrase file must exist
 \ note the first line is only used in the passphrase file
 path$ @$ passf$ !$ s" /collection/testpassphrase" passf$ !+$
-passf$ @$ filetest false = [if] abort" The passphrase file is not present!" [then]
+passf$ @$ filetest false = if abort" The passphrase file is not present!" then
 \ get identity string for use later
 path$ @$ junk$ !$ s" /identityinfo.data" junk$ !+$ junk$ @$ slurp-file
-s" id: " search true = [if] 4 - swap 4 + swap identity$ !$ [else] abort" Identity not present!" [then]
-
+s" id:" search true = if 3 - swap 3 + swap identity$ !$ else abort" Identity not present!" then
+s" :" identity$ split$ if 2drop identity$ !$ else 2drop 2drop abort" Identity bad format!" then
 \ this is the name of the encrypted data file that is used 
 path$ @$ junk$ !$ s" /collection/endata.data" junk$ !+$ junk$ @$ edata$ !$
-
 \ this is the encrypt_decrypt object named myed
-path$ @$ junk$ !$ s" /collection" junk$ !+$ junk$ @$ encrypt_decrypt heap-new constant myed
+path$ @$ junk$ !$ s" /collection" junk$ !+$ junk$ @$ encrypt_decrypt heap-new to myed ;
+setup-stuff  
 
 \ this next word is needed to prevent system defunct processes when using sh-get from script.fs
 string heap-new constant shlast$
