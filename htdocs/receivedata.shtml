@@ -1,32 +1,7 @@
 <!DOCTYPE html>
 <html>
 <$
-require ../collection/cryptobj.fs
-require ../collection/stringobj.fs
-
-string heap-new constant passphrase$
-string heap-new constant ddata$
-
-path$ @$ passphrase$ !$ s" /collection/testpassphrase" passphrase$ !+$
-
-path$ @$ encrypt_decrypt heap-new value edata
-
-: posttest ( -- nflag ) \ nflag is true if there is a post message
-    posted @ 0 <> ;     \ nflag is false if there is no post message
-
-: getdecryptpost ( -- nflag ) \ if post data is present decrypt it into ddata$ string
-    \ nflag is true if decryption and post test passed
-    \ nflag is false if decryption or post test failed
-    posttest 
-    if
-	posted $@ passphrase$ @$ edata decrypt$ 0 =
-	if ddata$ !$ true
-	else
-	    2drop false 
-	then
-    else
-	false 
-    then ;
+require ../collection/remotedataserver.fs
 
 posttest false = [if] ." FAIL no post message!" [then]
 getdecryptpost [if] ." PASS" [else] ." FAIL" [then]

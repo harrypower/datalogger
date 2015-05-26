@@ -106,7 +106,7 @@ string heap-new constant shlast$
 
 : data>server ( -- ) \ send encrypted data via curl to server
     s" curl --data-binary @" junk$ !$ edata$ @$ junk$ !+$
-    s"  192.168.0.113:4445/testsend.shtml" junk$ !+$
+    s"  192.168.0.113:4445/receivedata.shtml" junk$ !+$
     junk$ @$ shgets dup 0 =
     if
 	drop ." message recieved is:" cr type
