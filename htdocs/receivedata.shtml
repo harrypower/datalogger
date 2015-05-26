@@ -4,20 +4,32 @@
 require ../collection/cryptobj.fs
 require ../collection/stringobj.fs
 
-string heap-new constant passphrase$ 
+string heap-new constant passphrase$
+string heap-new constant ddata$
+
 path$ @$ passphrase$ !$ s" /collection/testpassphrase" passphrase$ !+$
 
-posted @ 0 = [if] ." fail no post data" [then]
+path$ @$ encrypt_decrypt heap-new value edata
 
-posted @ 0 > 
-[if]
-    path$ @$ encrypt_decrypt heap-new value edata
-    posted $@ passphrase$ @$ edata decrypt$ 
-    0 = [if] ." Recieved decrypted data is: " type 
-    [else]
-	2drop 
-	." fail decryption did not work!"
-    [then]
-[then]
+: posttest ( -- nflag ) \ nflag is true if there is a post message
+    posted @ 0 <> ;     \ nflag is false if there is no post message
+
+: getdecryptpost ( -- nflag ) \ if post data is present decrypt it into ddata$ string
+    \ nflag is true if decryption and post test passed
+    \ nflag is false if decryption or post test failed
+    posttest 
+    if
+	posted $@ passphrase$ @$ edata decrypt$ 0 =
+	if ddata$ !$ true
+	else
+	    2drop false 
+	then
+    else
+	false 
+    then ;
+
+posttest false = [if] ." FAIL no post message!" [then]
+getdecryptpost [if] ." PASS" [else] ." FAIL" [then]
+
 $>
 </html>
