@@ -1,4 +1,5 @@
 # This file shows the format to register device identification's for data logging on server.
+# The file is called registeredid.data
 # The registerd devices are in a list following these notes in a file called registeredid.data
 # Format per registerd device is as follows:
 # "registerd device id" followed by ":" followed by identity followed by ":"
