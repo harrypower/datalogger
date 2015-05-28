@@ -18,14 +18,18 @@
 \  This is normaly executed inside a web page and data is received from post variable.
 \  The data is stored as remote data as defined in db-stuff.fs not local data.
 
-\ ** note the following is only needed for testing localy and is commented out after testing is done.
-\ require string.fs  \ ** note this is removed after testing **
-\ variable posted 0 posted ! \ ** note this is removed after testing **
-
-require ../collection/cryptobj.fs
-require ../collection/stringobj.fs
-require ../collection/db-stuff.fs
-
+false constant testingflag  \ true for testing locally and false for normal remote use
+testingflag [if]
+    require string.fs  
+    variable posted 0 posted !
+    require cryptobj.fs
+    require stringobj.fs
+    require db-stuff.fs
+[else]
+    require ../collection/cryptobj.fs
+    require ../collection/stringobj.fs
+    require ../collection/db-stuff.fs
+[then]
 
 string heap-new constant passphrase$
 string heap-new constant ddata$
@@ -50,3 +54,6 @@ path$ @$ encrypt_decrypt heap-new value edata
     else
         false
     then ;
+
+posttest false = [if] ." FAIL no post message!" [then]
+getdecryptpost [if] ." PASS" [else] ." FAIL" [then]

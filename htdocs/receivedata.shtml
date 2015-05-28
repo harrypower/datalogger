@@ -3,8 +3,5 @@
 <$
 require ../collection/remotedataserver.fs
 
-posttest false = [if] ." FAIL no post message!" [then]
-getdecryptpost [if] ." PASS" [else] ." FAIL" [then]
-
 $>
 </html>

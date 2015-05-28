@@ -16,6 +16,11 @@
 \ This code simply retrieves sensor data from db-stuff.fs words
 \ then encrypts the data to send to the server of this sensor data!
 
+false constant testingflag \ true for locally testing and false for normal remote use
+testingflag [if]
+    require remotedataserver.fs
+[then]
+
 \ warnings off
 require cryptobj.fs
 require stringobj.fs
