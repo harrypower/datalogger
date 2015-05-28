@@ -16,7 +16,7 @@
 \ This code simply retrieves sensor data from db-stuff.fs words
 \ then encrypts the data to send to the server of this sensor data!
 
-false constant testingflag \ true for locally testing and false for normal remote use
+true constant testingflag \ true for locally testing and false for normal remote use
 testingflag [if]
     require remotedataserver.fs
 [then]
@@ -109,19 +109,32 @@ string heap-new constant shlast$
     efid flush-file throw
     efid close-file throw ;
 
-: data>server ( -- ) \ send encrypted data via curl to server
-    s" curl --data-binary @" junk$ !$ edata$ @$ junk$ !+$
-    s"  192.168.0.113:4445/receivedata.shtml" junk$ !+$
-    junk$ @$ shgets dup 0 =
-    if
-	drop ." message recieved is:" cr type
-    else
-	. ."  some error in the curl statement occured!"
-    then
-;
+testingflag 
+[if]
+    : data>server ( -- ) \ send encrypted data as local test to server code
+	edata$ @$ slurp-file posted $! ;
+    : doencryptsend ( -- )
+	getencryptdata
+	data>file
+	data>server
+	getdecryptpost
+	true = if ." PASS" else ." FAIL" then 
+	edata$ @$ delete-file throw ;
+[else]
+    : data>server ( -- ) \ send encrypted data via curl to server
+	s" curl --data-binary @" junk$ !$ edata$ @$ junk$ !+$
+	s"  192.168.0.113:4445/receivedata.shtml" junk$ !+$
+	junk$ @$ shgets dup 0 =
+	if
+	    drop ." message recieved is:" cr type
+	else
+	    . ."  some error in the curl statement occured!"
+	then ;
+    
+    : doencryptsend ( -- )
+	getencryptdata
+	data>file
+	data>server
+	edata$ @$ delete-file throw ;
+[then]
 
-: doencryptsend ( -- )
-    getencryptdata
-    data>file
-    data>server
-    edata$ @$ delete-file throw ;

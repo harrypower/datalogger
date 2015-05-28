@@ -17,9 +17,14 @@
 \  database defined in db-stuff.fs
 \  This is normaly executed inside a web page and data is received from post variable.
 \  The data is stored as remote data as defined in db-stuff.fs not local data.
-
-false constant testingflag  \ true for testing locally and false for normal remote use
-testingflag [if]
+s" testingflag" find-name 0 =
+[if]
+    false constant localtesting \ false for normal remote use
+[else]
+    testingflag
+          constant localtesting  \ true for testing locally and false for normal remote use
+[then]
+localtesting [if]
     require string.fs  
     variable posted 0 posted !
     require cryptobj.fs
@@ -55,5 +60,7 @@ path$ @$ encrypt_decrypt heap-new value edata
         false
     then ;
 
-posttest false = [if] ." FAIL no post message!" [then]
-getdecryptpost [if] ." PASS" [else] ." FAIL" [then]
+localtesting false = [if]
+    posttest false = [if] ." FAIL no post message!" [then]
+    getdecryptpost [if] ." PASS" [else] ." FAIL" [then]
+[then]
