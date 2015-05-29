@@ -36,6 +36,7 @@ string heap-new constant senddata$
 string heap-new constant identity$
 string heap-new constant junk$
 strings heap-new constant data$s
+string heap-new constant servermessage$
 0 value myed                        \ contains the encrypt_dectryp object after setup
 
 variable sendingrow#                \ the data or error row that is being sent 
@@ -120,8 +121,7 @@ testingflag
 	getencryptdata
 	data>file
 	data>server
-	validatestore
-	\ true = if ." PASS" else ." FAIL" then 
+	validatestore message$ @$ servermessage$ !$
 	edata$ @$ delete-file throw ;
 [else]
     \ send data via tcp
@@ -130,15 +130,20 @@ testingflag
 	s"  192.168.0.113:4445/receivedata.shtml" junk$ !+$
 	junk$ @$ shgets dup 0 =
 	if
-	    drop ." message recieved is:" cr type
+	    drop servermessage$ !$
 	else
-	    . ."  some error in the curl statement occured!"
+	    servermessage$ !$
+	    s\" \n" servermessage$ !+$
+	    s" FAIL ERROR:some curl error occured " servermessage$ !+$
+	    #to$ servermessage$ !+$ s" !" servermessage$ !+$
 	then ;
     
-    : doencryptsend ( -- )
+    : doencryptsend ( -- nflag )
 	getencryptdata
 	data>file
 	data>server
+	servermessage$ @$ s" PASS" search swap drop swap drop true <>
 	edata$ @$ delete-file throw ;
 [then]
 
+\ add the error send words to match the data send words above then put them all in loop of some sorts

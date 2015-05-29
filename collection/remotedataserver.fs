@@ -38,10 +38,13 @@ testingflag [if]
 
 string heap-new constant passphrase$
 string heap-new constant ddata$
+strings heap-new constant dbdata$
+string heap-new constant message$
 
 path$ @$ passphrase$ !$ s" /collection/testpassphrase" passphrase$ !+$
 
 path$ @$ encrypt_decrypt heap-new value edata
+
 
 : posttest ( -- nflag ) \ nflag is true if there is a post message
     posted @ 0 <> ;     \ nflag is false if there is no post message
@@ -73,12 +76,18 @@ path$ @$ encrypt_decrypt heap-new value edata
     \ nflag is false if data or error info was stored in database
     \ nflag is true if some failure happened
     try
-	posttest false = if ."  FAIL ERROR:no post message!" true throw  then
-	getdecryptpost if ." PASS" else ."  FAIL ERROR:decryption failed!" true throw then
+	message$ construct
+	posttest false = if s"  FAIL ERROR:no post message!" message$ !+$ true throw  then
+	getdecryptpost
+	if s" PASS" message$ !$ else s"  FAIL ERROR:decryption failed!" message$ !+$ true throw then
 	false
     restore 
     endtry ;
 
 testingflag false = [if]
-    validatestore
+    validatestore drop message$ @$ type
 [then]
+
+
+
+\ now finish the detains of the valid and store words above
