@@ -17,6 +17,9 @@
 \  database defined in db-stuff.fs
 \  This is normaly executed inside a web page and data is received from post variable.
 \  The data is stored as remote data as defined in db-stuff.fs not local data.
+
+\ This code is normaly executed as a script form a web page but for testing purposes
+\ the testingflag constant detects if it is run locally
 s" testingflag" find-name 0 =
 [if]
     false constant testingflag \ false for normal remote use
@@ -56,8 +59,26 @@ path$ @$ encrypt_decrypt heap-new value edata
     else
         false
     then ;
+: validdata ( -- nflag ) \ check ddata$ for valid data and put data into dbdata$
+;
+: storedata ( -- nflag ) \ take dbdata$ and store it into database
+;
+
+: validerror ( -- nflag ) \ check ddata$ for valid error info and put error into dbdata$
+;
+: storeerror ( -- nflag ) \ take dbdata$ and store the error info into database
+;
+
+: validatestore ( -- nflag ) \ test for data or error info and store it
+    \ nflag is false if data or error info was stored in database
+    \ nflag is true if some failure happened
+    try
+	posttest false = if ."  FAIL ERROR:no post message!" true throw  then
+	getdecryptpost if ." PASS" else ."  FAIL ERROR:decryption failed!" true throw then
+	false
+    restore 
+    endtry ;
 
 testingflag false = [if]
-    posttest false = [if] ." FAIL no post message!" [then]
-    getdecryptpost [if] ." PASS" [else] ." FAIL" [then]
+    validatestore
 [then]

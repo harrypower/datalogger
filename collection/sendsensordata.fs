@@ -21,7 +21,7 @@ testingflag [if]
     require remotedataserver.fs
 [then]
 
-\ warnings off
+warnings off
 require cryptobj.fs
 require stringobj.fs
 require gforth-misc-tools.fs
@@ -78,7 +78,8 @@ string heap-new constant shlast$
     ENDTRY ;
 
 : makesenddata$ ( -- ) \ used to reorder data for sending
-    2 data$s []@$ throw senddata$ !$  s" ," senddata$ !+$
+    s" DATA," senddata$ !$
+    2 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     3 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     4 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     5 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
@@ -111,16 +112,19 @@ string heap-new constant shlast$
 
 testingflag 
 [if]
+    \ send data via local word execution
     : data>server ( -- ) \ send encrypted data as local test to server code
 	edata$ @$ slurp-file posted $! ;
-    : doencryptsend ( -- )
+    : doencryptsend ( -- nflag ) \ get data encrypt data send data
+	\ nflag is true if all ok nflag is false if some failure happened 
 	getencryptdata
 	data>file
 	data>server
-	getdecryptpost
-	true = if ." PASS" else ." FAIL" then 
+	validatestore
+	\ true = if ." PASS" else ." FAIL" then 
 	edata$ @$ delete-file throw ;
 [else]
+    \ send data via tcp
     : data>server ( -- ) \ send encrypted data via curl to server
 	s" curl --data-binary @" junk$ !$ edata$ @$ junk$ !+$
 	s"  192.168.0.113:4445/receivedata.shtml" junk$ !+$
