@@ -15,6 +15,8 @@
 
 \ This code simply retrieves sensor data from db-stuff.fs words
 \ then encrypts the data to send to the server of this sensor data!
+\ This code is executed on a sensor device to upload all the sensors data to server
+\ ** The passphrase file and the identityinfo.data file must exist for this code to work! **
 
 true constant testingflag \ true for locally testing and false for normal remote use
 testingflag [if]
@@ -80,6 +82,7 @@ string heap-new constant shlast$
 
 : makesenddata$ ( -- ) \ used to reorder data for sending
     s" DATA," senddata$ !$
+    1 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     2 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     3 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     4 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
@@ -87,10 +90,14 @@ string heap-new constant shlast$
     6 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     7 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     0 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$ ;
+: makesenderror$ ( -- )
+;
 
 : makeencryptdata$ ( -- ) \ encrypted the data for sending
     senddata$ @$ passf$ @$ myed encrypt$ throw 
     senddata$ !$ ;
+: makeencrypterror$ ( -- )
+;
 
 : getencryptdata ( -- ) \ get, order and encrypt data for sending
     getlocalrow#nonsent dup sendingrow# !
@@ -99,6 +106,8 @@ string heap-new constant shlast$
     s" ," junk$ @$ data$s split$>$s
     makesenddata$
     makeencryptdata$ ;
+: getencrypterror ( -- )
+;
 
 : data>file ( -- ) \ store the encrypted data to a file for later use
     0 { efid }
@@ -111,18 +120,28 @@ string heap-new constant shlast$
     efid flush-file throw
     efid close-file throw ;
 
+: error>file ( -- )
+;
+
 testingflag 
 [if]
     \ send data via local word execution
     : data>server ( -- ) \ send encrypted data as local test to server code
 	edata$ @$ slurp-file posted $! ;
-    : doencryptsend ( -- nflag ) \ get data encrypt data send data
+    : error>server ( -- )
+    ;
+    
+    : dataencryptsend ( -- nflag ) \ get data encrypt data send data
 	\ nflag is true if all ok nflag is false if some failure happened 
 	getencryptdata
 	data>file
 	data>server
-	validatestore message$ @$ servermessage$ !$
+	validatestore drop message$ @$ servermessage$ !$
+	servermessage$ @$ s" PASS" search swap drop swap drop 
 	edata$ @$ delete-file throw ;
+    : errorencryptsend ( -- nflag )
+    ;
+    
 [else]
     \ send data via tcp
     : data>server ( -- ) \ send encrypted data via curl to server
@@ -137,13 +156,17 @@ testingflag
 	    s" FAIL ERROR:some curl error occured " servermessage$ !+$
 	    #to$ servermessage$ !+$ s" !" servermessage$ !+$
 	then ;
+    : error>server ( -- )
+    ;
     
-    : doencryptsend ( -- nflag )
+    : dataencryptsend ( -- nflag )
 	getencryptdata
 	data>file
 	data>server
 	servermessage$ @$ s" PASS" search swap drop swap drop true <>
 	edata$ @$ delete-file throw ;
+    : errorencryptsend ( -- nflag )
+    ;
+    
 [then]
 
-\ add the error send words to match the data send words above then put them all in loop of some sorts

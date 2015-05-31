@@ -18,7 +18,7 @@
 \  This is normaly executed inside a web page and data is received from post variable.
 \  The data is stored as remote data as defined in db-stuff.fs not local data.
 
-\ This code is normaly executed as a script form a web page but for testing purposes
+\ This code is normaly executed as a script from a web page but for testing purposes
 \ the testingflag constant detects if it is run locally
 s" testingflag" find-name 0 =
 [if]
@@ -62,14 +62,46 @@ path$ @$ encrypt_decrypt heap-new value edata
     else
         false
     then ;
+
+: parsemessage ( -- )
+    dbdata$ construct
+    s" ," ddata$ @$ dbdata$ split$>$s ;
+
 : validdata ( -- nflag ) \ check ddata$ for valid data and put data into dbdata$
-;
+    \ nflag is true if the message is data type
+    \ nflag is false if the message is not valid for data type
+    parsemessage dbdata$ reset dbdata$ @$x
+    s" DATA" compare 0 = 
+    dbdata$ $qty 9 = and ;
 : storedata ( -- nflag ) \ take dbdata$ and store it into database
-;
+    \ nflag is true if some parsing or storage error happened
+    \ nflag is false if data was parsed and stored into database ok
+    try   
+	1 dbdata$ []@$ throw s>number?  true <> throw d>s
+	2 dbdata$ []@$ throw >float     true <> throw
+	3 dbdata$ []@$ throw >float     true <> throw
+	4 dbdata$ []@$ throw s>unumber? true <> throw d>s
+	5 dbdata$ []@$ throw >float     true <> throw
+	6 dbdata$ []@$ throw >float     true <> throw
+	7 dbdata$ []@$ throw 
+	datetime
+	8 dbdata$ []@$ throw s>unumber? true <> throw d>s
+	remotedata!
+	false
+    restore 
+    endtry ;
 
 : validerror ( -- nflag ) \ check ddata$ for valid error info and put error into dbdata$
 ;
 : storeerror ( -- nflag ) \ take dbdata$ and store the error info into database
+;
+
+: valid-data-error! ( -- nflag ) \ check if valid data or error message and store it
+    \ nflag is true if data or error message is valid
+    \ nflag is false if something is wrong with data or error message or storing data
+    validdata true = 
+    storedata false = and
+   \ put the validerror and storeerror words here to test if the validdata is false!
 ;
 
 : validatestore ( -- nflag ) \ test for data or error info and store it
@@ -79,7 +111,16 @@ path$ @$ encrypt_decrypt heap-new value edata
 	message$ construct
 	posttest false = if s"  FAIL ERROR:no post message!" message$ !+$ true throw  then
 	getdecryptpost
-	if s" PASS" message$ !$ else s"  FAIL ERROR:decryption failed!" message$ !+$ true throw then
+	if
+	    valid-data-error!
+	    if
+		s" PASS" message$ !$ 
+	    else
+		s" FAIL ERROR:validation test failed!" message$ !$ true throw 
+	    then
+	else
+	    s"  FAIL ERROR:decryption failed!" message$ !+$ true throw
+	then
 	false
     restore 
     endtry ;
@@ -88,6 +129,3 @@ testingflag false = [if]
     validatestore drop message$ @$ type
 [then]
 
-
-
-\ now finish the detains of the valid and store words above

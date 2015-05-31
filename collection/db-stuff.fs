@@ -350,7 +350,7 @@ string heap-new constant junky$
 : getlocalRownonsent ( nrow -- caddr u ) \ will return data of nrow that meets requirement of non sent
     setupsqlite3
     s" " dbrecordseparator
-    s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd," temp$ !$
+    s" select row,dtime,temp,humd," temp$ !$
     s" pressure,co2,nh3 from localData where ((dataSent is 0) and (row is " temp$ !+$
     #to$ temp$ !+$ s" ));" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
@@ -362,6 +362,9 @@ string heap-new constant junky$
     s" select row from localData where dataSent is 0 limit 1;" temp$ !$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
     s>number? true = if d>s else -1 throw then ;
+
+: getlocalerroRownonsent ( nrow -- caddr u )
+;
 
 : getlocalerrorow#nonset ( -- nrow )
     setupsqlite3
