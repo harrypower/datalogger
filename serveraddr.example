@@ -1,0 +1,5 @@
+# This file contains the ip address of the server for where the data is sent.
+# The format is serveraddr followed by quote followed by the address followed by end quote
+# The file name for this server address is serveraddr.data
+# The following is an example for ip 192.168.0.113:4445/receiveddata.shtml
+serveraddr"192.168.0.113:4445/receiveddata.shtml"

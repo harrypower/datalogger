@@ -36,6 +36,7 @@ string heap-new constant passf$     \ path & file name to passphrase file
 string heap-new constant edata$     \ encrypted data file name and path to send to server
 string heap-new constant senddata$  
 string heap-new constant identity$
+string heap-new constant serveraddr$
 string heap-new constant junk$
 strings heap-new constant data$s
 string heap-new constant servermessage$
@@ -52,6 +53,9 @@ passf$ @$ filetest false = if abort" The passphrase file is not present!" then
 path$ @$ junk$ !$ s" /identityinfo.data" junk$ !+$ junk$ @$ slurp-file
 s" id:" search true = if 3 - swap 3 + swap identity$ !$ else abort" Identity not present!" then
 s" :" identity$ split$ if 2drop identity$ !$ else 2drop 2drop abort" Identity bad format!" then
+path$ @$ junk$ !$ s" /serveraddr.data" junk$ !+$ junk$ @$ slurp-file
+s\" serveraddr\"" search true = if 11 - swap 11 + swap serveraddr$ !$ else abort" No server address!" then
+s\" \"" serveraddr$ split$ if 2drop serveraddr$ !$ else 2drop 2drop abort" Server address bad format!" then 
 \ this is the name of the encrypted data file that is used 
 path$ @$ junk$ !$ s" /collection/endata.data" junk$ !+$ junk$ @$ edata$ !$
 \ this is the encrypt_decrypt object named myed
