@@ -96,9 +96,9 @@ s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" bdataattr !$x
         s" ," parsee split$ drop
         2swap xlable !$x parsee !$
         s" ," parsee split$ drop
-        2swap humd !$x parsee !$
-        s" ," parsee split$ drop
         2swap temp !$x parsee !$
+        s" ," parsee split$ drop
+        2swap humd !$x parsee !$
         s" ," parsee split$ drop
         2swap pres !$x parsee !$
         s" ," parsee split$ drop
