@@ -80,12 +80,15 @@ setup-stuff
 
 : idcheck ( -- nflag ) \ compare sent id with list of valid id's
     \ nflag is false if the send id is in the valid id's list
-    \ nflag is not flase if the send id is not in the list
+    \ nflag is not false if the sent id is not in the list
+    false { idtest }
     try 
 	1 dbdata$ []@$ throw currentID$ !$ \ store id to test if allowed to store
-	registerdID$s $qty 1 do currentID$ @$ i registerdID$s []@$ compare throw loop
+	registerdID$s $qty 1 do currentID$ @$ i registerdID$s []@$ throw compare false =
+	    if true to idtest leave then
+	loop
 	false
-    restore
+    restore drop idtest true = if false else true then  
     endtry ;
 
 : parsemessage ( -- )
@@ -96,9 +99,8 @@ setup-stuff
     \ nflag is true if the message is data type
     \ nflag is false if the message is not valid for data type
     dbdata$ reset dbdata$ @$x
-    s" DATA" compare 0 = 
-    dbdata$ $qty 9 = and
-;
+    s" DATA" compare false = 
+    dbdata$ $qty 9 = and ;
     
 : storedata ( -- nflag ) \ take dbdata$ and store it into database
     \ nflag is true if some parsing or storage error happened
@@ -123,14 +125,6 @@ setup-stuff
 : storeerror ( -- nflag ) \ take dbdata$ and store the error info into database
 ;
 
-: valid-data-error! ( -- nflag ) \ check if valid data or error message and store it
-    \ nflag is true if data or error message is valid
-    \ nflag is false if something is wrong with data or error message or storing data
-    validdata true = and
-    storedata false = and
-   \ put the validerror and storeerror words here to test if the validdata is false!
-;
-
 : validatestore ( -- nflag ) \ test for data or error info and store it
     \ nflag is false if data or error info was stored in database
     \ nflag is true if some failure happened
@@ -143,17 +137,16 @@ setup-stuff
 	    idcheck false <> if s" FAIL ERROR:ID test failed!" message$ !+$ true throw then
 	    validdata true =
 	    if
-		storedata false <> if s" FAIL ERROR:Store data failed!" message$ !+$ true throw then
+		storedata false =
+		if
+		    s" PASS" message$ !$
+		else
+		    s" FAIL ERROR:Store data failed!" message$ !+$ true throw
+		then
 	    else
 		\ put validerror test here with storeerror if validerror info
 		s" FAIL ERROR:data not valid!" message$ !+$ true throw 
 	    then
-\	    valid-data-error!
-\	    if
-\		s" PASS" message$ !$ 
-\	    else
-\		s" FAIL ERROR:validation test failed!" message$ !$ true throw 
-\	    then
 	else
 	    s"  FAIL ERROR:decryption failed!" message$ !+$ true throw
 	then
