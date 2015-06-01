@@ -86,13 +86,13 @@ string heap-new constant shlast$
 
 : makesenddata$ ( -- ) \ used to reorder data for sending
     s" DATA," senddata$ !$
+    7 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     1 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     2 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     3 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     4 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     5 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     6 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
-    7 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     0 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$ ;
 : makesenderror$ ( -- )
 ;
@@ -150,7 +150,7 @@ testingflag
     \ send data via tcp
     : data>server ( -- ) \ send encrypted data via curl to server
 	s" curl --data-binary @" junk$ !$ edata$ @$ junk$ !+$
-	s"  192.168.0.113:4445/receivedata.shtml" junk$ !+$
+	serveraddr$ @$ junk$ !+$
 	junk$ @$ shgets dup 0 =
 	if
 	    drop servermessage$ !$

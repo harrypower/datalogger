@@ -30,21 +30,36 @@ testingflag [if]
     require cryptobj.fs
     require stringobj.fs
     require db-stuff.fs
+    require gforth-misc-tools.fs
 [else]
     require ../collection/cryptobj.fs
     require ../collection/stringobj.fs
     require ../collection/db-stuff.fs
+    require ../collection/gforth-misc-tools.fs
 [then]
 
 string heap-new constant passphrase$
 string heap-new constant ddata$
 strings heap-new constant dbdata$
 string heap-new constant message$
-
-path$ @$ passphrase$ !$ s" /collection/testpassphrase" passphrase$ !+$
+strings heap-new constant registerdID$s
+string heap-new constant currentID$
+string heap-new constant junk$
+string heap-new constant junk$2
 
 path$ @$ encrypt_decrypt heap-new value edata
 
+: setup-stuff ( -- )
+    \ note the passphrase file mist exist and the client passpharse file must match the server one!
+    path$ @$ passphrase$ !$ s" /collection/testpassphrase" passphrase$ !+$
+    \ note this registeredid.data file must exist with all currently registerd sensor devices
+    path$ @$ junk$ !$ s" /registeredid.data" junk$ !+$ junk$ @$ slurp-file
+    s" registerd device id:" search true = if junk$ !$ else abort" Registered ID data not present!" then
+    s" registerd device id:" junk$ !+$
+    s\" :\n" junk$2 !$ junk$ @$ junk$2 !+$
+    s\" :\nregisterd device id:" junk$2 @$ registerdID$s split$>$s 
+;
+setup-stuff
 
 : posttest ( -- nflag ) \ nflag is true if there is a post message
     posted @ 0 <> ;     \ nflag is false if there is no post message
@@ -63,6 +78,16 @@ path$ @$ encrypt_decrypt heap-new value edata
         false
     then ;
 
+: idcheck ( -- nflag ) \ compare sent id with list of valid id's
+    \ nflag is false if the send id is in the valid id's list
+    \ nflag is not flase if the send id is not in the list
+    try 
+	1 dbdata$ []@$ throw currentID$ !$ \ store id to test if allowed to store
+	registerdID$s $qty 1 do currentID$ @$ i registerdID$s []@$ compare throw loop
+	false
+    restore
+    endtry ;
+
 : parsemessage ( -- )
     dbdata$ construct
     s" ," ddata$ @$ dbdata$ split$>$s ;
@@ -70,20 +95,22 @@ path$ @$ encrypt_decrypt heap-new value edata
 : validdata ( -- nflag ) \ check ddata$ for valid data and put data into dbdata$
     \ nflag is true if the message is data type
     \ nflag is false if the message is not valid for data type
-    parsemessage dbdata$ reset dbdata$ @$x
+    dbdata$ reset dbdata$ @$x
     s" DATA" compare 0 = 
-    dbdata$ $qty 9 = and ;
+    dbdata$ $qty 9 = and
+;
+    
 : storedata ( -- nflag ) \ take dbdata$ and store it into database
     \ nflag is true if some parsing or storage error happened
     \ nflag is false if data was parsed and stored into database ok
     try   
-	1 dbdata$ []@$ throw s>number?  true <> throw d>s
-	2 dbdata$ []@$ throw >float     true <> throw
+	2 dbdata$ []@$ throw s>number?  true <> throw d>s
 	3 dbdata$ []@$ throw >float     true <> throw
-	4 dbdata$ []@$ throw s>unumber? true <> throw d>s
-	5 dbdata$ []@$ throw >float     true <> throw
+	4 dbdata$ []@$ throw >float     true <> throw
+	5 dbdata$ []@$ throw s>unumber? true <> throw d>s
 	6 dbdata$ []@$ throw >float     true <> throw
-	7 dbdata$ []@$ throw 
+	7 dbdata$ []@$ throw >float     true <> throw
+	1 dbdata$ []@$ throw 
 	datetime
 	8 dbdata$ []@$ throw s>unumber? true <> throw d>s
 	remotedata!
@@ -99,7 +126,7 @@ path$ @$ encrypt_decrypt heap-new value edata
 : valid-data-error! ( -- nflag ) \ check if valid data or error message and store it
     \ nflag is true if data or error message is valid
     \ nflag is false if something is wrong with data or error message or storing data
-    validdata true = 
+    validdata true = and
     storedata false = and
    \ put the validerror and storeerror words here to test if the validdata is false!
 ;
@@ -112,12 +139,21 @@ path$ @$ encrypt_decrypt heap-new value edata
 	posttest false = if s"  FAIL ERROR:no post message!" message$ !+$ true throw  then
 	getdecryptpost
 	if
-	    valid-data-error!
+	    parsemessage
+	    idcheck false <> if s" FAIL ERROR:ID test failed!" message$ !+$ true throw then
+	    validdata true =
 	    if
-		s" PASS" message$ !$ 
+		storedata false <> if s" FAIL ERROR:Store data failed!" message$ !+$ true throw then
 	    else
-		s" FAIL ERROR:validation test failed!" message$ !$ true throw 
+		\ put validerror test here with storeerror if validerror info
+		s" FAIL ERROR:data not valid!" message$ !+$ true throw 
 	    then
+\	    valid-data-error!
+\	    if
+\		s" PASS" message$ !$ 
+\	    else
+\		s" FAIL ERROR:validation test failed!" message$ !$ true throw 
+\	    then
 	else
 	    s"  FAIL ERROR:decryption failed!" message$ !+$ true throw
 	then
