@@ -84,7 +84,8 @@ string heap-new constant shlast$
     RESTORE
     ENDTRY ;
 
-: makesenddata$ ( -- ) \ used to reorder data for sending
+: makesenddata$ ( -- ) \ used to reorder data for sending and add DATA string
+    senddata$ construct
     s" DATA," senddata$ !$
     7 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     1 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
@@ -94,14 +95,20 @@ string heap-new constant shlast$
     5 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     6 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
     0 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$ ;
-: makesenderror$ ( -- )
-;
+: makesenderror$ ( -- ) \ reorder data for sending and add ERROR string
+    senddata$ construct
+    s" ERROR," senddata$ !$
+    4 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    1 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    2 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    3 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$
+    0 data$s []@$ throw senddata$ !+$ s" ," senddata$ !+$ ;
 
 : makeencryptdata$ ( -- ) \ encrypted the data for sending
     senddata$ @$ passf$ @$ myed encrypt$ throw 
     senddata$ !$ ;
-: makeencrypterror$ ( -- )
-;
+: makeencrypterror$ ( -- ) \ encrypte the data dor sending 
+    makeencryptdata$ ;
 
 : getencryptdata ( -- ) \ get, order and encrypt data for sending
     getlocalrow#nonsent dup sendingrow# !
@@ -111,7 +118,12 @@ string heap-new constant shlast$
     makesenddata$
     makeencryptdata$ ;
 : getencrypterror ( -- )
-;
+    getlocalerrorow#nonsent dup sendingrow# !
+    getlocalerroRownonsent junk$ !$ identity$ @$ junk$ !+$ s" ," junk$ !+$
+    data$s construct
+    s" ," junk$ @$ data$s split$>$s
+    makesenderror$
+    makeencrypterror$ ;
 
 : data>file ( -- ) \ store the encrypted data to a file for later use
     0 { efid }
@@ -125,7 +137,7 @@ string heap-new constant shlast$
     efid close-file throw ;
 
 : error>file ( -- )
-;
+    data>file ;
 
 testingflag 
 [if]
@@ -133,7 +145,7 @@ testingflag
     : data>server ( -- ) \ send encrypted data as local test to server code
 	edata$ @$ slurp-file posted $! ;
     : error>server ( -- )
-    ;
+	data>server ;
     
     : dataencryptsend ( -- nflag ) \ get data encrypt data send data
 	\ nflag is true if all ok nflag is false if some failure happened 
@@ -144,7 +156,12 @@ testingflag
 	servermessage$ @$ s" PASS" search swap drop swap drop 
 	edata$ @$ delete-file throw ;
     : errorencryptsend ( -- nflag )
-    ;
+	getencrypterror
+	error>file
+	error>server
+	validatestore drop message$ @$ servermessage$ !$
+	servermessage$ @$ s" PASS" search swap drop swap drop
+	edata$ @$ delete-file throw ;
     
 [else]
     \ send data via tcp
@@ -161,7 +178,7 @@ testingflag
 	    #to$ servermessage$ !+$ s" !" servermessage$ !+$
 	then ;
     : error>server ( -- )
-    ;
+	data>server ;
     
     : dataencryptsend ( -- nflag )
 	getencryptdata
@@ -170,7 +187,11 @@ testingflag
 	servermessage$ @$ s" PASS" search swap drop swap drop true <>
 	edata$ @$ delete-file throw ;
     : errorencryptsend ( -- nflag )
-    ;
+	getencrypterror
+	error>file
+	error>server
+	servermessage$ @$ s" PASS" search swap drop swap drop true <>
+	edata$ @$ delete-file throw ;
     
 [then]
 

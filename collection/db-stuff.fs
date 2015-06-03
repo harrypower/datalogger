@@ -364,9 +364,14 @@ string heap-new constant junky$
     s>number? true = if d>s else -1 throw then ;
 
 : getlocalerroRownonsent ( nrow -- caddr u )
-;
+    setupsqlite3
+    s" " dbrecordseparator
+    s" select row,dtime,error,( select errorText from errorList where ((select error from errorList) is " temp$ !$
+    s" (select error from errors))) from errors where row is " temp$ !+$
+    #to$ temp$ !+$ s" ;" temp$ !+$
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
-: getlocalerrorow#nonset ( -- nrow )
+: getlocalerrorow#nonsent ( -- nrow )
     setupsqlite3
     s" " dbrecordseparator
     s" " dbfieldseparator
@@ -386,8 +391,5 @@ string heap-new constant junky$
     #to$ temp$ !+$ s" ';" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: getlocalerrorownonsent ( nrow -- caddr u )
-
-;
 
 
