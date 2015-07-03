@@ -84,11 +84,6 @@ s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" adataattr !$x
 
 s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" bdataattr !$x
 
-100 1500 200     asvgchart setchart-prop
-3                asvgchart setdtpts-circle-prop
-200 40 10 4 10   asvgchart setylable-prop
-4 10 30 0          asvgchart setylable-text-prop
-140 10 90        asvgchart setxlable-prop
 : splitdata ( -- )
     s\" \n" parser !$
     100 nlastlocaldata@ parsee !$
@@ -119,13 +114,17 @@ $>
 <h1> See last 100 data points<h1>
 <p>Current server time: <$ s" date" shget drop type $> </p>
 <$
-xlable reset co2 reset nh3 reset
+\ *** nh3 chart ***
+xlable reset nh3 reset asvgchart construct
+100 1500 200     asvgchart setchart-prop
+3                asvgchart setdtpts-circle-prop
+200 40 10 4 10   asvgchart setylable-prop
+4 10 30 0        asvgchart setylable-text-prop
+140 10 90        asvgchart setxlable-prop
+
 xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
-co2 adataattr acircleattr asvgchart setdata
 nh3 bdataattr bcircleattr asvgchart setdata
-s" -co2" textdata !$ 
-textdata 600 30 txtattr1 asvgchart settext
-s" -nh3" textdata !$
+s" nh3" textdata !$
 textdata 800 30 txtattr2 asvgchart settext
 asvgchart makechart dup false =
 [if]
@@ -134,6 +133,26 @@ asvgchart makechart dup false =
    ." Error in getting data or rendering data: " #to$ type
 [then]
 
+\ *** co2 chart ****
+xlable reset co2 reset asvgchart construct
+100 1500 200     asvgchart setchart-prop
+3                asvgchart setdtpts-circle-prop
+200 40 10 4 10   asvgchart setylable-prop
+4 10 30 0        asvgchart setylable-text-prop
+140 10 90        asvgchart setxlable-prop
+
+xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
+co2 adataattr acircleattr asvgchart setdata
+s" co2" textdata !$ 
+textdata 800 30 txtattr1 asvgchart settext
+asvgchart makechart dup false =
+[if]
+   drop type
+[else]
+   ." Error in getting data or rendering data: " #to$ type
+[then] 
+
+\ *** relative humidity chart ****
 xlable reset humd reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
@@ -152,7 +171,8 @@ asvgchart makechart dup false =
    ." Error in getting data or rendering data: " #to$ type
 [then] 
 
-xlable reset humd reset asvgchart construct
+\ *** temperature chart ****
+xlable reset temp reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
 200 40 10 4 10   asvgchart setylable-prop
@@ -170,7 +190,8 @@ asvgchart makechart dup false =
    ." Error in getting data or rendering data: " #to$ type
 [then] 
 
-xlable reset humd reset asvgchart construct
+\ *** pressure chart ****
+xlable reset pres reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
 200 40 10 4 10   asvgchart setylable-prop
