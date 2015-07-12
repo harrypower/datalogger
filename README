@@ -98,7 +98,11 @@ You can stop the service at any time as follows:
     $ sudo /etc/init.d/openbsd-inetd stop
 A this moment the BBB will serve a page on the port you selected.
 
-  
+The ADC reading code in get-co2nh3.fs needs the following added to /boot/uEnv.txt file:
+cape_enable=capemgr.enable_partno=BB-ADC
+This will allow ADC values to be read with the following at command line (after BBB is rebooted):
+    $ cat /sys/bus/iio/devices/iio:device0/in_voltage0_raw  
+
 #### the rest of this document is not updated yet as i have not finished much of the code yet so all the below stuff is wrong and outdated
 -The data collection is done with sensor-client.fs in /collection directory.  This is a script/Gforth file that can run at boot time if done as follows:
     $ sudo nano /etc/rc.local 
