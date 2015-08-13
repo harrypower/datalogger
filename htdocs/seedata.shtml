@@ -9,7 +9,7 @@
 
 <h1>Select options below to see the data</h1>
 
-<form action="getoutput.shtml"  method="get">
+<form action="chartdata.shtml"  method="get">
 Data to view:
 <select name="data">
   <option value="co2">co2</option>
@@ -39,6 +39,6 @@ Start Minute:
 <input type="submit" value="submit">
 </form>
 
-<p>Submit to see the selected data!</p>
+<p>Submit to see the selected data! hello tania</p>
 </body>
 </html>
