@@ -25,7 +25,7 @@ require gforth-misc-tools.fs
 
 decimal
 
-string heap-new constant temp$      \ a temperatry string 
+string heap-new constant temp$      \ a temperatry string
 string heap-new constant buffer$    \ a buffer string
 string heap-new constant db-path$   \ db path and name
 100 constant sqlite3-resend-time    \ this codes sqlite3 routines will wait for this time in ms if a locked database is found bef resending cmds
@@ -119,7 +119,7 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 	s" insert into errors values(NULL," temp$ !$
 	datetime$ temp$ !+$   \ dtime
 	#to$ temp$ !+$        \ error
-	s" ,0 );" temp$ !+$   \ errorSent ( false for not sent and true for sent ) 
+	s" ,0 );" temp$ !+$   \ errorSent ( false for not sent and true for sent )
 	temp$ @$ dbcmds
 	sendsqlite3cmd  dberrorthrow
 	false
@@ -199,7 +199,7 @@ s" insert into errorList values(" temp$ !$
     dup error-sqlite3!
     errorlist-sqlite3! ;
 
-string heap-new constant junky$ 
+string heap-new constant junky$
 : lastlocalerror$@ ( -- ncaddr-error uerror ) \ retreave the last error full string with #'s
     setupsqlite3
     s" " sqlmessg fseparator-$ z$!
@@ -222,7 +222,7 @@ string heap-new constant junky$
 : lastlocalerror#>$@ ( nerrorID -- ncaddr-error uerror ) \ retreave the error string from nerrorID
     setupsqlite3
     s" select error,errorText from errorList where error = " temp$ !$
-    #to$ temp$ !+$ s" ;" temp$ !+$ 
+    #to$ temp$ !+$ s" ;" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
 : create-localdata ( -- ) \ create the local table of data from sensors
@@ -233,9 +233,9 @@ string heap-new constant junky$
 
 : localdata! ( ntime npress -- ) ( F: ftemp fhumd fco2 fnh3 -- ) \ store local data!
     { ntime F: ftemp F: fhumd npres F: fco2 F: fnh3 -- } \ store data into localData table of DB
-    setupsqlite3            
+    setupsqlite3
     s" insert into localData values(NULL," temp$ !$
-    ntime #to$, temp$ !+$   \ remember ntime is a one cell size  
+    ntime #to$, temp$ !+$   \ remember ntime is a one cell size
     ftemp fto$, temp$ !+$
     fhumd fto$, temp$ !+$
     npres #to$, temp$ !+$
@@ -252,10 +252,10 @@ string heap-new constant junky$
 
 : nlastlocaldata@ ( uqty -- ncaddr u ) \ retrieve nqty rows from local database taking rows from last row first
     setupsqlite3
-    dup 100 * mkretbuff \ uqty * 100 = amount to change return buffer size to 
+    dup 100 * mkretbuff \ uqty * 100 = amount to change return buffer size to
     s" select datetime(dtime,'unixepoch','localtime'),temp,humd,pressure,co2,nh3 " temp$ !$
     s" from localData limit " temp$ !+$
-    #to$ 2dup temp$ !+$ 
+    #to$ 2dup temp$ !+$
     s"  offset ((select max(row) from localData)-" temp$ !+$
     temp$ !+$
     s" );" temp$ !+$
@@ -268,7 +268,7 @@ string heap-new constant junky$
     s" remoteRow INT);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: create-remoterror ( -- ) \ create the remote table of errors for remote error data 
+: create-remoterror ( -- ) \ create the remote table of errors for remote error data
     setupsqlite3
     s" CREATE TABLE IF NOT EXISTS remoteErrors(row INTEGER PRIMARY KEY AUTOINCREMENT,dtime INT," temp$ !$
     s" error INT,errorText TEXT,deviceID TEXT,receivedTime INT,remoteRow INT);" temp$ !+$
@@ -298,7 +298,7 @@ string heap-new constant junky$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
 : remoterror!  { ntime nerror ncaddrerror uerror ncaddrid uid nrtime nrrow -- }
-    \ store the remote error data into remoteError table 
+    \ store the remote error data into remoteError table
     setupsqlite3
     s" insert into remoteErrors values(NULL," temp$ !$
     ntime   #to$, temp$ !+$
@@ -334,7 +334,7 @@ string heap-new constant junky$
     s" pressure,co2,nh3 from localData where (dataSent is 0) limit 1;" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
-: setlocalrowsent ( nrow -- ) \ will set the dataSent flag to sent of nrow 
+: setlocalrowsent ( nrow -- ) \ will set the dataSent flag to sent of nrow
     setupsqlite3
     s" update localData set dataSent = '-1' where row = '" temp$ !$
     #to$ temp$ !+$ s" ';" temp$ !+$
@@ -356,7 +356,7 @@ string heap-new constant junky$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
 : getlocalrow#nonsent ( -- nrow ) \ will return nrow of first non sent row number in database
-    setupsqlite3                 \ will throw for errors  
+    setupsqlite3                 \ will throw for errors
     s" " dbrecordseparator       \ if nrow is 0 then there are no rows in database to sent
     s" " dbfieldseparator
     s" select row from localData where dataSent is 0 limit 1;" temp$ !$
@@ -391,5 +391,16 @@ string heap-new constant junky$
     #to$ temp$ !+$ s" ';" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
-
-
+: getlocalNminmaxavg ( setstrings -- outstrings )
+  \ setstrings contains the following in order
+  \ field name (co2,nh3,temp,humd,presure)
+  \ time frame ( H,d)
+  \ start year ( 2015 )
+  \ start month ( 08 )
+  \ start day ( 12 )
+  \ start hour ( 00 )
+  \ start minute ( 00 )
+  \ quantity to view ( 1 )
+  setupsqlite3
+  s" select strftime"
+;

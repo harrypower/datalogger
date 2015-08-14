@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Data Chart</title>
+</head>
+<body>
+<h1>The Chart</h1>
+
+<p>url-args are :  <$ url-args $@ type $>  </p>
+
+</body>
+</html>
