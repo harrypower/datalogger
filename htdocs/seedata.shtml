@@ -6,39 +6,65 @@
 </head>
 <link rel="stylesheet" type="text/css" href="styleA.css">
 <BODY>
+  <$
+  require ../collection/gforth-misc-tools.fs
+  require ../collection/stringobj.fs
+  require ../collection/db-stuff.fs
 
+  strings heap-new constant thedate
+  string heap-new constant tempargs
+
+  time&date
+  #to$ thedate !$x \ year
+  #to$ thedate !$x \ month
+  #to$ thedate !$x \ day
+  #to$ thedate !$x \ hour
+  2drop
+  thedate reset
+  url-args $@ swap drop 0 =
+  [if] \ make default args
+    s" data=co2&year=" tempargs !$
+    thedate @$x tempargs !+$
+    s" &month=" tempargs !+$
+    thedate @$x tempargs !+$
+    s" &day=" tempargs !+$
+    thedate @$x tempargs !+$
+    s" &hour=" tempargs !+$
+    thedate @$x tempargs !+$
+    s" &time=hour&quantity=1" tempargs !+$
+    tempargs @$ url-args $!
+    thedate reset
+  [then]
+  $>
+<p>url args: <$ url-args $@ type $> </p>
 <h1>Select options below to see the data</h1>
-
-<form action="chartdata.shtml"  method="get">
+<form action="seedata.shtml"  method="get">
 Data to view:
 <select name="data">
   <option value="co2">co2</option>
   <option value="nh3">nh3</option>
   <option value="temp">Temperature</option>
   <option value="humd">Humidity</option>
-  <option value="press">Pressure</option>
+  <option value="pressure">Pressure</option>
 </select><br>
+Start Year:
+<input type="number" name="year" min="2015" max="2020" <$ s\" value=\"" type thedate @$x type $> "><br>
+Start Month:
+<input type="number" name="month" min="1" max="12" <$ s\" value=\"" type thedate @$x type $> "><br>
+Start Day:
+<input type="number" name="day" min="1" max="31" <$ s\" value=\"" type thedate @$x type $> "><br>
+Start Hour:
+<input type="number" name="hour" min="0" max="23" <$ s\" value=\"" type thedate @$x type $> "><br>
 Time frame to view:
 <select name="time">
-  <option value="hour">Hour</option>
-  <option value="day">Day</option>
-  <option value="month">month</option>
+  <option value="H">Hour</option>
+  <option value="d">Day</option>
 </select><br>
 Quantity of data to view:
 <input type="number" name="quantity" min="1" max="50" value="1"><br>
-Start Day:
-<input type="number" name="day" min="1" max="31" value="1"><br>
-Start Month:
-<input type="number" name="month" min="1" max="12" value="1"><br>
-Start Year:
-<input type="number" name="year" min="2015" max="2020" value="2015"><br>
-Start Hour:
-<input type="number" name="hour" min="0" max="23" value="0"><br>
-Start Minute:
-<input type="number" name="minute" min="0" max="59" value="0"><br>
 <input type="submit" value="submit">
 </form>
 
-<p>Submit to see the selected data! hello tania</p>
+<p>Submit to see the selected data!</p>
 </body>
 </html>

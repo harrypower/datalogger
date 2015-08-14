@@ -391,16 +391,27 @@ string heap-new constant junky$
     #to$ temp$ !+$ s" ';" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow ;
 
-: getlocalNminmaxavg ( setstrings -- outstrings )
+: getlocalNminmaxavg ( setstrings -- caddr-out n-out )
   \ setstrings contains the following in order
-  \ field name (co2,nh3,temp,humd,presure)
-  \ time frame ( H,d)
+  \ field name (co2,nh3,temp,humd,pressure)
   \ start year ( 2015 )
   \ start month ( 08 )
   \ start day ( 12 )
   \ start hour ( 00 )
-  \ start minute ( 00 )
+  \ time frame ( H,d )
   \ quantity to view ( 1 )
+  { settings }
   setupsqlite3
-  s" select strftime"
-;
+  s" select strftime('%Y-%m-%d %H:%M',dtime,'unixepoch','utc'),min(" temp$ !$
+  0 settings []@$ throw temp$ !+$ s" ),max(" temp$ !+$
+  0 settings []@$ throw temp$ !+$ s" ),avg(" temp$ !+$
+  0 settings []@$ throw temp$ !+$ s" ) from localData where (strftime('%s',dtime,'unixepoch','utc') > strftime('%s','" temp$ !+$
+  1 settings []@$ throw temp$ !+$ s" -" temp$ !+$
+  2 settings []@$ throw temp$ !+$ s" -" temp$ !+$
+  3 settings []@$ throw temp$ !+$ s"  " temp$ !+$
+  4 settings []@$ throw temp$ !+$ s" :00','utc')) " temp$ !+$
+  s" group by strftime('" temp$ !+$
+  5 settings []@$ throw s" H" compare 0 = if s" %Y%m%d%H" temp$ !+$ else s" %Y%m%d" temp$ !+$ then
+  s" ',dtime,'unixepoch','utc') order by dtime limit " temp$ !+$
+  6 settings []@$ throw temp$ !+$ s" ;" temp$ !+$
+  temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
