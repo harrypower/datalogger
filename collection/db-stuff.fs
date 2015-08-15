@@ -402,6 +402,7 @@ string heap-new constant junky$
   \ quantity to view ( 1 )
   { settings }
   setupsqlite3
+  6 settings []@$ throw s>number? drop d>s 60 * cells mkretbuff
   s" select strftime('%Y-%m-%d %H:%M',dtime,'unixepoch','utc'),min(" temp$ !$
   0 settings []@$ throw temp$ !+$ s" ),max(" temp$ !+$
   0 settings []@$ throw temp$ !+$ s" ),avg(" temp$ !+$

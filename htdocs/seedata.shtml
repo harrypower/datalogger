@@ -85,7 +85,10 @@
     parsedargs @$x 1 31 2 test$number splitargs !$x
     parsedargs @$x 0 23 2 test$number splitargs !$x
     parsedargs @$x splitargs !$x
-    parsedargs @$x 1 50 2 test$number splitargs !$x ;
+    parsedargs @$x 1 50 2 test$number splitargs !$x
+    parsedargs destruct
+    splitargs parsedargs copy$s
+    ;
     fixargs
   : testit3
     splitargs $qty dup . ." <br>" 0 do splitargs @$x type ." <br>" loop ;
