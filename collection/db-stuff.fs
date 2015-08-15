@@ -414,4 +414,4 @@ string heap-new constant junky$
   5 settings []@$ throw s" H" compare 0 = if s" %Y%m%d%H" temp$ !+$ else s" %Y%m%d" temp$ !+$ then
   s" ',dtime,'unixepoch','utc') order by dtime limit " temp$ !+$
   6 settings []@$ throw temp$ !+$ s" ;" temp$ !+$
-  temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+  temp$ @$ 2dup dbcmds sendsqlite3cmd dberrorthrow dbret$ ;

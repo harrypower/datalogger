@@ -16,10 +16,13 @@
   strings heap-new constant thedate
   string heap-new constant tempargs
   strings heap-new constant splitargs
+  strings heap-new constant parsedargs
+  string heap-new constant junk$
 
   time&date
   #to$ thedate !$x \ year
   #to$ thedate !$x \ month
+  dup 1 = [if] drop 28 [else] 1 - [then]
   #to$ thedate !$x \ day
   #to$ thedate !$x \ hour
   2drop
@@ -34,7 +37,7 @@
     thedate @$x tempargs !+$
     s" &hour=" tempargs !+$
     thedate @$x tempargs !+$
-    s" &time=hour&quantity=1" tempargs !+$
+    s" &time=H&quantity=30" tempargs !+$
     tempargs @$ url-args $!
     thedate reset
   [then]
@@ -44,8 +47,53 @@
   : testit
   time&date . space . space . space . space . space . space ." <br>"
   splitargs $qty dup . ." <br>" splitargs reset
-  0 ?do splitargs @$x type ." <br>" loop
-  ; testit
+  0 ?do splitargs @$x type ." <br>" loop ; testit
+  : orderargs ( -- ) \ simply place the args in correct order to parsedargs
+    splitargs reset splitargs $qty 0
+    do splitargs @$x tempargs !$
+      s" =" tempargs split$ drop parsedargs !$x 2drop loop ;
+  orderargs
+  : test$size ( caddr u nsize -- caddr1 u1 ) \ adjust caddr u to ensure it is a string of nsize if it is smaller
+    { nsize }
+    junk$ !$
+    junk$ len$ nsize <
+    if nsize junk$ len$ - 0 ?do  s" 0" junk$ !<+$ loop then
+    junk$ @$ ;
+  : test$number ( caddr u nmin nmax ndigits -- caddr1 u1 )
+    \ take caddr u string and convert to number then test if number is in nmin to nmax limits
+    \ output caddr1 u1 string of number with ensured ndigits in string of number
+    \ If number falls outside of nmin and nmax simply output nmin as a string ensuring ndigits in string
+     { caddr u nmin nmax ndigits }
+     caddr u s>number? true =
+     if \ is a number
+      d>s dup nmin < swap nmax > or true =
+      if \ number ouside of nmin and nmax
+        nmin #to$ ndigits test$size
+      else
+        caddr u ndigits test$size
+      then
+     else \ not a number
+      2drop
+      nmin #to$ ndigits test$size
+     then ;
+  : fixargs ( -- ) \ ensure day month day hour are two digit strings
+    parsedargs reset
+    splitargs destruct
+    parsedargs @$x splitargs !$x
+    parsedargs @$x 2015 2015 4 test$number splitargs !$x
+    parsedargs @$x 1 12 2 test$number splitargs !$x
+    parsedargs @$x 1 31 2 test$number splitargs !$x
+    parsedargs @$x 0 23 2 test$number splitargs !$x
+    parsedargs @$x splitargs !$x
+    parsedargs @$x 1 50 2 test$number splitargs !$x ;
+    fixargs
+  : testit3
+    splitargs $qty dup . ." <br>" 0 do splitargs @$x type ." <br>" loop ;
+    testit3
+  : testit2
+    parsedargs $qty dup . ." <br>" parsedargs reset
+    0 ?do parsedargs @$x type ." <br>" loop ; testit2
+  parsedargs getlocalNminmaxavg ." <br>" .s ." <br>" type ." <br>"
   $>
 <p>url args: <$ url-args $@ type $> </p>
 <h1>Select options below to see the data</h1>

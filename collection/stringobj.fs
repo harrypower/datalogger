@@ -54,7 +54,7 @@ object class
 	    string-addr @ string-size @
 	else 0 0
 	then ;m method @$
-    m: ( caddr u string -- ) \ add a string to this string
+    m: ( caddr u string -- ) \ add a string to this string at end of!
 	string-test @ string-test =
 	if \ resize
 	    dup 0 >
@@ -73,6 +73,28 @@ object class
 	    else 2drop
 	    then
 	then ;m method !+$
+    m: ( caddr u string -- ) \ add string to begining of this string
+  string-test @ string-test =
+  if \ resize
+    dup 0 >
+    if
+      dup string-size @ + string-addr @ swap resize throw
+      string-addr !
+      dup string-addr @ + string-addr @ swap string-size @ move
+      dup string-size @ + string-size !
+      string-addr @ swap move
+    else 2drop
+    then
+  else \ make new string
+    dup 0 >
+    if
+      dup allocate throw
+      dup string-addr !
+      swap dup string-size ! move
+      string-test string-test !
+    else 2drop
+    then
+  then ;m method !<+$
     m: ( caddr u string -- caddr1 u1 caddr2 u2 nflag ) \ split the stored string at caddr u if found
 	\ caddr u will be removed and caddr1 u1 will be split string before caddr u
 	\ caddr2 u2 will be the split string after caddr u
