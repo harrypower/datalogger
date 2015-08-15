@@ -43,10 +43,10 @@ object class
 	    string-test @ string-test =
 	    if
 		string-addr @ free throw
-		0 string-test ! 
+		0 string-test !
 	    then
 	    caddr1 string-addr !
-	    u string-size ! 
+	    u string-size !
 	    string-test string-test ! ;m method !$
     m: ( string -- caddr u ) \ retrieve string
 	string-test @ string-test =
@@ -77,7 +77,7 @@ object class
 	\ caddr u will be removed and caddr1 u1 will be split string before caddr u
 	\ caddr2 u2 will be the split string after caddr u
 	\ if no match found caddr1 u1 returns and empty string and caddr2 u2 contains the this objects string
-	\ nflag is true if string is split and returned false if this objects string is returned 
+	\ nflag is true if string is split and returned false if this objects string is returned
 	\ Note the returned strings are valid until a new string is placed in this string object
 	{ caddr u }
 	string-addr @ string-size @ caddr u search true =
@@ -86,10 +86,10 @@ object class
 	else
 	    2drop 0 0 string-addr @ string-size @ false
 	then ;m method split$
-    
+
     m: ( string -- u ) \ report string size
 	string-test @ string-test =
-	if string-size @ else 0 then ;m method len$ 
+	if string-size @ else 0 then ;m method len$
     m: ( string -- ) \ retrieve string object info
 	this [parent] print
 	s"  string-test:" type string-test @ string-test = .
@@ -131,7 +131,7 @@ object class
 	    string heap-new dup array @ ! [bind] string !$
 	else
 	    array @ cell qty @ 1 + * resize throw dup array !
-	    cell qty @ * + dup 
+	    cell qty @ * + dup
 	    string heap-new swap ! @ [bind] string !$
 	    qty @ 1+ qty !
 	then 0 index ! ;m method !$x
@@ -141,12 +141,12 @@ object class
 	    array @ index @ cell * + @ [bind] string @$
 	    index @ 1+ index !
 	    index @ qty @ >=
-	    if 0 index ! then 
+	    if 0 index ! then
 	else 0 0 then ;m method @$x
     m: ( nindex strings -- caddr u nflag ) \ retrieve nindex string from strings array
 	\ caddr u contain the string if nflag is false
 	\ if nflag is true caddr u do not contain nindex string
-	abs dup qty @ < 
+	abs dup qty @ <
 	qty @ 0 > and
 	if
 	    array @ swap cell * + @ [bind] string @$ false
@@ -161,7 +161,7 @@ object class
 	    array @ index @ cell * + @ [bind] string split$ drop
 	    index @ 1+ index !
 	    index @ qty @ >=
-	    if 0 index ! then 
+	    if 0 index ! then
 	else 2drop 0 0 0 0 then ;m method split$s
     m: ( nstring-split$ nstring-source$ strings -- ) \ split up nstring-source$ with nstring-split$
 	\ nstring-source$ is split each time nstring-split$ is found and place in this strings
@@ -174,7 +174,7 @@ object class
 		if 2swap this [current] !$x src$ [bind] string !$ false else 2drop 2drop true then
 	    until
 	then ;m method split$to$s
-    m: ( ncaddrfd u ncaddrsrc u1 -- ) \ split up ncaddrsrc u1 string with ncaddrfd u string
+    m: ( ncaddrfd u ncaddrsrc u1 strings -- ) \ split up ncaddrsrc u1 string with ncaddrfd u string
 	\ same as split$to$s method but temporary strings are passed to this code
 	\ ncaddrfd u is the string to find
 	\ ncaddrsrc u1 is the string to find ncaddrfd u string in
@@ -189,15 +189,15 @@ object class
 	0 index ! ;m method reset
     m: ( nstrings strings -- ) \ copy strings object to this strings object
 	dup [current] reset
-	dup [current] $qty 0 ?do dup [current] @$x this [current] !$x loop drop ;m method copy$s 
-    m: ( string -- ) \ print object for debugging
+	dup [current] $qty 0 ?do dup [current] @$x this [current] !$x loop drop ;m method copy$s
+    m: ( strings -- ) \ print object for debugging
 	this [parent] print
 	s" array:" type array @ .
 	s" size:" type qty @ .
 	s" iterate index:" type index @ . ;m overrides print
 end-class strings
 
-( \ some test words for memory leak testing 
+( \ some test words for memory leak testing
 0 value testing
 0 value testb
 : stringtest
@@ -236,5 +236,3 @@ end-class strings
     1000 0 ?do ." stringtest" cr stringtest ." stringstest" cr stringstest loop ;
 
 )
-
-
