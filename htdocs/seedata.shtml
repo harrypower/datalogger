@@ -12,9 +12,10 @@
   require ../collection/db-stuff.fs
   require ../collection/svgchart.fs
   require ../collection/script.fs
-  
+
   strings heap-new constant thedate
   string heap-new constant tempargs
+  strings heap-new constant splitargs
 
   time&date
   #to$ thedate !$x \ year
@@ -37,6 +38,14 @@
     tempargs @$ url-args $!
     thedate reset
   [then]
+  url-args $@ tempargs !$
+  s" &" tempargs !+$
+  s" &" tempargs @$ splitargs split$>$s
+  : testit
+  time&date . space . space . space . space . space . space ." <br>"
+  splitargs $qty dup . ." <br>" splitargs reset
+  0 ?do splitargs @$x type ." <br>" loop
+  ; testit
   $>
 <p>url args: <$ url-args $@ type $> </p>
 <h1>Select options below to see the data</h1>
