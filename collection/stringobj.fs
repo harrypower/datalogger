@@ -166,6 +166,8 @@ object class
     m: ( nstring-split$ nstring-source$ strings -- ) \ split up nstring-source$ with nstring-split$
 	\ nstring-source$ is split each time nstring-split$ is found and placed in this strings
 	\ nstring-split$ is removed each time it is found and when no more are found process is done
+  \ Note nstring-source$ string will contain the left over part after last split
+  \ include this string into this strings or add nstring-split$ contents to the source$ before splitting
 	{ sp$ src$ }
 	sp$ [bind] string len$ 0 > src$ [bind] string len$ 0 > and true =
 	if
