@@ -10,7 +10,9 @@
   require ../collection/gforth-misc-tools.fs
   require ../collection/stringobj.fs
   require ../collection/db-stuff.fs
-
+  require ../collection/svgchart.fs
+  require ../collection/script.fs
+  
   strings heap-new constant thedate
   string heap-new constant tempargs
 
