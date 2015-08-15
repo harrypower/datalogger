@@ -164,7 +164,7 @@ object class
 	    if 0 index ! then
 	else 2drop 0 0 0 0 then ;m method split$s
     m: ( nstring-split$ nstring-source$ strings -- ) \ split up nstring-source$ with nstring-split$
-	\ nstring-source$ is split each time nstring-split$ is found and place in this strings
+	\ nstring-source$ is split each time nstring-split$ is found and placed in this strings
 	\ nstring-split$ is removed each time it is found and when no more are found process is done
 	{ sp$ src$ }
 	sp$ [bind] string len$ 0 > src$ [bind] string len$ 0 > and true =
