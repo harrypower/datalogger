@@ -18,6 +18,13 @@
   strings heap-new constant splitargs
   strings heap-new constant parsedargs
   string heap-new constant junk$
+  string heap-new constant alldata$
+  strings heap-new constant xlable
+  strings heap-new constant mindata
+  strings heap-new constant maxdata
+  strings heap-new constant avgdata
+  strings heap-new constant alldatarow
+  string heap-new constant parser
 
   time&date
   #to$ thedate !$x \ year
@@ -96,7 +103,17 @@
   : testit2
     parsedargs $qty dup . ." <br>" parsedargs reset
     0 ?do parsedargs @$x type ." <br>" loop ; testit2
-  parsedargs getlocalNminmaxavg ." <br>" .s ." <br>" type ." <br>"
+  parsedargs getlocalNminmaxavg 2dup alldata$ !$ type ." <br>"
+  : splitdatarows ( -- ) \ take alldata$ and put it in to alldatarow
+    s\" \n" parser !$
+    parser alldata$ alldatarow split$to$s ;
+    splitdatarows
+  : testit3 ( -- )
+    alldatarow $qty 0 do alldatarow @$x type ." <br>" loop ;
+    testit3
+  : splitdatatobins ( -- )
+    ;
+
   $>
 <p>url args: <$ url-args $@ type $> </p>
 <h1>Select options below to see the data</h1>
