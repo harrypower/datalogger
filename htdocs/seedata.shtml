@@ -13,6 +13,8 @@
   require ../collection/svgchart.fs
   require ../collection/script.fs
 
+  true constant testing  \ set to true for testing false no testing
+
   strings heap-new constant thedate
   string heap-new constant tempargs
   strings heap-new constant splitargs
@@ -51,10 +53,11 @@
   url-args $@ tempargs !$
   s" &" tempargs !+$
   s" &" tempargs @$ splitargs split$>$s
+  testing [if]
   : testit
   time&date . space . space . space . space . space . space ." <br>"
   splitargs $qty dup . ." <br>" splitargs reset
-  0 ?do splitargs @$x type ." <br>" loop ; testit
+  0 ?do splitargs @$x type ." <br>" loop ; testit [then]
   : orderargs ( -- ) \ simply place the args in correct order to parsedargs
     splitargs reset splitargs $qty 0
     do splitargs @$x tempargs !$
@@ -94,23 +97,24 @@
     parsedargs @$x splitargs !$x
     parsedargs @$x 1 50 2 test$number splitargs !$x
     parsedargs destruct
-    splitargs parsedargs copy$s
-    ;
+    splitargs parsedargs copy$s ;
     fixargs
+
+  testing [if]
   : testit3
-    splitargs $qty dup . ." <br>" 0 do splitargs @$x type ." <br>" loop ;
-    testit3
+    splitargs $qty dup . ." <br>" 0 do splitargs @$x type ." <br>" loop ; testit3
   : testit2
     parsedargs $qty dup . ." <br>" parsedargs reset
-    0 ?do parsedargs @$x type ." <br>" loop ; testit2
+    0 ?do parsedargs @$x type ." <br>" loop ; testit2 [then]
+
   parsedargs getlocalNminmaxavg 2dup alldata$ !$ type ." <br>"
   : splitdatarows ( -- ) \ take alldata$ and put it in to alldatarow
     s\" \n" parser !$
     parser alldata$ alldatarow split$to$s ;
     splitdatarows
+  testing [if]
   : testit3 ( -- )
-    alldatarow $qty 0 do alldatarow @$x type ." <br>" loop ;
-    testit3
+    alldatarow $qty 0 do alldatarow @$x type ." <br>" loop ; testit3 [then]
   : splitdatatobins ( -- )
     ;
 
