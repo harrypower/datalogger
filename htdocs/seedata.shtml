@@ -15,6 +15,19 @@
 
   true constant testing  \ set to true for testing false no testing
 
+  svgchartmaker heap-new constant asvgchart
+  strings heap-new constant txtattr1
+  strings heap-new constant txtattr2
+  strings heap-new constant mincircleattr
+  strings heap-new constant maxcircleattr
+  strings heap-new constant avgcircleattr
+  strings heap-new constant lablexattr
+  strings heap-new constant lableyattr
+  strings heap-new constant lablelineattr
+  strings heap-new constant mindataattr
+  strings heap-new constant maxdataattr
+  strings heap-new constant avgdataattr
+
   strings heap-new constant thedate
   string heap-new constant tempargs
   strings heap-new constant splitargs
@@ -27,6 +40,63 @@
   strings heap-new constant avgdata
   strings heap-new constant alldatarow
   string heap-new constant parser
+
+  s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" mindataattr !$x
+
+  s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" maxdataattr !$x
+
+  s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" maxdataattr !$x
+
+  s\" fill=\"rgb(255,0,0)\""      txtattr1 !$x
+  s\" fill-opacity=\"1.0\""       txtattr1 !$x
+  s\" stroke=\"rgb(255,0,0)\""    txtattr1 !$x
+  s\" stroke-opacity=\"1.0\""     txtattr1 !$x
+  s\" stroke-width=\"1.0\""       txtattr1 !$x
+  s\" font-size=\"30px\""         txtattr1 !$x
+
+  s\" fill=\"rgb(0,255,0)\""      txtattr2 !$x
+  s\" fill-opacity=\"1.0\""       txtattr2 !$x
+  s\" stroke=\"rgb(0,255,0)\""    txtattr2 !$x
+  s\" stroke-opacity=\"1.0\""     txtattr2 !$x
+  s\" stroke-width=\"1.0\""       txtattr2 !$x
+  s\" font-size=\"30px\""         txtattr2 !$x
+
+  s\" fill=\"rgb(0,0,255)\""      lablexattr !$x
+  s\" fill-opacity=\"1.0\""       lablexattr !$x
+  s\" stroke=\"rgb(0,0,255)\""    lablexattr !$x
+  s\" stroke-opacity=\"1.0\""     lablexattr !$x
+  s\" stroke-width=\"0.8\""       lablexattr !$x
+  s\" font-size=\"10px\""         lablexattr !$x
+
+  s\" fill=\"rgb(0,0,255)\""      lableyattr !$x
+  s\" fill-opacity=\"1.0\""       lableyattr !$x
+  s\" stroke=\"rgb(0,0,255)\""    lableyattr !$x
+  s\" stroke-opacity=\"1.0\""     lableyattr !$x
+  s\" stroke-width=\"1.0\""       lableyattr !$x
+  s\" font-size=\"20px\""         lableyattr !$x
+
+  s\" fill=\"rgb(255,0,0)\""      mincircleattr !$x
+  s\" fill-opacity=\"0.5\""       mincircleattr !$x
+  s\" stroke=\"rgb(255,0,0)\""    mincircleattr !$x
+  s\" stroke-opacity=\"1.0\""     mincircleattr !$x
+  s\" stroke-width=\"2.0\""       mincircleattr !$x
+
+  s\" fill=\"rgb(255,0,0)\""      maxcircleattr !$x
+  s\" fill-opacity=\"0.5\""       maxcircleattr !$x
+  s\" stroke=\"rgb(255,0,0)\""    maxcircleattr !$x
+  s\" stroke-opacity=\"1.0\""     maxcircleattr !$x
+  s\" stroke-width=\"2.0\""       maxcircleattr !$x
+
+  s\" fill=\"rgb(255,0,0)\""      avgcircleattr !$x
+  s\" fill-opacity=\"0.5\""       avgcircleattr !$x
+  s\" stroke=\"rgb(255,0,0)\""    avgcircleattr !$x
+  s\" stroke-opacity=\"1.0\""     avgcircleattr !$x
+  s\" stroke-width=\"2.0\""       avgcircleattr !$x
+
+  s\" fill-opacity=\"0.0\""       lablelineattr !$x
+  s\" stroke=\"rgb(0,255,0)\""    lablelineattr !$x
+  s\" stroke-opacity=\"1.0\""     lablelineattr !$x
+  s\" stroke-width=\"1.0\""       lablelineattr !$x
 
   time&date
   #to$ thedate !$x \ year
@@ -107,19 +177,57 @@
     parsedargs $qty dup . ." <br>" parsedargs reset
     0 ?do parsedargs @$x type ." <br>" loop ; testit2 [then]
 
-  parsedargs getlocalNminmaxavg 2dup alldata$ !$ type ." <br>"
+  parsedargs getlocalNminmaxavg alldata$ !$
+  testing [if] alldata$ @$ type ." <br>" [then]
   : splitdatarows ( -- ) \ take alldata$ and put it in to alldatarow
     s\" \n" parser !$
     parser alldata$ alldatarow split$to$s ;
-    splitdatarows
+  splitdatarows
+
   testing [if]
   : testit3 ( -- )
     alldatarow $qty 0 do alldatarow @$x type ." <br>" loop ; testit3 [then]
-  : splitdatatobins ( -- )
-    ;
 
-  $>
-<p>url args: <$ url-args $@ type $> </p>
+  : splitdatatobins ( -- )
+    alldatarow reset
+    alldatarow $qty 0 ?do
+      alldatarow @$x junk$ !$ s" ," junk$ split$ drop
+      2swap xlable !$x junk$ !$ s" ," junk$ split$ drop
+      2swap mindata !$x junk$ !$ s" ," junk$ split$ drop
+      2swap maxdata !$x junk$ !$ s" ," junk$ split$ drop
+      2drop avgdata !$x
+    loop ;
+  splitdatatobins
+
+  testing [if]
+  : testit4 ( -- )
+    ." lables <br>" xlable $qty 0 do xlable @$x type ." <br>" loop
+    ." mindata <br>" mindata $qty 0 do mindata @$x type ." <br>" loop
+    ." maxdata <br>" maxdata $qty 0 do maxdata @$x type ." <br>" loop
+    ." avgdata <br>" avgdata $qty 0 do avgdata @$x type ." <br>" loop ; testit4 [then]
+   $>
+
+<$ testing [if] ." <p>url args:" url-args $@ type ." </p>" [then] $>
+<$
+\ *** min chart ***
+xlable reset mindata reset asvgchart construct
+100 1500 200     asvgchart setchart-prop
+3                asvgchart setdtpts-circle-prop
+200 40 10 4 10   asvgchart setylable-prop
+4 10 30 0        asvgchart setylable-text-prop
+140 10 90        asvgchart setxlable-prop
+
+xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
+mindata mindataattr mincircleattr asvgchart setdata
+s" min" junk$ !$
+junk$ 800 30 txtattr2 asvgchart settext
+asvgchart makechart dup false =
+[if]
+   drop type
+[else]
+   ." Error in getting data or rendering data: " #to$ type
+[then]
+$>
 <h1>Select options below to see the data</h1>
 <form action="seedata.shtml"  method="get">
 Data to view:
@@ -149,5 +257,6 @@ Quantity of data to view:
 </form>
 
 <p>Submit to see the selected data!</p>
+<p>Current server time: <$ s" date" shget drop type $> </p>
 </body>
 </html>
