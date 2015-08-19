@@ -13,11 +13,12 @@
   require ../collection/svgchart.fs
   require ../collection/script.fs
 
-  true constant testing  \ set to true for testing false no testing
+  false constant testing  \ set to true for testing false no testing
 
   svgchartmaker heap-new constant asvgchart
   strings heap-new constant txtattr1
   strings heap-new constant txtattr2
+  strings heap-new constant txtattr3
   strings heap-new constant mincircleattr
   strings heap-new constant maxcircleattr
   strings heap-new constant avgcircleattr
@@ -43,9 +44,9 @@
 
   s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" mindataattr !$x
 
-  s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" maxdataattr !$x
+  s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" maxdataattr !$x
 
-  s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" maxdataattr !$x
+  s\" style=\"stroke: #0000ff; stroke-width:1; fill:none;\"" avgdataattr !$x
 
   s\" fill=\"rgb(255,0,0)\""      txtattr1 !$x
   s\" fill-opacity=\"1.0\""       txtattr1 !$x
@@ -60,6 +61,13 @@
   s\" stroke-opacity=\"1.0\""     txtattr2 !$x
   s\" stroke-width=\"1.0\""       txtattr2 !$x
   s\" font-size=\"30px\""         txtattr2 !$x
+
+  s\" fill=\"rgb(0,0,255)\""      txtattr3 !$x
+  s\" fill-opacity=\"1.0\""       txtattr3 !$x
+  s\" stroke=\"rgb(0,0,255)\""    txtattr3 !$x
+  s\" stroke-opacity=\"1.0\""     txtattr3 !$x
+  s\" stroke-width=\"1.0\""       txtattr3 !$x
+  s\" font-size=\"30px\""         txtattr3 !$x
 
   s\" fill=\"rgb(0,0,255)\""      lablexattr !$x
   s\" fill-opacity=\"1.0\""       lablexattr !$x
@@ -81,15 +89,15 @@
   s\" stroke-opacity=\"1.0\""     mincircleattr !$x
   s\" stroke-width=\"2.0\""       mincircleattr !$x
 
-  s\" fill=\"rgb(255,0,0)\""      maxcircleattr !$x
+  s\" fill=\"rgb(0,255,0)\""      maxcircleattr !$x
   s\" fill-opacity=\"0.5\""       maxcircleattr !$x
-  s\" stroke=\"rgb(255,0,0)\""    maxcircleattr !$x
+  s\" stroke=\"rgb(0,255,0)\""    maxcircleattr !$x
   s\" stroke-opacity=\"1.0\""     maxcircleattr !$x
   s\" stroke-width=\"2.0\""       maxcircleattr !$x
 
-  s\" fill=\"rgb(255,0,0)\""      avgcircleattr !$x
+  s\" fill=\"rgb(0,0,255)\""      avgcircleattr !$x
   s\" fill-opacity=\"0.5\""       avgcircleattr !$x
-  s\" stroke=\"rgb(255,0,0)\""    avgcircleattr !$x
+  s\" stroke=\"rgb(0,0,255)\""    avgcircleattr !$x
   s\" stroke-opacity=\"1.0\""     avgcircleattr !$x
   s\" stroke-width=\"2.0\""       avgcircleattr !$x
 
@@ -209,7 +217,6 @@
 
 <$ testing [if] ." <p>url args:" url-args $@ type ." </p>" [then] $>
 <$
-\ *** min chart ***
 xlable reset mindata reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
@@ -219,8 +226,16 @@ xlable reset mindata reset asvgchart construct
 
 xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
 mindata mindataattr mincircleattr asvgchart setdata
+maxdata maxdataattr maxcircleattr asvgchart setdata
+avgdata avgdataattr avgcircleattr asvgchart setdata
+
 s" min" junk$ !$
-junk$ 800 30 txtattr2 asvgchart settext
+junk$ 800 30 txtattr1 asvgchart settext
+s" max" junk$ !$
+junk$ 800 50 txtattr2 asvgchart settext
+s" avg" junk$ !$
+junk$ 800 70 txtattr3 asvgchart settext
+
 asvgchart makechart dup false =
 [if]
    drop type
