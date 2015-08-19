@@ -13,7 +13,7 @@
   require ../collection/svgchart.fs
   require ../collection/script.fs
 
-  false constant testing  \ set to true for testing false no testing
+  true constant testing  \ set to true for testing false no testing
 
   svgchartmaker heap-new constant asvgchart
   strings heap-new constant txtattr1
@@ -41,6 +41,7 @@
   strings heap-new constant avgdata
   strings heap-new constant alldatarow
   string heap-new constant parser
+  string heap-new constant datatype
 
   s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" mindataattr !$x
 
@@ -177,6 +178,7 @@
     parsedargs destruct
     splitargs parsedargs copy$s ;
     fixargs
+    0 parsedargs []@$ datatype !$
 
   testing [if]
   : testit3
@@ -213,6 +215,7 @@
     ." mindata <br>" mindata $qty 0 do mindata @$x type ." <br>" loop
     ." maxdata <br>" maxdata $qty 0 do maxdata @$x type ." <br>" loop
     ." avgdata <br>" avgdata $qty 0 do avgdata @$x type ." <br>" loop ; testit4 [then]
+\   testing [if] ." <br>" 0 parsedargs []@$ type ." <br>" [then]
    $>
 
 <$ testing [if] ." <p>url args:" url-args $@ type ." </p>" [then] $>
@@ -229,11 +232,12 @@ mindata mindataattr mincircleattr asvgchart setdata
 maxdata maxdataattr maxcircleattr asvgchart setdata
 avgdata avgdataattr avgcircleattr asvgchart setdata
 
-s" min" junk$ !$
+
+s" min " junk$ !$ datatype @$ junk$ !+$ \ 0 parsedargs []@$ junk$ !+$
 junk$ 800 30 txtattr1 asvgchart settext
-s" max" junk$ !$
+s" max " junk$ !$ \ 0 parsedargs []@$ junk$ !+$
 junk$ 800 50 txtattr2 asvgchart settext
-s" avg" junk$ !$
+s" avg " junk$ !$ \ 0 parsedargs []@$ junk$ !+$
 junk$ 800 70 txtattr3 asvgchart settext
 
 asvgchart makechart dup false =
