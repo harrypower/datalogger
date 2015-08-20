@@ -403,8 +403,12 @@ string heap-new constant junky$
   { settings }
   setupsqlite3
   6 settings []@$ throw s>number? drop d>s 60 * cells mkretbuff
-  s" select strftime('%Y-%m-%d %H:%M',dtime,'unixepoch','utc'),min(" temp$ !$
-  0 settings []@$ throw temp$ !+$ s" ),max(" temp$ !+$
+  5 settings []@$ throw s" H" compare 0 = if
+  s" select strftime('%Y-%m-%d %H',dtime,'unixepoch','utc'),min(" temp$ !$
+  else
+  s" select strftime('%Y-%m-%d',dtime,'unixepoch','utc'),min(" temp$ !$
+  then
+    0 settings []@$ throw temp$ !+$ s" ),max(" temp$ !+$
   0 settings []@$ throw temp$ !+$ s" ),avg(" temp$ !+$
   0 settings []@$ throw temp$ !+$ s" ) from localData where (strftime('%s',dtime,'unixepoch','utc') > strftime('%s','" temp$ !+$
   1 settings []@$ throw temp$ !+$ s" -" temp$ !+$

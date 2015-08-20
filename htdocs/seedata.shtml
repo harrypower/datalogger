@@ -16,6 +16,7 @@
   false constant testing  \ set to true for testing false no testing
 
   svgchartmaker heap-new constant asvgchart
+  strings heap-new constant txtattr
   strings heap-new constant txtattr1
   strings heap-new constant txtattr2
   strings heap-new constant txtattr3
@@ -42,11 +43,18 @@
   strings heap-new constant alldatarow
   string heap-new constant parser
 
-  s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" mindataattr !$x
+  s\" style=\"stroke: #0000ff; stroke-width:1; fill:none;\"" mindataattr !$x
 
-  s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" maxdataattr !$x
+  s\" style=\"stroke: #ff0000; stroke-width:1; fill:none;\"" maxdataattr !$x
 
-  s\" style=\"stroke: #0000ff; stroke-width:1; fill:none;\"" avgdataattr !$x
+  s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" avgdataattr !$x
+
+  s\" fill=\"rgb(0,0,0)\""      txtattr !$x
+  s\" fill-opacity=\"1.0\""       txtattr !$x
+  s\" stroke=\"rgb(0,0,0)\""    txtattr !$x
+  s\" stroke-opacity=\"1.0\""     txtattr !$x
+  s\" stroke-width=\"1.0\""       txtattr !$x
+  s\" font-size=\"30px\""         txtattr !$x
 
   s\" fill=\"rgb(255,0,0)\""      txtattr1 !$x
   s\" fill-opacity=\"1.0\""       txtattr1 !$x
@@ -83,21 +91,21 @@
   s\" stroke-width=\"1.0\""       lableyattr !$x
   s\" font-size=\"20px\""         lableyattr !$x
 
-  s\" fill=\"rgb(255,0,0)\""      mincircleattr !$x
+  s\" fill=\"rgb(0,0,255)\""      mincircleattr !$x
   s\" fill-opacity=\"0.5\""       mincircleattr !$x
-  s\" stroke=\"rgb(255,0,0)\""    mincircleattr !$x
+  s\" stroke=\"rgb(0,0,255)\""    mincircleattr !$x
   s\" stroke-opacity=\"1.0\""     mincircleattr !$x
   s\" stroke-width=\"2.0\""       mincircleattr !$x
 
-  s\" fill=\"rgb(0,255,0)\""      maxcircleattr !$x
+  s\" fill=\"rgb(255,0,0)\""      maxcircleattr !$x
   s\" fill-opacity=\"0.5\""       maxcircleattr !$x
-  s\" stroke=\"rgb(0,255,0)\""    maxcircleattr !$x
+  s\" stroke=\"rgb(255,0,0)\""    maxcircleattr !$x
   s\" stroke-opacity=\"1.0\""     maxcircleattr !$x
   s\" stroke-width=\"2.0\""       maxcircleattr !$x
 
-  s\" fill=\"rgb(0,0,255)\""      avgcircleattr !$x
+  s\" fill=\"rgb(0,255,0)\""      avgcircleattr !$x
   s\" fill-opacity=\"0.5\""       avgcircleattr !$x
-  s\" stroke=\"rgb(0,0,255)\""    avgcircleattr !$x
+  s\" stroke=\"rgb(0,255,0)\""    avgcircleattr !$x
   s\" stroke-opacity=\"1.0\""     avgcircleattr !$x
   s\" stroke-width=\"2.0\""       avgcircleattr !$x
 
@@ -230,13 +238,14 @@ mindata mindataattr mincircleattr asvgchart setdata
 maxdata maxdataattr maxcircleattr asvgchart setdata
 avgdata avgdataattr avgcircleattr asvgchart setdata
 
-
-s" min " junk$ !$  0 parsedargs []@$ drop junk$ !+$
-junk$ 800 30 txtattr1 asvgchart settext
-s" max " junk$ !$ 0 parsedargs []@$ drop junk$ !+$
-junk$ 800 50 txtattr2 asvgchart settext
-s" avg " junk$ !$ 0 parsedargs []@$ drop junk$ !+$
-junk$ 800 70 txtattr3 asvgchart settext
+0 parsedargs []@$ drop junk$ !$ s"  chart" junk$ !+$
+junk$ 800 30 txtattr asvgchart settext
+s" min " junk$ !$ \ 0 parsedargs []@$ drop junk$ !+$
+junk$ 750 60 txtattr3 asvgchart settext
+s" max " junk$ !$ \ 0 parsedargs []@$ drop junk$ !+$
+junk$ 850 60 txtattr1 asvgchart settext
+s" avg " junk$ !$ \ 0 parsedargs []@$ drop junk$ !+$
+junk$ 950 60 txtattr2 asvgchart settext
 
 asvgchart makechart dup false =
 [if]
