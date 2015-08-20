@@ -172,6 +172,12 @@
       2drop
       nmin #to$ ndigits test$size
      then ;
+  : Hdonly ( caddr u -- caddr1 u1 ) \ test for H or d and if not found default to H
+    { caddr u }
+    caddr u s" H" compare 0 if caddr u else
+    caddr u s" d" compare 0 if caddr u else s" H" then
+    then ;
+
   : fixargs ( -- ) \ ensure day month day hour are two digit strings
     parsedargs reset
     splitargs destruct
@@ -181,7 +187,7 @@
     parsedargs @$x 1 31 2 test$number splitargs !$x
     parsedargs @$x 0 23 2 test$number splitargs !$x
     parsedargs @$x splitargs !$x
-    parsedargs @$x 1 50 2 test$number splitargs !$x
+    parsedargs @$x 1 100 2 test$number splitargs !$x
     parsedargs destruct
     splitargs parsedargs copy$s ;
     fixargs
@@ -278,7 +284,7 @@ Time frame to view:
   <option value="d">Day</option>
 </select><br>
 Quantity of data to view:
-<input type="number" name="quantity" min="1" max="50" value="1"><br>
+<input type="number" name="quantity" min="1" max="100" value="1"><br>
 <input type="submit" value="submit">
 </form>
 
