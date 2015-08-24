@@ -110,7 +110,7 @@
   s\" stroke-width=\"2.0\""       avgcircleattr !$x
 
   s\" fill-opacity=\"0.0\""       lablelineattr !$x
-  s\" stroke=\"rgb(0,255,0)\""    lablelineattr !$x
+  s\" stroke=\"rgb(0,0,0)\""      lablelineattr !$x
   s\" stroke-opacity=\"1.0\""     lablelineattr !$x
   s\" stroke-width=\"1.0\""       lablelineattr !$x
 
@@ -242,9 +242,9 @@
   output ;
 
 xlable reset mindata reset asvgchart construct
-100 1500 200     asvgchart setchart-prop
+100 1500 300     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
-200 40 10 4 10   asvgchart setylable-prop
+150 100 20 5 15   asvgchart setylable-prop
 decsize 10 30 0  asvgchart setylable-text-prop
 140 10 90        asvgchart setxlable-prop
 
