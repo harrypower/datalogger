@@ -264,32 +264,35 @@ asvgchart makechart dup false =
 [else]
    ." Error in getting data or rendering data: " #to$ type
 [then]
+
+: testselection ( n caddr u -- ) \ test selection n for string caddr u and if found type selected="selected" to stdout
+  rot parsedargs []@$ drop compare 0 = if s\"  selected=\"selected\"" type then ;
 $>
 <h1>Select options below to see the data</h1>
 <form action="seedata.shtml"  method="get">
 Data to view:
 <select name="data">
-  <option value="co2">co2</option>
-  <option value="nh3">nh3</option>
-  <option value="temp">Temperature</option>
-  <option value="humd">Humidity</option>
-  <option value="pressure">Pressure</option>
+  <option <$ 0 s" co2" testselection $> value="co2">co2</option>
+  <option <$ 0 s" nh3" testselection $> value="nh3">nh3</option>
+  <option <$ 0 s" temp" testselection $> value="temp">Temperature</option>
+  <option <$ 0 s" humd" testselection $> value="humd">Humidity</option>
+  <option <$ 0 s" pressure" testselection $> value="pressure">Pressure</option>
 </select><br>
 Start Year:
-<input type="number" name="year" min="2015" max="2020" <$ s\" value=\"" type thedate @$x type $> "><br>
+<input type="number" name="year" min="2015" max="2020" <$ s\" value=\"" type 1 parsedargs []@$ drop type $> "><br>
 Start Month:
-<input type="number" name="month" min="1" max="12" <$ s\" value=\"" type thedate @$x type $> "><br>
+<input type="number" name="month" min="1" max="12" <$ s\" value=\"" type 2 parsedargs []@$ drop type $> "><br>
 Start Day:
-<input type="number" name="day" min="1" max="31" <$ s\" value=\"" type thedate @$x type $> "><br>
+<input type="number" name="day" min="1" max="31" <$ s\" value=\"" type 3 parsedargs []@$ drop type $> "><br>
 Start Hour:
-<input type="number" name="hour" min="0" max="23" <$ s\" value=\"" type thedate @$x type $> "><br>
+<input type="number" name="hour" min="0" max="23" <$ s\" value=\"" type 4 parsedargs []@$ drop type $> "><br>
 Time frame to view:
 <select name="time">
-  <option value="H">Hour</option>
-  <option value="d">Day</option>
+  <option <$ 5 s" H" testselection $> value="H">Hour</option>
+  <option <$ 5 s" d" testselection $> value="d">Day</option>
 </select><br>
 Quantity of data to view:
-<input type="number" name="quantity" min="1" max="100" value="1"><br>
+<input type="number" name="quantity" min="1" max="100" <$ s\" value=\"" type 6 parsedargs []@$ drop type $> "><br>
 <input type="submit" value="submit">
 </form>
 
