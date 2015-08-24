@@ -232,6 +232,11 @@
 
 <$ testing [if] ." <p>url args:" url-args $@ type ." </p>" [then] $>
 <$
+: decsize ( caddr u -- n ) \ return decimal size based on the data value input string
+  { caddr u }
+
+;
+
 xlable reset mindata reset asvgchart construct
 100 1500 200     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
