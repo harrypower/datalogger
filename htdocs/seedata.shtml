@@ -132,7 +132,7 @@
     thedate @$x tempargs !+$
     s" &hour=" tempargs !+$
     thedate @$x tempargs !+$
-    s" &time=H&quantity=30" tempargs !+$
+    s" &time=H&quantity=24" tempargs !+$
     tempargs @$ url-args $!
     thedate reset
   [then]
