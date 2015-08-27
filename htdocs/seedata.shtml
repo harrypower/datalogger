@@ -253,8 +253,11 @@ mindata mindataattr mincircleattr asvgchart setdata
 maxdata maxdataattr maxcircleattr asvgchart setdata
 avgdata avgdataattr avgcircleattr asvgchart setdata
 
-0 parsedargs []@$ drop junk$ !$ s"  chart" junk$ !+$
-junk$ 800 30 txtattr asvgchart settext
+0 parsedargs []@$ drop junk$ !$ s"  Chart" junk$ !+$
+0 parsedargs []@$ drop s" temp" compare 0 = [if] s" Temperature Chart" junk$ !$ [then]
+0 parsedargs []@$ drop s" humd" compare 0 = [if] s" Humidity Chart" junk$ !$ [then]
+0 parsedargs []@$ drop s" pressure" compare 0 = [if] s" Pressure Chart" junk$ !$ [then]
+junk$ 750 30 txtattr asvgchart settext
 s" min " junk$ !$ \ 0 parsedargs []@$ drop junk$ !+$
 junk$ 750 60 txtattr3 asvgchart settext
 s" max " junk$ !$ \ 0 parsedargs []@$ drop junk$ !+$
