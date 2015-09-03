@@ -25,6 +25,8 @@
   strings heap-new constant avgcircleattr
   strings heap-new constant lablexattr
   strings heap-new constant lableyattr
+  strings heap-new constant specialxattr
+  strings heap-new constant specialyattr
   strings heap-new constant lablelineattr
   strings heap-new constant mindataattr
   strings heap-new constant maxdataattr
@@ -49,9 +51,9 @@
 
   s\" style=\"stroke: #00ff00; stroke-width:1; fill:none;\"" avgdataattr !$x
 
-  s\" fill=\"rgb(0,0,0)\""      txtattr !$x
+  s\" fill=\"rgb(0,0,0)\""        txtattr !$x
   s\" fill-opacity=\"1.0\""       txtattr !$x
-  s\" stroke=\"rgb(0,0,0)\""    txtattr !$x
+  s\" stroke=\"rgb(0,0,0)\""      txtattr !$x
   s\" stroke-opacity=\"1.0\""     txtattr !$x
   s\" stroke-width=\"1.0\""       txtattr !$x
   s\" font-size=\"30px\""         txtattr !$x
@@ -84,12 +86,27 @@
   s\" stroke-width=\"0.8\""       lablexattr !$x
   s\" font-size=\"10px\""         lablexattr !$x
 
+  s\" fill=\"rgb(0,0,255)\""      specialxattr !$x
+  s\" fill-opacity=\"1.0\""       specialxattr !$x
+  s\" stroke=\"rgb(0,0,255)\""    specialxattr !$x
+  s\" stroke-opacity=\"1.0\""     specialxattr !$x
+  s\" stroke-width=\"0.8\""       specialxattr !$x
+  s\" font-size=\"20px\""         specialxattr !$x
+
   s\" fill=\"rgb(0,0,255)\""      lableyattr !$x
   s\" fill-opacity=\"1.0\""       lableyattr !$x
   s\" stroke=\"rgb(0,0,255)\""    lableyattr !$x
   s\" stroke-opacity=\"1.0\""     lableyattr !$x
   s\" stroke-width=\"1.0\""       lableyattr !$x
   s\" font-size=\"20px\""         lableyattr !$x
+
+  s\" fill=\"rgb(0,0,255)\""      specialyattr !$x
+  s\" fill-opacity=\"1.0\""       specialyattr !$x
+  s\" stroke=\"rgb(0,0,255)\""    specialyattr !$x
+  s\" stroke-opacity=\"1.0\""     specialyattr !$x
+  s\" stroke-width=\"1.0\""       specialyattr !$x
+  s\" font-size=\"20px\""         specialyattr !$x
+  s\" transform=\"rotate(-90,20,350)\"" specialyattr !$x
 
   s\" fill=\"rgb(0,0,255)\""      mincircleattr !$x
   s\" fill-opacity=\"0.5\""       mincircleattr !$x
@@ -244,31 +261,39 @@
 xlable reset mindata reset asvgchart construct
 100 1500 300     asvgchart setchart-prop
 3                asvgchart setdtpts-circle-prop
-150 130 20 5 15   asvgchart setylable-prop
-decsize 10 30 0  asvgchart setylable-text-prop
-140 10 90        asvgchart setxlable-prop
+160 80 30 5 15  asvgchart setylable-prop
+decsize 10 40 0  asvgchart setylable-text-prop
+160 10 90        asvgchart setxlable-prop
 
 xlable lablexattr lableyattr lablelineattr asvgchart setlabledataattr
 mindata mindataattr mincircleattr asvgchart setdata
 maxdata maxdataattr maxcircleattr asvgchart setdata
 avgdata avgdataattr avgcircleattr asvgchart setdata
 
-\ 0 parsedargs []@$ drop junk$ !$ s"  Chart" junk$ !+$
-0 parsedargs []@$ drop s" co2" compare 0 = [if] s" co2 (relative values 0 is low 1 is high)" junk$ !$ [then]
-0 parsedargs []@$ drop s" nh3" compare 0 = [if] s" nh3 (relative values 0 is low 1 is high)" junk$ !$ [then]
-0 parsedargs []@$ drop s" temp" compare 0 = [if] s" Temperature (degrees celsius)" junk$ !$ [then]
-0 parsedargs []@$ drop s" humd" compare 0 = [if] s" Humidity (% relative humidity)" junk$ !$ [then]
+\ main chart lable
+0 parsedargs []@$ drop s" co2" compare 0 = [if] s" co2 (relative values)" junk$ !$ [then]
+0 parsedargs []@$ drop s" nh3" compare 0 = [if] s" nh3 (relative values)" junk$ !$ [then]
+0 parsedargs []@$ drop s" temp" compare 0 = [if] s" Temperature" junk$ !$ [then]
+0 parsedargs []@$ drop s" humd" compare 0 = [if] s" Humidity" junk$ !$ [then]
 0 parsedargs []@$ drop s" pressure" compare 0 = [if] s" Pressure (pascal)" junk$ !$ [then]
-junk$ 600 30 txtattr asvgchart settext
+junk$ 750 30 txtattr asvgchart settext
+\ y chart common lable
+0 parsedargs []@$ drop s" co2" compare 0 = [if] s" 0 is low 1 is high" junk$ !$ [then]
+0 parsedargs []@$ drop s" nh3" compare 0 = [if] s" 0 is low 1 is high" junk$ !$ [then]
+0 parsedargs []@$ drop s" humd" compare 0 = [if] s" % relative humidity" junk$ !$ [then]
+0 parsedargs []@$ drop s" temp" compare 0 = [if] s" celsius" junk$ !$ [then]
+0 parsedargs []@$ drop s" pressure" compare 0 = [if] s" pascal" junk$ !$ [then]
+junk$ 20 350 specialyattr asvgchart settext
+\ x chart common lable
 5 parsedargs []@$ drop s" H" compare 0 = [if] s" Time in UTC.  Data is grouped by hour!" junk$ !$ [then]
 5 parsedargs []@$ drop s" d" compare 0 = [if] s" Time in UTC.  Data is grouped by day!" junk$ !$ [then]
-junk$ 600 60 txtattr asvgchart settext
+junk$ 600 520 specialxattr asvgchart settext
 s" min " junk$ !$
-junk$ 750 90 txtattr3 asvgchart settext
+junk$ 750 60 txtattr3 asvgchart settext
 s" max " junk$ !$
-junk$ 850 90 txtattr1 asvgchart settext
+junk$ 850 60 txtattr1 asvgchart settext
 s" avg " junk$ !$
-junk$ 950 90 txtattr2 asvgchart settext
+junk$ 950 60 txtattr2 asvgchart settext
 
 asvgchart makechart dup false =
 [if]
