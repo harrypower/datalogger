@@ -206,12 +206,15 @@ string heap-new constant junky$
     s" " sqlmessg rseparator-$ z$!
     s" select error from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
-    s" select errorText from errorList where error = " temp$ !$ temp$ !+$
-    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ junky$ !$
-    s" ," sqlmessg fseparator-$ z$!
-    s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
-    s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
-    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ temp$ !$ junky$ @$ temp$ !+$ temp$ @$ ;
+    dup 0 <>
+    if  \ test for an error and if not found just return a null string
+      s" select errorText from errorList where error = " temp$ !$ temp$ !+$
+      temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ junky$ !$
+      s" ," sqlmessg fseparator-$ z$!
+      s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
+      s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
+      temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ temp$ !$ junky$ @$ temp$ !+$ temp$ @$
+    then ;
 
 : lastlocalerror#@ ( -- ncaddr-error uerror ) \ retreave the last error stored in errors table
     setupsqlite3

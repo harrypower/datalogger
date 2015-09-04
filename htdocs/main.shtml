@@ -31,6 +31,8 @@ $>
 <h1> Last Database entry: </h1>
 <p> <$ lastlocaldata@ dberrmsg dup false = [if] drop 2drop type [else] . space type 2drop [then] $> </p>
 <h2> Last Error </h2>
-<p> <$ lastlocalerror$@ type $> </p>
+<p> <$ lastlocalerror$@ type $> </p><br><br>
+<h2><a href="see100.shtml">Chart of last 100 data points of all sensors!</a></h2><br>
+<h2><a href="seedata.shtml">Chart any selected data points of any sensor!</a></h2>
 </body>
 </html>
