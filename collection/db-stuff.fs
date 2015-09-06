@@ -64,12 +64,12 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ if a resend sqlite3 cmd fails then that error is thrown
     \ all other errors will throw that are behond the scope of recovery in this code!
     case
-	5     of sqlite3-resend-time ms sendsqlite3cmd throw  endof \ database is locked now
-	6     of sqlite3-resend-time ms sendsqlite3cmd throw  endof \ table is locked now
-	sqlerrors retbuffover-err @
-	of sqlmessg retbuffmaxsize-cell @ 2 * mkretbuff sendsqlite3cmd throw  endof \ buffer overflow from sqlite3
-	\ might want to limit this buffer resize to 10k bytes or something like that
-	dup throw
+    	5     of sqlite3-resend-time ms sendsqlite3cmd throw  endof \ database is locked now
+    	6     of sqlite3-resend-time ms sendsqlite3cmd throw  endof \ table is locked now
+    	sqlerrors retbuffover-err @
+    	of sqlmessg retbuffmaxsize-cell @ 2 * mkretbuff sendsqlite3cmd throw  endof \ buffer overflow from sqlite3
+    	\ might want to limit this buffer resize to 10k bytes or something like that
+    	dup throw
     endcase ;
 
 2157 constant db-ok
@@ -79,11 +79,11 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is db-errors is returned if ok was not returned from sqlite3
     \ nflag can also return other system or sqlite3 messages
     try
-	setupsqlite3
-	s" pragma integrity_check;" dbcmds
-	sendsqlite3cmd dberrorthrow
-	dbret$ s" ok" search -rot 2drop true = if db-ok throw then
-	dbret$ s" ok" search -rot 2drop false = if db-errors throw then
+    	setupsqlite3
+    	s" pragma integrity_check;" dbcmds
+    	sendsqlite3cmd dberrorthrow
+    	dbret$ s" ok" search -rot 2drop true = if db-ok throw then
+    	dbret$ s" ok" search -rot 2drop false = if db-errors throw then
     restore
     endtry ;
 
@@ -95,13 +95,13 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is some error either  +1 to +110 for some sqlite3 error
     \ nflag is some error either -1 to -x for some system error or other returned error defined with exception
     try
-	buffer$ !$
-	setupsqlite3
-	s" " dbfieldseparator
-	s" " dbrecordseparator
-	s" select name from sqlite_master where name = '" temp$ !$ buffer$ @$ temp$ !+$ s" ';" temp$ !+$ temp$ @$ dbcmds
-	sendsqlite3cmd dberrorthrow
-	dbret$ buffer$ @$ search -rot 2drop true = if table-yes throw else table-no throw then
+    	buffer$ !$
+    	setupsqlite3
+    	s" " dbfieldseparator
+    	s" " dbrecordseparator
+    	s" select name from sqlite_master where name = '" temp$ !$ buffer$ @$ temp$ !+$ s" ';" temp$ !+$ temp$ @$ dbcmds
+    	sendsqlite3cmd dberrorthrow
+    	dbret$ buffer$ @$ search -rot 2drop true = if table-yes throw else table-no throw then
     restore swap drop swap drop
     endtry ;
 
@@ -115,14 +115,14 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
 
 : error-sqlite3! ( nerror -- ) \ used to store error values into errors table
     try
-	setupsqlite3
-	s" insert into errors values(NULL," temp$ !$
-	datetime$ temp$ !+$   \ dtime
-	#to$ temp$ !+$        \ error
-	s" ,0 );" temp$ !+$   \ errorSent ( false for not sent and true for sent )
-	temp$ @$ dbcmds
-	sendsqlite3cmd  dberrorthrow
-	false
+    	setupsqlite3
+    	s" insert into errors values(NULL," temp$ !$
+    	datetime$ temp$ !+$   \ dtime
+    	#to$ temp$ !+$        \ error
+    	s" ,0 );" temp$ !+$   \ errorSent ( false for not sent and true for sent )
+    	temp$ @$ dbcmds
+    	sendsqlite3cmd  dberrorthrow
+    	false
     restore if drop then \ note this word will not pass any errors upwards so nothing is returned !
     endtry ;
 
@@ -133,31 +133,31 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     \ nflag is error-no if nsyserror is not in the dbase
     \ nflag can be other error numbers
     try
-	setupsqlite3
-	s" " dbfieldseparator
-	s" " dbrecordseparator
-	s" select error from errorList where (error = " temp$ !$
-	nsyserror #to$ temp$ !+$
-	s" );" temp$ !+$ temp$ @$ dbcmds
-	sendsqlite3cmd dberrorthrow
-	dbret$ dup 0 =
-	if
-	    \ the error is not in the list at this time
-	    2drop error-no throw
-	else
-	    s>number? false =
-	    if
-		\ number not recieved from errorList query
-		2drop errorlist-number-err throw
-	    else
-		d>s nsyserror <>
-		if
-		    errorlist-number-err throw
-		else
-		    error-yes throw
-		then
-	    then
-	then
+    	setupsqlite3
+    	s" " dbfieldseparator
+    	s" " dbrecordseparator
+    	s" select error from errorList where (error = " temp$ !$
+    	nsyserror #to$ temp$ !+$
+    	s" );" temp$ !+$ temp$ @$ dbcmds
+    	sendsqlite3cmd dberrorthrow
+    	dbret$ dup 0 =
+    	if
+    	    \ the error is not in the list at this time
+    	    2drop error-no throw
+    	else
+    	    s>number? false =
+    	    if
+    		\ number not recieved from errorList query
+    		2drop errorlist-number-err throw
+    	    else
+    		d>s nsyserror <>
+    		if
+    		    errorlist-number-err throw
+    		else
+    		    error-yes throw
+    		then
+    	    then
+    	then
     restore
     endtry ;
 
@@ -165,12 +165,12 @@ next-exception @ constant sqlite-errorListEnd    \ this is end of enumeration of
     setupsqlite3
     dup -2 <>  \ this is needed because -2 error does not report a message even though it is Abort !
     if
-s" insert into errorList values(" temp$ !$
-	dup  #to$, temp$ !+$ s\" \'" temp$ !+$
-	error#to$ temp$ !+$ s\" \');" temp$ !+$ temp$ @$ dbcmds
+      s" insert into errorList values(" temp$ !$
+      dup  #to$, temp$ !+$ s\" \'" temp$ !+$
+	    error#to$ temp$ !+$ s\" \');" temp$ !+$ temp$ @$ dbcmds
     else
-	drop
-	s\" insert into errorList values(-2, \'Abort has occured!\');" dbcmds
+    	drop
+    	s\" insert into errorList values(-2, \'Abort has occured!\');" dbcmds
     then
     sendsqlite3cmd drop \ ****note if there is a sqlite3 error here this new error will not be stored in list*****
     \ **** positive error numbers can come from sqlite3 but the proper string may not get placed in db for the number
@@ -179,19 +179,19 @@ s" insert into errorList values(" temp$ !$
 : errorlist-sqlite3! ( nerror -- ) \ will add the nerror associated string for that error to database
     0 { nerror ntest -- }
     try
-	5 0 ?do \ try to test and store 5 times after that just bail
-	    nerror (errorINlist?) to ntest ntest error-no =
-	    if
-		nerror (puterrorINlist) leave
-	    then
-	    ntest error-yes <>
-	    if
-		i 20 * ms
-	    else
-		leave
-	    then
-	loop
-	false
+    	5 0 ?do \ try to test and store 5 times after that just bail
+    	    nerror (errorINlist?) to ntest ntest error-no =
+    	    if
+    		    nerror (puterrorINlist) leave
+    	    then
+    	    ntest error-yes <>
+    	    if
+    		    i 20 * ms
+    	    else
+    		    leave
+    	    then
+    	loop
+    	false
     restore drop \ nothing returned by this word even if an error happens in this word!
     endtry ;
 
@@ -200,7 +200,19 @@ s" insert into errorList values(" temp$ !$
     errorlist-sqlite3! ;
 
 string heap-new constant junky$
+: errordatatest ( -- nflag ) \ test if there are any errors
+  \ nflag is true if there are errors and false if there are no errors in database
+  setupsqlite3
+  s" " sqlmessg fseparator-$ z$!
+  s" " sqlmessg rseparator-$ z$!
+  s" select max(row) from errors;" temp$ !$
+  temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
+  s" NULL" compare \ if there is no error data then sqlite3 will return NULL so test for it
+  false = if false else true then ;
+
 : lastlocalerror$@ ( -- ncaddr-error uerror ) \ retreave the last error full string with #'s
+  errordatatest true =
+  if
     setupsqlite3
     s" " sqlmessg fseparator-$ z$!
     s" " sqlmessg rseparator-$ z$!
@@ -214,19 +226,24 @@ string heap-new constant junky$
       s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
       s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
       temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ temp$ !$ junky$ @$ temp$ !+$ temp$ @$
-    then ;
+    then
+  else 0 0 then ; \ return empty string if no errors were found in database
 
 : lastlocalerror#@ ( -- ncaddr-error uerror ) \ retreave the last error stored in errors table
+  errordatatest true = if
     setupsqlite3
     s" select row,datetime(dtime,'unixepoch','localtime'),error,errorSent " temp$ !$
     s" from errors limit 1 offset ((select max(row) from errors)-1);" temp$ !+$
-    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
+  else 0 0 then ;
 
 : lastlocalerror#>$@ ( nerrorID -- ncaddr-error uerror ) \ retreave the error string from nerrorID
+errordatatest true = if
     setupsqlite3
     s" select error,errorText from errorList where error = " temp$ !$
     #to$ temp$ !+$ s" ;" temp$ !+$
-    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+    temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$
+  else drop 0 0 then ;
 
 : create-localdata ( -- ) \ create the local table of data from sensors
     setupsqlite3
@@ -407,19 +424,19 @@ string heap-new constant junky$
   setupsqlite3
   6 settings []@$ throw s>number? drop d>s 60 * cells mkretbuff
   5 settings []@$ throw s" H" compare 0 = if
-  s" select strftime('%Y-%m-%d %H',dtime,'unixepoch','utc'),min(" temp$ !$
+    s" select strftime('%Y-%m-%d %H',dtime,'unixepoch','utc'),min(" temp$ !$
   else
-  s" select strftime('%Y-%m-%d',dtime,'unixepoch','utc'),min(" temp$ !$
+    s" select strftime('%Y-%m-%d',dtime,'unixepoch','utc'),min(" temp$ !$
   then
     0 settings []@$ throw temp$ !+$ s" ),max(" temp$ !+$
-  0 settings []@$ throw temp$ !+$ s" ),avg(" temp$ !+$
-  0 settings []@$ throw temp$ !+$ s" ) from localData where (strftime('%s',dtime,'unixepoch','utc') > strftime('%s','" temp$ !+$
-  1 settings []@$ throw temp$ !+$ s" -" temp$ !+$
-  2 settings []@$ throw temp$ !+$ s" -" temp$ !+$
-  3 settings []@$ throw temp$ !+$ s"  " temp$ !+$
-  4 settings []@$ throw temp$ !+$ s" :00','utc')) " temp$ !+$
-  s" group by strftime('" temp$ !+$
-  5 settings []@$ throw s" H" compare 0 = if s" %Y%m%d%H" temp$ !+$ else s" %Y%m%d" temp$ !+$ then
-  s" ',dtime,'unixepoch','utc') order by dtime limit " temp$ !+$
-  6 settings []@$ throw temp$ !+$ s" ;" temp$ !+$
-  temp$ @$ 2dup dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
+    0 settings []@$ throw temp$ !+$ s" ),avg(" temp$ !+$
+    0 settings []@$ throw temp$ !+$ s" ) from localData where (strftime('%s',dtime,'unixepoch','utc') > strftime('%s','" temp$ !+$
+    1 settings []@$ throw temp$ !+$ s" -" temp$ !+$
+    2 settings []@$ throw temp$ !+$ s" -" temp$ !+$
+    3 settings []@$ throw temp$ !+$ s"  " temp$ !+$
+    4 settings []@$ throw temp$ !+$ s" :00','utc')) " temp$ !+$
+    s" group by strftime('" temp$ !+$
+    5 settings []@$ throw s" H" compare 0 = if s" %Y%m%d%H" temp$ !+$ else s" %Y%m%d" temp$ !+$ then
+    s" ',dtime,'unixepoch','utc') order by dtime limit " temp$ !+$
+    6 settings []@$ throw temp$ !+$ s" ;" temp$ !+$
+    temp$ @$ 2dup dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
