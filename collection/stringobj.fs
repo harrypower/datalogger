@@ -12,7 +12,7 @@ object class
 	0 string-size ! ;m overrides construct
     m: ( string -- )     \ free allocated memory for this instance of object
 	this construct   \ note this will only work when object made with heap-new
-        this free ;m method destruct
+        this free throw ;m method destruct
     m: ( caddr u string -- ) \ store string
 	valid @ valid =
 	if
@@ -71,8 +71,10 @@ object class
     m: ( strings -- ) \ initalize strings object
 	valid @ valid =
 	if
-	    array @
-	    if \ deallocate memory allocateed for the array
+	    array @ 0 >
+	    if \ deallocate memory allocated for the array
+		qty @ 0 ?do array @ i cell * + @ destruct loop
+		array @ free throw
 	    then
 	    0 qty !
 	    0 index !
@@ -83,6 +85,9 @@ object class
 	    0 array !
 	    valid valid !
 	then ;m overrides construct
+    m: ( strings -- ) \ deallocate this object and other allocated memory in this object
+	this construct
+	this free throw ;m method destruct
     m: ( caddr u strings -- ) \ store a string in handler
 	array @ 0 =
 	if
@@ -94,8 +99,7 @@ object class
 	    cell qty @ * + dup 
 	    string heap-new swap ! @ !$
 	    qty @ 1+ qty !
-	then
-	0 index ! ;m method $!x
+	then 0 index ! ;m method $!x
     m: ( strings -- caddr u ) \ retrieve string from array at next index
 	qty @ 0 >
 	if
@@ -112,7 +116,6 @@ object class
 	s" array:" type array @ .
 	s" size:" type qty @ .
 	s" iterate index:" type index @ . ;m overrides print
-    
 end-class strings
 
 
@@ -145,7 +148,11 @@ end-class strings
     testc $len . cr
     testc $@x type cr
     testc $@x type cr
-    testc $@x type cr ;
+    testc $@x type cr
+    testc destruct ;
+
+: testall
+    1000 0 ?do ." stringtest" cr stringtest ." stringstest" cr stringstest loop ;
 
 
 
