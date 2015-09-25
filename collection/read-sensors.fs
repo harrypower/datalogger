@@ -19,13 +19,14 @@
 warnings off
 
 require gforth-misc-tools.fs
+require stringobj.fs
 require script.fs
 
 variable junk$
 variable sudo$
 s" sudo " sudo$ $!
 
-strings dict-new constant cmdlist
+strings heap-new constant cmdlist
 
 sudo$ $@ junk$ $!
 path$ $@ junk$ $+!
@@ -44,7 +45,7 @@ junk$ $@ cmdlist $!x  \ humidity tempertaure sensor
  junk$ $@ cmdlist $!x  \ gas sensors
 
 : read+print ( -- )
-    cmdlist $size 0 ?do cmdlist $@x shget throw type s" <br>" type  loop ;
+    cmdlist $len 0 ?do cmdlist $@x shget throw type s" <br>" type  loop ;
 
 \ read+print
 \ bye
