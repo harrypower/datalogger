@@ -49,18 +49,37 @@ object class
 	  175.72e f*
 	  -46.85e fswap f+ fdup 10e f*
 	  f>d d>s swap ;m method calc-temp
-
+      m: ( i2c -- humd )
+	  i2c_handle @ humd_read @ bbbi2cwrite-b throw
+	  i2c_handle @ abuffer 3 bbbi2cread 3 <> throw ;m method read-humd
+      m: ( i2c -- humd nflag )
+	  ( f: -- humd )
+	  this ['] read-humd catch
+	  abuffer c@ 8 lshift
+	  abuffer 1 + c@
+	  %11111100 and +
+	  s>d d>f
+	  65536e f/
+	  125e f*
+	  -6e fswap f+ fdup 10e f*
+	  f>d d>s swap  ;m method calc-humd
     public
       m: ( i2c -- ) \ start all values for i2c usage and htu21d config
 	  0 i2c_handle !
 	  0x40 htu21d_addr !
 	  1 i2c_addr !     \ note this is the i2c port address as enumerated by linux on BBB
+	  \ 1 means i2c-1 but realize this is mapped to i2c-2 device on p9 header of BBB
 	  0xe3 temp_read ! \ this is message for reading temperature 
 	  0xe5 humd_read ! \ this is message for reading humidity 
 	  0 abuffer ! ;m overrides construct
       m: ( i2c -- temp nflag )
+	  this construct
 	  this setup-htu21d throw
 	  this calc-temp throw
 	  this cleanup throw ;m method read-t 
-	  
+      m: ( i2c -- humd nflag )
+	  this construct
+	  this setup-htu21d throw
+	  this calc-humd throw
+	  this cleanup throw ;m method read-h
 end-class htu21d-i2c
