@@ -30,13 +30,37 @@ object class
     cell% inst-var humd_read
     cell% inst-var abuffer     \ this is used as a 3 byte buffer cell% should allocate 4 bytes on 32 bit system
     protected
-      m: ( i2c -- )
-	  0 i2c_handle ! ;m method reset
+      m: ( i2c -- nflag )  \ nflag is true if handle is invalid and false if handle is valid
+	  i2c_addr @ htu21d_addr @ bbbi2copen dup i2c_handle !
+	  true = ;m method setup-htu21d
+      m: ( i2c -- nflag )
+	  i2c_handle @ bbbi2cclose true = ;m method cleanup
+      m: ( i2c -- temp )
+	  i2c_handle @ temp_read @ bbbi2cwrite-b throw
+	  i2c_handle @ abuffer 3 bbbi2cread 3 <> throw ;m method read-temp
+      m: ( i2c -- temp nflag ) \ nflag is true if some reading error happeneded or false if temp is valid
+	  ( f: -- temp )
+	  this ['] read-temp catch 
+	  abuffer c@ 8 lshift
+	  abuffer 1 + c@
+	  %11111100 and +
+	  s>d d>f
+	  65536e f/
+	  175.72e f*
+	  -46.85e fswap f+ fdup 10e f*
+	  f>d d>s swap ;m method calc-temp
+
     public
-      m: ( i2c -- )
-	  this reset ;m method reset2
-      m: ( i2c -- )
-	  5 i2c_handle ! ;m overrides construct
-      m: ( i2c -- )
-	  i2c_handle @ ;m method seeit
+      m: ( i2c -- ) \ start all values for i2c usage and htu21d config
+	  0 i2c_handle !
+	  0x40 htu21d_addr !
+	  1 i2c_addr !     \ note this is the i2c port address as enumerated by linux on BBB
+	  0xe3 temp_read ! \ this is message for reading temperature 
+	  0xe5 humd_read ! \ this is message for reading humidity 
+	  0 abuffer ! ;m overrides construct
+      m: ( i2c -- temp nflag )
+	  this setup-htu21d throw
+	  this calc-temp throw
+	  this cleanup throw ;m method read-t 
+	  
 end-class htu21d-i2c
