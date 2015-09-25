@@ -36,11 +36,11 @@ object class
       m: ( i2c -- nflag )
 	  i2c_handle @ bbbi2cclose true = ;m method cleanup
       m: ( i2c -- temp )
-	  i2c_handle @ temp_read @ bbbi2cwrite-b throw
-	  i2c_handle @ abuffer 3 bbbi2cread 3 <> throw ;m method read-temp
+	  i2c_handle @ temp_read @ bbbi2cwrite-b throw 
+	  i2c_handle @ abuffer 3 bbbi2cread 3 <> throw ;m method read-raw-temp
       m: ( i2c -- temp nflag ) \ nflag is true if some reading error happeneded or false if temp is valid
 	  ( f: -- temp )
-	  this ['] read-temp catch 
+	  this read-raw-temp 
 	  abuffer c@ 8 lshift
 	  abuffer 1 + c@
 	  %11111100 and +
@@ -48,21 +48,32 @@ object class
 	  65536e f/
 	  175.72e f*
 	  -46.85e fswap f+ fdup 10e f*
-	  f>d d>s swap ;m method calc-temp
+	  f>d d>s ;m method calc-temp
       m: ( i2c -- humd )
-	  i2c_handle @ humd_read @ bbbi2cwrite-b throw
-	  i2c_handle @ abuffer 3 bbbi2cread 3 <> throw ;m method read-humd
-      m: ( i2c -- humd nflag )
+	  i2c_handle @ humd_read @ bbbi2cwrite-b throw 
+	  i2c_handle @ abuffer 3 bbbi2cread 3 <> throw ;m method read-raw-humd
+      m: ( i2c -- humd )
 	  ( f: -- humd )
-	  this ['] read-humd catch
+	  this read-raw-humd 
 	  abuffer c@ 8 lshift
 	  abuffer 1 + c@
 	  %11111100 and +
 	  s>d d>f
-	  65536e f/
+	  65536e f/ 
 	  125e f*
 	  -6e fswap f+ fdup 10e f*
-	  f>d d>s swap  ;m method calc-humd
+	  f>d d>s ;m method calc-humd
+      m: ( i2c -- humd )
+	  ( f: -- humd )
+	  this construct
+	  this setup-htu21d throw 
+	  this calc-humd 
+	  this cleanup throw ;m method read-humd
+      m: ( i2c -- temp nflag )
+	  this construct 
+	  this setup-htu21d throw  
+	  this calc-temp 
+	  this cleanup throw ;m method read-temp 
     public
       m: ( i2c -- ) \ start all values for i2c usage and htu21d config
 	  0 i2c_handle !
@@ -72,14 +83,14 @@ object class
 	  0xe3 temp_read ! \ this is message for reading temperature 
 	  0xe5 humd_read ! \ this is message for reading humidity 
 	  0 abuffer ! ;m overrides construct
-      m: ( i2c -- temp nflag )
-	  this construct
-	  this setup-htu21d throw
-	  this calc-temp throw
-	  this cleanup throw ;m method read-t 
       m: ( i2c -- humd nflag )
-	  this construct
-	  this setup-htu21d throw
-	  this calc-humd throw
-	  this cleanup throw ;m method read-h
+	  ( f: -- humd )
+	  this ['] read-humd catch
+	  \ still need to fix this for errors to have floating stack correct
+	  ;m method humidity
+      m: ( i2c -- temp nflag )
+	  ( f: -- humd )
+	  this ['] read-temp catch
+	  ;m method temperature
+      
 end-class htu21d-i2c
