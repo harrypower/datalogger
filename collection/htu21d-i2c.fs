@@ -44,7 +44,7 @@ object class
 	  abuffer c@ 8 lshift
 	  abuffer 1 + c@
 	  %11111100 and +
-	  s>d d>f
+	  s>d d>f  
 	  65536e f/
 	  175.72e f*
 	  -46.85e fswap f+ fdup 10e f*
@@ -75,6 +75,25 @@ object class
 	  this setup-htu21d throw  
 	  this calc-temp 
 	  this cleanup throw ;m method read-temp 
+      m: ( i2c -- humd nflag ) \ if nflag is false humidity is valid ( divid by 10 to get correct value)
+	  ( f: -- humd )       \ float value of humidity valid if nflag is false
+	  this ['] read-humd catch dup 0 <>
+	  if 0e then ;m method humidity
+      m: ( i2c -- temp nflag ) \ if nflag is false temperature is valid ( divid by 10 to get correct value)
+	  ( f: -- temp )       \ float value of temperature valid if nflag is false
+	  this ['] read-temp catch dup 0 <>
+	  if 0e then ;m method temperature
+      m: ( i2c -- temp humd nflag ) \ temp and humd are valid if nflag is false
+	  this temperature throw drop 
+	  this humidity throw drop  \ this is the non corrected humidity value 
+	  fswap fdup 10e f* f>d d>s 
+	  fdup 25e f-               
+	  frot frot fover fover     
+	  f/ 3 fpick                
+	  f* fswap fdrop f+         
+	  fswap fdrop               
+	  10e f* f>d d>s            \ the correction for humidity value is now finished
+	  ;m method read-th
     public
       m: ( i2c -- ) \ start all values for i2c usage and htu21d config
 	  0 i2c_handle !
@@ -84,19 +103,13 @@ object class
 	  0xe3 temp_read ! \ this is message for reading temperature 
 	  0xe5 humd_read ! \ this is message for reading humidity 
 	  0 abuffer ! ;m overrides construct
-      m: ( i2c -- humd nflag ) \ if nflag is false humidity is valid ( divid by 10 to get correct value)
-	  ( f: -- humd )       \ float value of humidity valid if nflag is false
-	  this ['] read-humd catch dup 0 <>
-	  if 0e then ;m method humidity
-      m: ( i2c -- temp nflag ) \ if nflag is false temperature is valid ( divid by 10 to get correct value)
-	  ( f: -- temp )       \ float value of temperature valid if nflag is false
-	  this ['] read-temp catch dup 0 <>
-	  if 0e then ;m method temperature
-      
+      \ note the temp and humd values returned need to be divided by 10 to get correct values
+      m: ( i2c -- temp humd nflag ) \ read corrected temperature and humidity values
+	  this ['] read-th catch dup 0 <>  \ if nflag is false temp and humd are valid only
+	  if swap drop 0 0 rot then ;m method read-temp-humd
 end-class htu21d-i2c
 
 \ use as follows
 \ cr
 \ htu21d-i2c heap-new constant myreadings
-\ myreadings humidity throw ." humidity is: " drop f. cr
-\ myreadings temperature throw ." temperature is: " drop f. cr
+\ myreadings read-temp-humd throw swap ." temperature is: "  . cr ." humidty is: " . cr
