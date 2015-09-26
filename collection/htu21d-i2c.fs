@@ -96,7 +96,7 @@ object class
 end-class htu21d-i2c
 
 \ use as follows
- cr
- htu21d-i2c heap-new constant myreadings
- myreadings humidity throw ." humidity is: " drop f. cr
- myreadings temperature throw ." temperature is: " drop f. cr
+\ cr
+\ htu21d-i2c heap-new constant myreadings
+\ myreadings humidity throw ." humidity is: " drop f. cr
+\ myreadings temperature throw ." temperature is: " drop f. cr
