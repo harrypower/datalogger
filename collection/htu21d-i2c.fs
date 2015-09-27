@@ -2,6 +2,7 @@
 \ This code reads i2c-1 but this should be mapped to i2c-2 device on p9 header.
 \ The method of reading the sensor is 'Hold Master' and this means this sensor
 \ will hold the i2c data lines until a reading is done!
+\ *** Note this code needs to run as root as the i2c library code needs to run as root
 \
 \    Copyright (C) 2015  Philip K. Smith
 
@@ -18,7 +19,6 @@
 \    You should have received a copy of the GNU General Public License
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-\
 require objects.fs
 require ../BBB_Gforth_gpio/BBB_I2C_lib.fs
 
@@ -93,6 +93,7 @@ object class
 	0 abuffer ! ;m overrides construct
 end-class htu21d-i2c
 
-htu21d-i2c heap-new constant test
-test display-th
-test read-temp-humd . . . cr
+\ use this object as follows:
+\ htu21d-i2c heap-new constant myreadings
+\ myreadings display-th
+\ myreadings read-temp-humd . . . cr
