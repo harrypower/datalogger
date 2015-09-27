@@ -38,7 +38,7 @@ object class
       m: ( i2c -- temp )
 	  i2c_handle @ temp_read @ bbbi2cwrite-b throw 
 	  i2c_handle @ abuffer 3 bbbi2cread 3 <> throw ;m method read-raw-temp
-      m: ( i2c -- temp nflag ) \ nflag is true if some reading error happeneded or false if temp is valid
+      m: ( i2c -- temp ) \ nflag is true if some reading error happeneded or false if temp is valid
 	  ( f: -- temp )
 	  this read-raw-temp 
 	  abuffer c@ 8 lshift
