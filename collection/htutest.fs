@@ -29,7 +29,7 @@ object class
     cell% inst-var temp_read
     cell% inst-var humd_read
     cell% inst-var abuffer     \ this is used as a 3 byte buffer cell% should allocate 4 bytes on 32 bit system
-    protected
+  protected
     m: ( i2c -- temp )  \ reads and returns temperature on stack and floaging stack
 	( f: -- temp )
 	i2c_addr @ htu21d_addr @ bbbi2copen dup i2c_handle ! true = throw
@@ -59,15 +59,30 @@ object class
 	-6e fswap f+ fdup 10e f*
 	f>d d>s
 	i2c_handle @ bbbi2cclose true = throw ;m method read-humd
-    public
-    m: ( i2c -- temp nflag )
-	( f: -- temp )
-	this ['] read-temp catch dup 0 <>
-	if 0e then ;m method temperature
-    m: ( i2c -- humd nflag )
-	( f: -- humd )
-	this ['] read-humd catch dup 0 <>
-	if 0e then ;m method humidity
+    m: ( i2c -- temp humd nflag )
+	this read-temp drop 
+	this read-humd drop   \ this is non corrected humidity value
+	fswap fdup 10e f* f>d d>s
+	fdup 25e f-
+	frot frot fover fover
+	f/ 3 fpick
+	f* fswap fdrop f+
+	fswap fdrop
+	10e f* f>d d>s            \ the correction for humidity value is now finished
+	;m method read-th
+  public
+    m: ( i2c -- temp humd nflag ) \ if nflag is false temp and humd values are valid
+	\ Note temp and humd values need to be divided by 10 for correct values!
+	this ['] read-th catch dup 0 <>
+	if swap drop 0 swap 0 swap then ;m method read-temp-humd
+    m: ( i2c -- ) \ display temp and humidity values
+	this ['] read-th catch 0 <>
+	if
+	    cr ." i2c reading failure of some kind!" cr
+	else
+	     cr ." H(%rh): " s>f 10e f/ 4 1 1 f.rdp cr
+	    ." T(c): " s>f 10e f/ 4 1 1 f.rdp cr
+	then ;m method display-th
     m: ( i2c -- ) \ start all values for i2c usage and htu21d config
 	0 i2c_handle !
 	0x40 htu21d_addr !
@@ -79,5 +94,5 @@ object class
 end-class htu21d-i2c
 
 htu21d-i2c heap-new constant test
-test temperature . . f.
-test humidity . . f.
+test display-th
+test read-temp-humd . . . cr
