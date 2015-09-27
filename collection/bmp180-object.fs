@@ -16,4 +16,23 @@
 
 
 require BBB_I2C_lib.fs
+require ../BBB_Gforth_gpio/BBB_I2C_lib.fs
 
+object class
+    cell% inst-var ac1  \ signed
+    cell% inst-var ac2  \ signed
+    cell% inst-var ac3  \ signed
+    cell% inst-var ac4  \ unsigned
+    cell% inst-var ac5  \ unsigned
+    cell% inst-var ac6  \ unsigned
+    cell% inst-var b1   \ signed
+    cell% inst-var b2   \ signed
+    cell% inst-var mb   \ signed
+    cell% inst-var mc   \ signed
+    cell% inst-var md   \ signed
+    cell% inst-value i2c-handle
+    cell% inst-var buff \ used as a 3 byte buffer
+
+
+
+end-class bmp180-i2c
