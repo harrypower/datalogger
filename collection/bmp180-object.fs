@@ -43,35 +43,53 @@ object class
     inst-value i2c-handle
     char% 3 * inst-var buff 
     char% EEprom_size * inst-var eeprom-data
+    inst-value ut
+    inst-value up
 
+    m: ( nindex bmp180 -- nsigned-cal ) \ retreave signed calibration value
+	dup 1 + eeprom-data + c@ swap eeprom-data + c@ 0x100 * + 0x1000 * 0x10000 / ;m method getsigned-calvalue
+    m: ( nindex bmp180 -- nunsigned-cal ) \ retrieve unsigned calibration value
+	dup 1 + eeprom-data + c@ swap eeprom-data + c@ 0x100 * + ;m method getunsigned-calvalue
     m:  ( bmp180 -- )
+	\ open i2c sensor channel and read eeprom
 	i2cbus BMP180ADDR bbbi2copen dup 0 = throw [to-inst] i2c-handle
 	i2c-handle CMD_READ_CALIBRATION bbbi2cwrite-b throw
-	i2c-handle eeprom-data EEprom_size bbbi2cread 0 = throw ;m method handle+eeprom
-    m: ( nindex bmp180 -- cdata ) \ retreave nindex byte from eeprom-data
-	eeprom-data @ + c@ ;m method eeprom@
-    m: ( nindex bmp180 -- nsigned-cal ) \ retreaves the signed calibration value
-	dup 1 + eeprom@ swap eeprom@ 0x100 * + 0x1000 * 0x10000 / ;m method getsigned-calvalue
-    m: ( nindex bmp180 -- nunsigned-cal )
-	dup 1 + eeprom@ swap eeprom@ 0x100 * + ;m method getunsigned-calvalue
-    m: ( bmp180 -- ) 
-	0  getsigned-calvalue   ac1 !
-	2  getsigned-calvalue   ac2 !
-	4  getsigned-calvalue   ac3 !
-	6  getunsigned-calvalue ac4 !
-	8  getunsigned-calvalue ac5 !
-	10 getunsigned-calvalue ac6 !
-	12 getsigned-calvalue   b1 !
-	14 getsigned-calvalue   b2 !
-	16 getsigned-calvalue   mb !
-	18 getsigned-calvalue   mc !
-	20 getsigned-calvalue   md ! ;m method calvalues!
-    m: this handle+eeprom
-	this calvalues! ;m method startit
-   
+	i2c-handle eeprom-data EEprom_size bbbi2cread 0 = throw 
+	\ put eeprom data in variables
+	0  this getsigned-calvalue   ac1 !
+	2  this getsigned-calvalue   ac2 !
+	4  this getsigned-calvalue   ac3 !
+	6  this getunsigned-calvalue ac4 !
+	8  this getunsigned-calvalue ac5 !
+	10 this getunsigned-calvalue ac6 !
+	12 this getsigned-calvalue   b1 !
+	14 this getsigned-calvalue   b2 !
+	16 this getsigned-calvalue   mb !
+	18 this getsigned-calvalue   mc !
+	20 this getsigned-calvalue   md ! 
+        \ read uncompensated temperature
+	0xf4 buff c!
+	0x2e buff 1 + c!
+	i2c-handle buff 2 bbbi2cwrite 0 = throw
+	6 ms
+	i2c-handle 0xf6 bbbi2cwrite-b throw
+	i2c-handle buff 2 bbbi2cread 0 = throw
+	buff c@ 8 lshift buff 1 + c@ or [to-inst] ut 
+        \ read uncompensated pressure
+	0xf4 buff c!
+	0x34 OVERSAMPLING_ULTRA_LOW_POWER 6 lshift + buff 1 + c!
+	i2c-handle buff 2 bbbi2cwrite 0 = throw
+	OVERSAMPLING_ULTRA_LOW_POWER 1 + 10 * ms
+	i2c-handle 0xf6 bbbi2cwrite-b throw
+	i2c-handle buff 3 bbbi2cread 0 = throw
+	buff c@ 16 lshift buff 1 + c@ 8 lshift or buff 2 + c@ or
+	8 OVERSAMPLING_ULTRA_LOW_POWER - rshift [to-inst] up 
+	\ close i2c channel
+	i2c-handle bbbi2cclose throw ;m method doreading
+    
   public
     m: ( bmp180 -- )
-	this startit
+	this doreading
 	." ac1:" ac1 @ . cr
 	." ac2:" ac2 @ . cr
 	." ac3:" ac3 @ . cr
@@ -82,7 +100,10 @@ object class
 	." b2:" b2 @ . cr
 	." mb:" mb @ . cr
 	." mc:" mc @ . cr
-	." md:" md @ . cr ;m method printcal
+	." md:" md @ . cr
+	." ut:" ut . cr
+	." up:" up . cr
+    ;m method printcal
     m: ( bmp180 -- ) \ default values to start talking to bmp180 sensor
 	0 ac1 !
 	0 ac2 !
