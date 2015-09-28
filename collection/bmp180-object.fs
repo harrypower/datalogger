@@ -45,6 +45,11 @@ object class
     char% EEprom_size * inst-var eeprom-data
     inst-value ut
     inst-value up
+    cell% inst-var x1
+    cell% inst-var x2
+    cell% inst-var b5
+    cell% inst-var t
+    cell% inst-var deg
 
     m: ( nindex bmp180 -- nsigned-cal ) \ retreave signed calibration value
 	dup 1 + eeprom-data + c@ swap eeprom-data + c@ 0x100 * + 0x1000 * 0x10000 / ;m method getsigned-calvalue
@@ -85,7 +90,17 @@ object class
 	buff c@ 16 lshift buff 1 + c@ 8 lshift or buff 2 + c@ or
 	8 OVERSAMPLING_ULTRA_LOW_POWER - rshift [to-inst] up 
 	\ close i2c channel
-	i2c-handle bbbi2cclose throw ;m method doreading
+	i2c-handle bbbi2cclose throw
+	\ compensate temperature
+	ut ac6 @ -
+	ac5 @
+	32768 */ x1 !
+	mc @  2048
+	x1 @ md @ + */ x2 !
+	x1 @ x2 @ + b5 !
+	b5 @ 8 + 16 / t !
+	t @ deg !
+    ;m method doreading
     
   public
     m: ( bmp180 -- )
@@ -103,6 +118,7 @@ object class
 	." md:" md @ . cr
 	." ut:" ut . cr
 	." up:" up . cr
+	." deg:" deg @ . cr
     ;m method printcal
     m: ( bmp180 -- ) \ default values to start talking to bmp180 sensor
 	0 ac1 !
