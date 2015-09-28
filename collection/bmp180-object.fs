@@ -44,7 +44,45 @@ object class
     char% 3 * inst-var buff 
     char% EEprom_size * inst-var eeprom-data
 
+    m:  ( bmp180 -- )
+	i2cbus BMP180ADDR bbbi2copen dup 0 = throw [to-inst] i2c-handle
+	i2c-handle CMD_READ_CALIBRATION bbbi2cwrite-b throw
+	i2c-handle eeprom-data EEprom_size bbbi2cread 0 = throw ;m method handle+eeprom
+    m: ( nindex bmp180 -- cdata ) \ retreave nindex byte from eeprom-data
+	eeprom-data @ + c@ ;m method eeprom@
+    m: ( nindex bmp180 -- nsigned-cal ) \ retreaves the signed calibration value
+	dup 1 + eeprom@ swap eeprom@ 0x100 * + 0x1000 * 0x10000 / ;m method getsigned-calvalue
+    m: ( nindex bmp180 -- nunsigned-cal )
+	dup 1 + eeprom@ swap eeprom@ 0x100 * + ;m method getunsigned-calvalue
+    m: ( bmp180 -- ) 
+	0  getsigned-calvalue   ac1 !
+	2  getsigned-calvalue   ac2 !
+	4  getsigned-calvalue   ac3 !
+	6  getunsigned-calvalue ac4 !
+	8  getunsigned-calvalue ac5 !
+	10 getunsigned-calvalue ac6 !
+	12 getsigned-calvalue   b1 !
+	14 getsigned-calvalue   b2 !
+	16 getsigned-calvalue   mb !
+	18 getsigned-calvalue   mc !
+	20 getsigned-calvalue   md ! ;m method calvalues!
+    m: this handle+eeprom
+	this calvalues! ;m method startit
+   
   public
+    m: ( bmp180 -- )
+	this startit
+	." ac1:" ac1 @ . cr
+	." ac2:" ac2 @ . cr
+	." ac3:" ac3 @ . cr
+	." ac4:" ac4 @ . cr
+	." ac5:" ac5 @ . cr
+	." ac6:" ac6 @ . cr
+	." b1:" b1 @ . cr
+	." b2:" b2 @ . cr
+	." mb:" mb @ . cr
+	." mc:" mc @ . cr
+	." md:" md @ . cr ;m method printcal
     m: ( bmp180 -- ) \ default values to start talking to bmp180 sensor
 	0 ac1 !
 	0 ac2 !
