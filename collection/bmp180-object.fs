@@ -15,10 +15,20 @@
 \    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-require BBB_I2C_lib.fs
+require objects.fs
 require ../BBB_Gforth_gpio/BBB_I2C_lib.fs
 
 object class
+  protected
+    22      constant EEprom_size      \ the size of calibration data eeprom on bmp180 device in bytes
+    0x77    constant BMP180ADDR  \ I2C address of BMP180 device
+    0xF6    constant CMD_READ_VALUE
+    0xAA    constant CMD_READ_CALIBRATION
+    0       constant OVERSAMPLING_ULTRA_LOW_POWER \ these are the sampling constants !
+    1       constant OVERSAMPLING_STANDARD
+    2       constant OVERSAMPLING_HIGH_RESOLUTION
+    3       constant OVERSAMPLING_ULTRA_HIGH_RESOLUTION
+    1       constant i2cbus  \ note this is the linux enumerated i2c address but physically it is i2c2 not i2c1
     cell% inst-var ac1  \ signed
     cell% inst-var ac2  \ signed
     cell% inst-var ac3  \ signed
@@ -30,9 +40,27 @@ object class
     cell% inst-var mb   \ signed
     cell% inst-var mc   \ signed
     cell% inst-var md   \ signed
-    cell% inst-value i2c-handle
-    cell% inst-var buff \ used as a 3 byte buffer
+    inst-value i2c-handle
+    char% 3 * inst-var buff 
+    char% EEprom_size * inst-var eeprom-data
 
+  public
+    m: ( bmp180 -- ) \ default values to start talking to bmp180 sensor
+	0 ac1 !
+	0 ac2 !
+	0 ac3 !
+	0 ac4 !
+	0 ac5 !
+	0 ac6 !
+	0 b1 !
+	0 b2 !
+	0 mb !
+	0 mc !
+	0 md !
+	0 [to-inst] i2c-handle 
+	buff 3 erase
+	eeprom-data EEprom_size erase
+    ;m overrides construct
 
 
 end-class bmp180-i2c
