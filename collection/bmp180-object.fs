@@ -47,13 +47,21 @@ object class
     inst-value up
     cell% inst-var x1
     cell% inst-var x2
-    cell% inst-var b5
+    cell% inst-var x3
+    cell% inst-var b3
+    cell% inst-var b4
+    cell% inst-var b5    
+    cell% inst-var b6
+    cell% inst-var b7
     cell% inst-var t
-    cell% inst-var deg
+    cell% inst-var p
+    cell% inst-var pa
 
-    m: ( nindex bmp180 -- nsigned-cal ) \ retreave signed calibration value
-	dup 1 + eeprom-data + c@ swap eeprom-data + c@ 0x100 * + 0x1000 * 0x10000 / ;m method getsigned-calvalue
+    m: ( nindex bmp180 -- nsigned-cal ) \ retrieve signed calibration value
+	\ note this method of eeprom bytes to a number only works on 32 bit BBB
+	dup 1 + eeprom-data + c@ swap eeprom-data + c@ 0x100 * + 0x10000 * 0x10000 / ;m method getsigned-calvalue
     m: ( nindex bmp180 -- nunsigned-cal ) \ retrieve unsigned calibration value
+	\ note this method of eeprom bytes to a number only works on 32 bit BBB
 	dup 1 + eeprom-data + c@ swap eeprom-data + c@ 0x100 * + ;m method getunsigned-calvalue
     m:  ( bmp180 -- )
 	\ open i2c sensor channel and read eeprom
@@ -90,7 +98,7 @@ object class
 	buff c@ 16 lshift buff 1 + c@ 8 lshift or buff 2 + c@ or
 	8 OVERSAMPLING_ULTRA_LOW_POWER - rshift [to-inst] up 
 	\ close i2c channel
-	i2c-handle bbbi2cclose throw
+	i2c-handle bbbi2cclose throw  
 	\ compensate temperature
 	ut ac6 @ -
 	ac5 @
@@ -99,18 +107,51 @@ object class
 	x1 @ md @ + */ x2 !
 	x1 @ x2 @ + b5 !
 	b5 @ 8 + 16 / t !
-	t @ deg !
+	\ compensate pressure
+	b5 @ 4000 - b6 !
+	b6 @ dup  4096 */ b2 @ 2048 */ x1 !
+	ac2 @ b6 @ 2048 */ x2 !
+	x2 @ x1 @ + x3 !
+	ac1 @ 4 * x3 @ + OVERSAMPLING_ULTRA_LOW_POWER lshift 2 + 4 / b3 !
+	ac3 @ b6 @ * 8192 / x1 !
+	b1 @ b6 @ dup * 4096 / * 65536 / x2 !
+	x1 @ x2 @ + 2 + 4 / x3 !
+	ac4 @ x3 @ 32768 + 32768 */ b4 !
+	up b3 @ - 50000 OVERSAMPLING_ULTRA_LOW_POWER rshift m* d>s b7 !
+	b7 @ 0 <
+	if
+	    b7 @ 1 lshift b4 @ /
+	else
+	    b7 @ b4 @ / 2 *
+	then p !
+	p @ 256 / dup * x1 !
+	x1 @ 3038 * 65536 / x1 !
+	-7358 p @ m* 65536 sm/rem swap drop x2 !
+	x1 @ x2 @ + 3791 + 16 / p @ + pa !
     ;m method doreading
     
   public
+    m: ( bmp180 -- temp humd nflag ) \ get temperature and pressure values 
+	this ['] doreading catch dup 0 <>
+	if swap drop 0 swap 0 swap
+	else t @ swap pa @ swap
+	then ;m method read-temp-pressure
+    m: ( bmp180 -- ) \ display temp and pressure values
+	this ['] doreading catch dup 0 <>
+	if
+	    ." This numbered error occured during BMP180 device communications: " . cr
+	else
+	    drop cr ." Pressure(pa): " pa @ . cr
+	    ." Temperature(c): " t @ s>f 10e f/ 4 1 1 f.rdp cr
+	then ;m method display-tp
     m: ( bmp180 -- )
 	this doreading
 	." ac1:" ac1 @ . cr
 	." ac2:" ac2 @ . cr
 	." ac3:" ac3 @ . cr
-	." ac4:" ac4 @ . cr
-	." ac5:" ac5 @ . cr
-	." ac6:" ac6 @ . cr
+	." ac4:" ac4 @ u. cr
+	." ac5:" ac5 @ u. cr
+	." ac6:" ac6 @ u. cr
 	." b1:" b1 @ . cr
 	." b2:" b2 @ . cr
 	." mb:" mb @ . cr
@@ -118,7 +159,8 @@ object class
 	." md:" md @ . cr
 	." ut:" ut . cr
 	." up:" up . cr
-	." deg:" deg @ . cr
+	." deg:" t @ . cr
+	." pa:" pa @ . cr
     ;m method printcal
     m: ( bmp180 -- ) \ default values to start talking to bmp180 sensor
 	0 ac1 !
