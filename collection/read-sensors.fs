@@ -16,33 +16,33 @@
 
 \ Currently this code just runs other tools that get the sensors data.
 
-warnings off
+\ warnings off
 
 require gforth-misc-tools.fs
 require stringobj.fs
 require script.fs
 
 variable junk$
-variable sudo$
-s" sudo " sudo$ $!
+\ variable sudo$
+\ s" sudo " sudo$ $!
 
 strings heap-new constant cmdlist
 
-sudo$ $@ junk$ $!
-path$ $@ junk$ $+!
+\ sudo$ $@ junk$ $!
+path$ $@ junk$ $! \ $+!
 s" /BBB_Gforth_gpio/BMP180_i2c.fs" junk$ $+!
 junk$ $@ cmdlist !$x  \ pressure sensor
 
-sudo$ $@ junk$ $!
-path$ $@ junk$ $+!
+\ sudo$ $@ junk$ $!
+path$ $@ junk$ $! \ $+!
 s" /BBB_Gforth_gpio/HTU21D_i2c.fs" junk$ $+!
 junk$ $@ cmdlist !$x  \ humidity tempertaure sensor
 
- sudo$ $@ junk$ $!
- s" node " junk$ $+!
- path$ $@ junk$ $+!
- s" /collection/gas-reading.js" junk$ $+!
- junk$ $@ cmdlist !$x  \ gas sensors
+\ sudo$ $@ junk$ $!
+s" node " junk$ $! \ $+!
+path$ $@ junk$ $+!
+s" /collection/gas-reading.js" junk$ $+!
+junk$ $@ cmdlist !$x  \ gas sensors
 
 : read+print ( -- )
     cmdlist $qty 0 ?do cmdlist @$x shget throw type s" <br>" type  loop ;

@@ -22,6 +22,7 @@ require script.fs
 
 string heap-new constant shlast$
 
+\ this next word is needed to prevent system defunct processes when using sh-get from script.fs
 : shgets ( caddr u -- caddr1 u1 nflag ) \ like shget but will not produce defunct processes
     TRY   \ nflag is false the addr1 u1 is the result string from the sh command
 	  \ nflag is true could mean memory was not allocated for this command or sh command failed
