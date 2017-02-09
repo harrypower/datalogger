@@ -47,7 +47,7 @@ s" datalogged" dbbackupname$ $!
 : checkusb? ( -- nflag ) \  nflag will be true a usb drive mounted and false for no drive mounted !
     s" df -h " shget 0=
     if
-	s" usb0" search swap drop swap drop
+	mount_name $@ search swap drop swap drop
 	if true
 	else false
 	then
