@@ -1,4 +1,7 @@
-#! /usr/bin/gforth
+#! /usr/local/bin/gforth
+\ the above line works on 0.7.3 gforth and up
+\ #! /usr/bin/gforth
+\ version 0.7.0 has the /local removed from the path to work
 
 \ This Gforth code is a Raspberry Pi usb drive mount and backup for datalogging
 \    Copyright (C) 2014  Philip K. Smith
@@ -56,7 +59,7 @@ s" datalogged" dbbackupname$ $!
     s" /dev/sda1" filetest
     if  s" sudo mount /dev/sda1 " junk$ $! mount_name$ $@ junk$ $+! s"  -o nofail,sync,noexec " junk$ $+! junk$ $@ system $? 0=
 	if
-	    checkusb? 
+	    checkusb?
 	    if  true
 	    else false
 	    then
@@ -76,24 +79,24 @@ s" datalogged" dbbackupname$ $!
     else  false
     then ;
 
-: unmount_do ( -- ) \ trys to unmount the usb0 drive 3 times 
+: unmount_do ( -- ) \ trys to unmount the usb0 drive 3 times
     3 0 ?do
-	umountdev true = 
+	umountdev true =
 	if leave then
     loop ;
 
 : copydb ( --  ) \ copies the db file onto the usb0 that should be mounted.
     \ makes the file name have extention of yearmonthdayhour
     s" sudo cp -u " junk$ $! db-path$ $@ junk$ $+! s"  " junk$ $+! mount_name$ $@ junk$ $+! s" /" junk$ $+!
-    dbbackupname$ $@ junk$ $+! s" ." junk$ $+! 
-    time&date s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! 2drop 
+    dbbackupname$ $@ junk$ $+! s" ." junk$ $+!
+    time&date s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! s>d dto$ junk$ $+! 2drop
     junk$ $@ system ;
 
-    
+
 : mount&copy ( -- ) \ trys to mount the usb drive then copy db file then unmount drive
     checkusb? false =
     if
-	finddev? drop 
+	finddev? drop
     then
     checkusb? true =
     if
