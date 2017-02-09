@@ -28,7 +28,7 @@
 warnings off
 require string.fs
 require ./script.fs
-require db-stuff.fs
+require ./db-stuff.fs
 \ require sqlite3-stuff.fs
 
 variable junk$
