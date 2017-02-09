@@ -267,7 +267,7 @@ errordatatest true = if
 : lastlocaldata@ ( -- ncaddr u ) \ simply output a string of the last data point stored in localData table
     setupsqlite3
     s" select row,datetime(dtime,'unixepoch','localtime'),temp,humd,pressure,co2,nh3,dataSent " temp$ !$
-    s" from localData limit 1 offset ((select max(row) from localData)-1);" temp$ !+$
+    s" from localData where row = (select max(row) from localData);" temp$ !+$
     temp$ @$ dbcmds sendsqlite3cmd dberrorthrow dbret$ ;
 
 : nlastlocaldata@ ( uqty -- ncaddr u ) \ retrieve nqty rows from local database taking rows from last row first
