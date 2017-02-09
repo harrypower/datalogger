@@ -29,11 +29,10 @@ warnings off
 require string.fs
 require ./script.fs
 require ./db-stuff.fs
-\ require sqlite3-stuff.fs
 
 variable junk$
 variable mount_name$
-s" /mnt/usb0" mount_name$ $!
+s" /mnt" mount_name$ $!
 
 variable dbbackupname$
 
@@ -106,4 +105,4 @@ s" datalogged" dbbackupname$ $!
     \ unmount_do
 ;
 
-mount&copy bye
+\ mount&copy bye
