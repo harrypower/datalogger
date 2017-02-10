@@ -103,4 +103,4 @@ s" datalogged" dbbackupname$ $!
     copydb
   then ;
 
-\ mount&copy bye
+mount&copy bye
